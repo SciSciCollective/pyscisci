@@ -36,13 +36,13 @@ def compute_yearly_cnorm(database, citations):
 
     # aggregate citations by year
     year2citations = defaultdict(list)
-    for cite in cition_pubs:
+    for cite in citation_pubs:
         year2citations[cite.year].append(cite)
 
     yearly_cnorm = defaultdict(float)
     for year, yearly_citation_list in year2citations.items():
         yearly_cocitation = set(ref for pub in yearly_citation_list for ref in pub.references)
-        yearly_cnorm[year] = float(len(year2citations[year])) / mean(ref.yearly_citations.get(year, 0) for ref in yearly_cocitation)
+        yearly_cnorm[year] = float(len(year2citations[year])) / mean(database.get_pub(ref).yearly_citations.get(year, 0) for ref in yearly_cocitation)
 
     return yearly_cnorm
 
