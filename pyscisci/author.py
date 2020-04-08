@@ -6,12 +6,14 @@
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
  """
 
-from collections import Counter
+from collections import Counter, defaultdict
+
+from .publicationcollection import PublicationCollection
 
 from .metrics.hindex import compute_hindex
 
 
-class Author(object):
+class Author(PublicationCollection):
     """
     Base class for authors.
 
@@ -25,105 +27,37 @@ class Author(object):
 
         self.database = database
 
-        self.id = 0
-        self.fullname = ''
-        self.lastname = ''
-        self.firstname = ''
-        self.publications = []
-
-        self.reset_properties()
+        self.from_dict({})
 
 
-    def reset_properties(self, authordict = {}):
+    def reset_properties(self, author_dict = {}):
 
-        self._start_year = authordict.get('_start_year', None)
-        self._end_year = authordict.get('_end_year', None)
-        self._publication_years = authordict.get('_publication_years', None)
+        self.reset_collection_properties(author_dict)
 
-        self._career_length = authordict.get('_career_length', None)
-        self._total_productivity = authordict.get('_total_productivity', None)
-        self._yearly_productivity = authordict.get('_yearly_productivity', None)
-        self._annual_productivity = authordict.get('_annual_productivity', None)
+        self._author_timeline = author_dict.get('_author_timeline', None)
+        self._hindex = author_dict.get('_hindex', None)
+        self._coauthorship = author_dict.get('_coauthorship', None)
 
-        self._total_citations = authordict.get('_total_citations', None)
-        self._yearly_citations = authordict.get('_yearly_citations', None)
-        self._cummulative_citations = authordict.get('_cummulative_citations', None)
-        self._author_timeline = authordict.get('_author_timeline', None)
-        self._hindex = authordict.get('_hindex', None)
+    def from_dict(self, author_dict):
 
-    def from_dict(self, authordict):
+        self.id = author_dict.get('id', 0)
+        self.fullname = author_dict.get('fullname', '')
+        self.lastname = author_dict.get('lastname', '')
+        self.firstname = author_dict.get('firstname', '')
+        self.middlename = author_dict.get('middlename', '')
 
-        self.id = authordict.get('id', 0)
-        self.fullname = authordict.get('fullname', '')
-        self.lastname = authordict.get('lastname', '')
-        self.firstname = authordict.get('id', '')
+        self.metadata = author_dict.get('metadata', None)
 
-        self.publications = authordict.get('publications', [])
+        self.publications = author_dict.get('publications', [])
+        self.affiliation2pub = author_dict.get('affiliation2pub', defaultdict(set))
+
+        self.reset_properties(author_dict)
 
         return self
 
-    @property
-    def publication_years(self):
-        if self._publication_years is None:
-            self._publication_years = sorted(set(self.database.get_pub(pub).year for pub in self.publications))
-
-        return self._publication_years
-
-    @property
-    def start_year(self):
-        if self._start_year is None:
-            self._start_year = min(self.publication_years)
-        return self._start_year
-
-    @property
-    def end_year(self):
-        if self._end_year is None:
-            self._end_year = max(self.publication_years)
-        return self._end_year
-
-    @property
-    def career_length(self):
-        if self._career_length is None:
-            self._career_length = self.end_year - self.start_year + 1
-        return self._career_length
-
-    @property
-    def total_productivity(self):
-        if self._total_productivity is None:
-            self._total_productivity = len(self.publications)
-        return self._total_productivity
-
-    @property
-    def yearly_productivity(self):
-        if self._yearly_productivity is None:
-            self._yearly_productivity = Counter(self.database.get_pub(pub).year for pub in self.publications)
-        return self._yearly_productivity
-
-    @property
-    def annual_productivity(self):
-        if self._annual_productivity is None:
-            self._annual_productivity = self.total_productivity / self.career_length
-        return self._annual_productivity
-
-    @property
-    def total_citations(self):
-        if self._total_citations is None:
-            self._total_citations = sum(self.database.get_pub(pub).total_citations for pub in self.publications)
-        return self._total_citations
-
-    @property
-    def yearly_citations(self):
-        if self._yearly_citations is None:
-            self._yearly_citations = sum((self.database.get_pub(pub).yearly_citations for pub in self.publications), Counter())
-        return self._yearly_citations
-
-    @property
-    def cummulative_yearly_citations(self):
-        if self._cummulative_citations is None:
-            self._cummulative_citations = {}
-            for y in range(self.start_year, max(self.yearly_citations.keys()) + 1):
-                self._cummulative_citations[y] = self.yearly_citations.get(y, 0) + self._cummulative_citations.get(y-1, 0.0)
-        return self._cummulative_citations
+    def add_publication(self, pubid):
+        if not pubid in self.publications:
+            self.publications.append(pubid)
 
     @property
     def author_timeline(self):
@@ -140,4 +74,13 @@ class Author(object):
         if self._hindex is None:
             self._hindex = compute_hindex(self.database, self.publications)
         return self._hindex
+
+    @property
+    def coauthor_weights(self):
+        if self._coauthorship is None:
+            self._coauthorship = Counter(a for p in self.publications for a in p.authors)
+            if not self._coauthorship.get(self.id, None) is None:
+                del self._coauthorship[self.id]
+        return self._coauthorship
+
 

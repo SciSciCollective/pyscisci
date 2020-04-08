@@ -9,15 +9,14 @@ import json
 
 from .publication import Publication
 from .author import Author
+from .journal import Journal
+from .affiliation import Affiliation
+from .dataset_interface.mag_interface import *
 
 
 class BibDatabase(object):
     """
     Base class for bibliometric data.
-
-    :param dict elm2clu_dict: optional
-        Initialize based on an elm2clu_dict: { elementid: [clu1, clu2, ... ] }.
-        The value is a list of clusters to which the element belongs.
 
     """
 
@@ -26,6 +25,10 @@ class BibDatabase(object):
         self._pubdict = dict([])
 
         self._authordict = dict([])
+
+        self._journaldict = dict([])
+
+        self._affiliationdict = dict([])
 
         self.reset_properties()
 
@@ -66,6 +69,18 @@ class BibDatabase(object):
             for line in authorfile:
                 self.add_author(Author(self).from_dict(json.loads(line)))
 
+    def get_journal(self, journalid):
+        return self._journaldict.get(journalid, Journal(self))
+
+    def add_jouranl(self, journalobject):
+        self._journaldict[journalobject.id] = journalobject
+
+    def get_affiliation(self, affiliationid):
+        return self._journaldict.get(affiliationid, Affiliation(self))
+
+    def add_jouranl(self, journalobject):
+        self._journaldict[journalobject.id] = journalobject
+
     @property
     def n_publications(self):
         return len(self._pubdict)
@@ -73,6 +88,10 @@ class BibDatabase(object):
     @property
     def n_authors(self):
         return len(self._authordict)
+
+    @property
+    def n_affiliations(self):
+        return len(self._affiliationdict)
 
     @property
     def publication_ids(self):
@@ -97,4 +116,14 @@ class BibDatabase(object):
         if self._end_year is None:
             self._end_year = max(self.publication_years)
         return self._end_year
+
+
+    def publication_generator(self):
+        for pubobject in self._pubdict.values():
+            return pubobject
+
+    def author_generator(self):
+        for author in self._authordict.values():
+            return author
+
 

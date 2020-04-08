@@ -21,18 +21,11 @@ class Publication(object):
 
     """
 
-    def __init__(self, database):
+    def __init__(self, database, pubdict = {}):
 
         self.database = database
 
-        self.id = 0
-        self.year = 0
-        self.sort_date = ''
-        self.title = ''
-        self.journal = ''
-        self.authors = []
-        self.references = []
-        self.citations = []
+        self.from_dict(pubdict)
 
         self.reset_properties()
 
@@ -48,17 +41,25 @@ class Publication(object):
     def from_dict(self, pubdict):
 
         self.id = pubdict.get('id', 0)
-        self.year = pubdict.get('year', 0)
-        self.sort_date = pubdict.get('sort_date', '0001-01-01')
-        self.title = pubdict.get('title', '')
-        self.journal = pubdict.get('journal', '')
+        self.year = pubdict.get('year', None)
+        self.sort_date = pubdict.get('sort_date', None)
+        self.title = pubdict.get('title', None)
+        self.journal = pubdict.get('journal', None)
         self.authors = pubdict.get('authors', [])
         self.references = pubdict.get('references', [])
         self.citations = pubdict.get('citations', [])
+        self.doctype = pubdict.get('doctype', [])
+        self.volume = pubdict.get('volume', None)
+        self.issue = pubdict.get('issue', None)
+        self.pages = pubdict.get('pages', None)
 
         self.reset_properties(pubdict)
 
         return self
+
+    @property
+    def team_size(self):
+        return len(self.authors)
 
     @property
     def total_citations(self):

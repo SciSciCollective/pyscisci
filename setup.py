@@ -26,7 +26,8 @@ setup(name=__package__,
             'numpy',
             'scipy',
             'networkx',
-            'python-igraph'
+            'python-igraph',
+            'nameparser'
       ],
       include_package_data=True
       )
