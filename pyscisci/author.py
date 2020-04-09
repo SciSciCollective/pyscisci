@@ -23,11 +23,11 @@ class Author(PublicationCollection):
 
     """
 
-    def __init__(self, database):
+    def __init__(self, database, author_dict = {}):
 
         self.database = database
 
-        self.from_dict({})
+        self.from_dict(author_dict)
 
 
     def reset_properties(self, author_dict = {}):

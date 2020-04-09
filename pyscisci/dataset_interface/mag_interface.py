@@ -9,15 +9,14 @@
 import os
 from nameparser import HumanName
 
-from .publication import Publication
-from .author import Author
-from .journal import Journal
-from .affiliaion import Affiliation
+from pyscisci.publication import Publication
+from pyscisci.author import Author
+from pyscisci.journal import Journal
+from pyscisci.affiliation import Affiliation
 
 from .utils import load_long, load_str, load_int, load_float
 
-default_filenames =
-    {
+default_filenames = {
     'affiliaions' : ('mag/Affiliations.txt', ['AffiliationId', 'Rank', 'NormalizedName', 'DisplayName', 'GridId', 'OfficialPage', 'WikiPage', 'PaperCount', 'CitationCount:long', 'Latitude', 'Longitude:float?', 'CreatedDate:DateTime']),
     'authors' : ('mag/Authors.txt', ['AuthorId', 'Rank', 'NormalizedName', 'DisplayName', 'LastKnownAffiliationId', 'PaperCount:long', 'CitationCount:long', 'CreatedDate:DateTime']),
     'ConferenceInstances' : ('mag/ConferenceInstances.txt', ['ConferenceInstanceId:long', 'NormalizedName', 'DisplayName:string', 'ConferenceSeriesId:long', 'Location:string', 'OfficialUrl:string', 'StartDate:DateTime?', 'EndDate:DateTime?', 'AbstractRegistrationDate:DateTime?', 'SubmissionDeadlineDate:DateTime?', 'NotificationDueDate:DateTime?', 'FinalVersionDueDate:DateTime?', 'PaperCount:long', 'CitationCount:long', 'Latitude:float?', 'Longitude:float?', 'CreatedDate:DateTime']),
