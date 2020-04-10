@@ -52,6 +52,9 @@ class Publication(object):
         self.volume = pubdict.get('volume', None)
         self.issue = pubdict.get('issue', None)
         self.pages = pubdict.get('pages', None)
+        self.abstract = pubdict.get('abstract', None)
+
+        self.metadata = pubdict.get('metadata', None)
 
         self.reset_properties(pubdict)
 
