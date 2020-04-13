@@ -54,7 +54,7 @@ class Publication(object):
         self.pages = pubdict.get('pages', None)
         self.abstract = pubdict.get('abstract', None)
 
-        self.metadata = pubdict.get('metadata', None)
+        self.metadata = pubdict.get('metadata', {})
 
         self.reset_properties(pubdict)
 

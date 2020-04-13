@@ -36,7 +36,7 @@ def compute_novelty(database, scratch_path = '', n_samples = 10):
            DOI: xxx
     """
 
-    database_table, int2journal = create_database_table(database)
+    database_table, int2journal = create_journalcitation_table(database)
 
     for isample in range(n_samples):
         database_table = database_table.groupby(['CitingYear', 'CitedYear'], sort=False)['CitedJournal'].transform(np.random.permutation)
@@ -45,7 +45,7 @@ def compute_novelty(database, scratch_path = '', n_samples = 10):
 def get_scratch_path():
     return default_scratch_path.name
 
-def create_database_table(database):
+def create_journalcitation_table(database):
     infotable = []
     for pub in database.publication_generator():
         for ref in pub.references:

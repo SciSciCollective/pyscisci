@@ -38,7 +38,7 @@ class Affiliation(PublicationCollection):
         self.address = affiliation_dict.get('address', None)
         self.state = affiliation_dict.get('state', None)
 
-        self.metadata = affiliation_dict.get('metadata', None)
+        self.metadata = affiliation_dict.get('metadata', {})
 
         self.collection_from_dict(affiliation_dict)
 

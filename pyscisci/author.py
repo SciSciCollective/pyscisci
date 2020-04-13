@@ -46,7 +46,7 @@ class Author(PublicationCollection):
         self.firstname = author_dict.get('firstname', '')
         self.middlename = author_dict.get('middlename', '')
 
-        self.metadata = author_dict.get('metadata', None)
+        self.metadata = author_dict.get('metadata', {})
 
         self.publications = author_dict.get('publications', [])
         self.affiliation2pub = author_dict.get('affiliation2pub', defaultdict(set))

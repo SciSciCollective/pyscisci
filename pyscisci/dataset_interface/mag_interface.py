@@ -27,7 +27,7 @@ default_filenames = {
     'fields' : ('advanced/FieldsOfStudy.txt', ['FieldOfStudyId', 'Rank', 'NormalizedName', 'DisplayName', 'MainType', 'Level', 'PaperCount:long', 'CitationCount:long', 'CreatedDate:DateTime']),
     'journals' : ('mag/Journals.txt', ['JournalId', 'Rank', 'NormalizedName', 'DisplayName', 'Issn', 'Publisher', 'Webpage:string', 'PaperCount:long', 'CitationCount:long', 'CreatedDate:DateTime']),
     'PaperAbstractsInvertedIndex' : ('nlp/PaperAbstractsInvertedIndex.txt.{*}', ['PaperId:long', 'IndexedAbstract:string']),
-    'publicationauthoraffiliation' : ('mag/PaperAuthorAffiliations.txt', ['PaperId:long', 'AuthorId:long', 'AffiliationId:long?', 'AuthorSequenceNumber:uint', 'OriginalAuthor:string', 'OriginalAffiliation:string']),
+    'publicationauthoraffiliation' : ('mag/PaperAuthorAffiliations.txt', ['PaperId', 'AuthorId', 'AffiliationId', 'AuthorSequenceNumber', 'OriginalAuthor', 'OriginalAffiliation']),
     'PaperCitationContexts' : ('nlp/PaperCitationContexts.txt', ['PaperId', 'PaperReferenceId:long', 'CitationContext:string']),
     'PaperExtendedAttributes' : ('mag/PaperExtendedAttributes.txt', ['PaperId', 'AttributeType:int', 'AttributeValue:string']),
     'paperfields' : ('advanced/PaperFieldsOfStudy.txt', ['PaperId', 'FieldOfStudyId', 'Score']),
@@ -35,17 +35,18 @@ default_filenames = {
     'publicationreferences' : ('mag/PaperReferences.txt', ['PaperId', 'PaperReferenceId']),
     'PaperResources' : ('mag/PaperResources.txt', ['PaperId:long', 'ResourceType:int', 'ResourceUrl:string', 'SourceUrl:string', 'RelationshipType:int']),
     'PaperUrls' : ('mag/PaperUrls.txt', ['PaperId:long', 'SourceType:int?', 'SourceUrl:string', 'LanguageCode:string']),
-    'publications' : ('mag/Papers.txt', ['PaperID', 'Rank', 'Doi', 'DocType', 'PaperTitle', 'OriginalTitle', 'BookTitle:string', 'Year', 'Date', 'Publisher:string', 'JournalId', 'ConferenceSeriesId:long?', 'ConferenceInstanceId:long?', 'Volume', 'Issue', 'FirstPage', 'LastPage', 'ReferenceCount:long', 'CitationCount:long', 'EstimatedCitation:long', 'OriginalVenue:string', 'FamilyId:long?', 'CreatedDate:DateTime']),
+    'publications' : ('mag/Papers.txt', ['PaperId', 'Rank', 'Doi', 'DocType', 'PaperTitle', 'OriginalTitle', 'BookTitle:string', 'Year', 'Date', 'Publisher:string', 'JournalId', 'ConferenceSeriesId:long?', 'ConferenceInstanceId:long?', 'Volume', 'Issue', 'FirstPage', 'LastPage', 'ReferenceCount:long', 'CitationCount:long', 'EstimatedCitation:long', 'OriginalVenue:string', 'FamilyId', 'CreatedDate:DateTime']),
     'RelatedFieldOfStudy' : ('advanced/RelatedFieldOfStudy.txt', ['FieldOfStudyId1:long', 'Type1:string', 'FieldOfStudyId2:long', 'Type2:string', 'Rank:float']),
   }
 
-default_datatypes = {'PaperID':load_long, 'Doi':load_str, 'DocType':load_str, 'PaperTitle':load_str, 'PaperCount':load_long,
+default_datatypes = {'PaperId':load_long, 'Doi':load_str, 'DocType':load_str, 'PaperTitle':load_str, 'PaperCount':load_long,
 'OriginalTitle':load_str, 'AffiliationId':load_long, 'Year':load_int, 'Rank':load_long, 'AuthorId':load_long,
 'JournalId':load_long, 'NormalizedName':load_str, 'FieldOfStudyId':load_long, 'DisplayName':load_str, 'GridId':load_str,
 'OfficialPage':load_str, 'WikiPage':load_str, 'Latitude':load_str, 'Longitude':load_str, 'City':load_str,
 'Country':load_str, 'LastKnownAffiliationId':load_long, 'Issn':load_str, 'ChildFieldOfStudyId':load_long, 'MainType':load_str,
 'Latitude':load_float, 'Longitude':load_float, 'Level':load_int, 'PaperReferenceId':load_long, 'Date':load_str,
-'Volume':load_str, 'Issue':load_str, 'FirstPage':load_str, 'LastPage':load_str, 'Publisher':load_str, 'Score':load_float
+'Volume':load_str, 'Issue':load_str, 'FirstPage':load_str, 'LastPage':load_str, 'Publisher':load_str, 'Score':load_float,
+'FamilyId':load_long
 }
 
 
@@ -85,13 +86,13 @@ def load_mag_authors(database, author_subset = None, path2files = '', filename_d
                     newauthor = get_author_name(sline, newauthor, author_idx)
                 database.add_author()
 
-    paa_idx = {dn:filename_dict['publicationauthoraffiliation'][1].index(dn) for dn in ['PublicationID', 'AuthorId', 'AffiliationId']}
+    paa_idx = {dn:filename_dict['publicationauthoraffiliation'][1].index(dn) for dn in ['PaperId', 'AuthorId', 'AffiliationId']}
     with open(os.path.join(path2files, filename_dict['publicationauthoraffiliation'][0]), 'r') as authorfile:
         for line in authorfile:
             sline = line.replace('\n', '').split('\t')
             authorid = default_datatypes['AuthorId'](sline[paa_idx['AuthorId']])
             if author_subset is None or authorid in author_subset:
-                pubid = default_datatypes['PublicationID'](sline[paa_idx['PublicationID']])
+                pubid = default_datatypes['PaperId'](sline[paa_idx['PaperId']])
                 database.get_author(authorid).add_publication(pubid)
                 if keep_affiliation:
                     affid = default_datatypes['AffiliationId'](sline[paa_idx['AffiliationId']])
@@ -107,14 +108,15 @@ def get_publication_info(sline, newpub, pub_idx):
     newpub.volume = default_datatypes['Volume'](sline[pub_idx['Volume']])
     newpub.issue = default_datatypes['Issue'](sline[pub_idx['Issue']])
     newpub.pages = default_datatypes['FirstPage'](sline[pub_idx['FirstPage']]) + '-' + default_datatypes['LastPage'](sline[pub_idx['LastPage']])
+    newpub.metadata['familyId'] = default_datatypes['FamilyId'](sline[pub_idx['FamilyId']])
     return newpub
 
 def load_mag_pubs(database, publication_subset = None, path2files = '', filename_dict = None, full_info=False):
-    pub_idx = {dn:filename_dict['publications'][1].index(dn) for dn in ['PublicationID', 'Year', 'Doi', 'DocType', 'PaperTitle', 'Date', 'Volume', 'Issue', 'FirstPage', 'LastPage']}
+    pub_idx = {dn:filename_dict['publications'][1].index(dn) for dn in ['PaperId', 'Year', 'Doi', 'DocType', 'PaperTitle', 'Date', 'Volume', 'Issue', 'FirstPage', 'LastPage', 'FamilyId']}
     with open(os.path.join(path2files, filename_dict['publications'][0]), 'r') as pubfile:
         for line in pubfile:
             sline = line.replace('\n', '').split('\t')
-            pubid = default_datatypes['PublicationID'](sline[pub_idx['PublicationID']])
+            pubid = default_datatypes['PaperId'](sline[pub_idx['PaperId']])
             if publication_subset is None or pubid in publication_subset:
                 newpub = Publication(database)
                 newpub.id = pubid
@@ -136,11 +138,11 @@ def load_mag_journals(database, path2files = '', filename_dict=None):
             database.add_journal(newjournal)
 
 def load_mag_references(database, publication_subset = None, path2files = '', filename_dict = None):
-    ref_idx = {dn:filename_dict['publicationreferences'][1].index(dn) for dn in ['PublicationID', 'PaperReferenceId']}
+    ref_idx = {dn:filename_dict['publicationreferences'][1].index(dn) for dn in ['PaperId', 'PaperReferenceId']}
     with open(os.path.join(path2files, filename_dict['publicationreferences'][0]), 'r') as pubreffile:
         for line in pubreffile:
             sline = line.replace('\n', '').split('\t')
-            citingid = default_datatypes['PublicationID'](sline[ref_idx['PublicationID']])
+            citingid = default_datatypes['PaperId'](sline[ref_idx['PaperId']])
             citedid = default_datatypes['PaperReferenceId'](sline[ref_idx['PaperReferenceId']])
             if publication_subset is None:
                 database.get_pub(citingid).references.append(citedid)
