@@ -39,14 +39,14 @@ default_filenames = {
     'RelatedFieldOfStudy' : ('advanced/RelatedFieldOfStudy.txt', ['FieldOfStudyId1:long', 'Type1:string', 'FieldOfStudyId2:long', 'Type2:string', 'Rank:float']),
   }
 
-default_datatypes = {'PaperId':load_long, 'Doi':load_str, 'DocType':load_str, 'PaperTitle':load_str, 'PaperCount':load_long,
-'OriginalTitle':load_str, 'AffiliationId':load_long, 'Year':load_int, 'Rank':load_long, 'AuthorId':load_long,
-'JournalId':load_long, 'NormalizedName':load_str, 'FieldOfStudyId':load_long, 'DisplayName':load_str, 'GridId':load_str,
+default_datatypes = {'PaperId':load_int, 'Doi':load_str, 'DocType':load_str, 'PaperTitle':load_str, 'PaperCount':load_int,
+'OriginalTitle':load_str, 'AffiliationId':load_int, 'Year':load_int, 'Rank':load_int, 'AuthorId':load_int,
+'JournalId':load_int, 'NormalizedName':load_str, 'FieldOfStudyId':load_int, 'DisplayName':load_str, 'GridId':load_str,
 'OfficialPage':load_str, 'WikiPage':load_str, 'Latitude':load_str, 'Longitude':load_str, 'City':load_str,
-'Country':load_str, 'LastKnownAffiliationId':load_long, 'Issn':load_str, 'ChildFieldOfStudyId':load_long, 'MainType':load_str,
-'Latitude':load_float, 'Longitude':load_float, 'Level':load_int, 'PaperReferenceId':load_long, 'Date':load_str,
+'Country':load_str, 'LastKnownAffiliationId':load_int, 'Issn':load_str, 'ChildFieldOfStudyId':load_int, 'MainType':load_str,
+'Latitude':load_float, 'Longitude':load_float, 'Level':load_int, 'PaperReferenceId':load_int, 'Date':load_str,
 'Volume':load_str, 'Issue':load_str, 'FirstPage':load_str, 'LastPage':load_str, 'Publisher':load_str, 'Score':load_float,
-'FamilyId':load_long
+'FamilyId':load_int
 }
 
 

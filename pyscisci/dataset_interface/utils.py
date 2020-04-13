@@ -4,12 +4,6 @@ def load_int(v):
     except ValueError:
         return None
 
-def load_long(v):
-    try:
-        return long(v)
-    except ValueError:
-        return None
-
 def load_float(v):
     try:
         return float(v)
