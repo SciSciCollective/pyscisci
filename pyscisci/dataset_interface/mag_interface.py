@@ -8,6 +8,7 @@
 
 import os
 from nameparser import HumanName
+from tqdm import tqdm #progress bar support
 
 from pyscisci.publication import Publication
 from pyscisci.author import Author
@@ -58,7 +59,7 @@ def get_author_name(sline, newauthor, author_idx):
     newauthor.middlename = hname.middle
     return newauthor
 
-def load_mag_affiliations(database, path2files = '', filename_dict = None, full_info=False):
+def load_mag_affiliations(database, path2files = '', filename_dict = None, full_info=False, verbose = True):
     affiliation_idx = {dn:filename_dict['affiliations'][1].index(dn) for dn in ['AffiliationId', 'NormalizedName', 'GridId', 'OfficialPage', 'WikiPage', 'Latitude', 'Longitude']}
     with open(os.path.join(path2files, filename_dict['affiliations'][0]), 'r') as pubreffile:
         for line in pubreffile:
@@ -74,10 +75,11 @@ def load_mag_affiliations(database, path2files = '', filename_dict = None, full_
                 newaffiliation.longitude = default_datatypes['Longitude'](sline[affiliation_idx['Longitude']])
             database.add_affiliation(newaffiliation)
 
-def load_mag_authors(database, author_subset = None, path2files = '', filename_dict = None, full_info = False, keep_author_affiliation = True):
+def load_mag_authors(database, author_subset = None, path2files = '', filename_dict = None, full_info = False, keep_author_affiliation = True, verbose = True):
+
     author_idx = {dn:filename_dict['authors'][1].index(dn) for dn in ['AuthorId', 'NormalizedName']}
     with open(os.path.join(path2files, filename_dict['authors'][0]), 'r') as authorfile:
-        for line in authorfile:
+        for line in tqdm(authorfile, desc="mag author information",):
             sline = line.replace('\n', '').split('\t')
             authorid = default_datatypes['AuthorId'](sline[author_idx['AuthorId']])
             if author_subset is None or authorid in author_subset:
@@ -174,13 +176,13 @@ def load_mag(database, path2files = '', filename_dict = None, files2load = None,
         files2load = list(default_filenames.keys())
 
     if 'affiliations' in files2load and keep_author_affiliation:
-        load_mag_affiliations(database, path2files, filenames, full_info)
+        load_mag_affiliations(database, path2files, filenames, full_info, verbose)
 
         if verbose:
             print("{} affiliations loaded".format(database.n_affiliations))
 
     if 'authors' in files2load:
-        load_mag_authors(database, author_subset, path2files, filenames, full_info, keep_author_affiliation)
+        load_mag_authors(database, author_subset, path2files, filenames, full_info, keep_author_affiliation, verbose)
 
         if verbose:
             print("{} authors loaded".format(database.n_affiliations))
