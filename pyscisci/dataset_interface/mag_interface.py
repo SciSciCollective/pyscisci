@@ -17,9 +17,9 @@ from pyscisci.affiliation import Affiliation
 from .utils import load_long, load_str, load_int, load_float
 
 default_filenames = {
-    'affiliaions' : ('mag/Affiliations.txt', ['AffiliationId', 'Rank', 'NormalizedName', 'DisplayName', 'GridId', 'OfficialPage', 'WikiPage', 'PaperCount', 'CitationCount:long', 'Latitude', 'Longitude:float?', 'CreatedDate:DateTime']),
+    'affiliations' : ('mag/Affiliations.txt', ['AffiliationId', 'Rank', 'NormalizedName', 'DisplayName', 'GridId', 'OfficialPage', 'WikiPage', 'PaperCount', 'CitationCount:long', 'Latitude', 'Longitude', 'CreatedDate:DateTime']),
     'authors' : ('mag/Authors.txt', ['AuthorId', 'Rank', 'NormalizedName', 'DisplayName', 'LastKnownAffiliationId', 'PaperCount:long', 'CitationCount:long', 'CreatedDate:DateTime']),
-    'ConferenceInstances' : ('mag/ConferenceInstances.txt', ['ConferenceInstanceId:long', 'NormalizedName', 'DisplayName:string', 'ConferenceSeriesId:long', 'Location:string', 'OfficialUrl:string', 'StartDate:DateTime?', 'EndDate:DateTime?', 'AbstractRegistrationDate:DateTime?', 'SubmissionDeadlineDate:DateTime?', 'NotificationDueDate:DateTime?', 'FinalVersionDueDate:DateTime?', 'PaperCount:long', 'CitationCount:long', 'Latitude:float?', 'Longitude:float?', 'CreatedDate:DateTime']),
+    'ConferenceInstances' : ('mag/ConferenceInstances.txt', ['ConferenceInstanceId:long', 'NormalizedName', 'DisplayName:string', 'ConferenceSeriesId:long', 'Location:string', 'OfficialUrl:string', 'StartDate:DateTime?', 'EndDate:DateTime?', 'AbstractRegistrationDate:DateTime?', 'SubmissionDeadlineDate:DateTime?', 'NotificationDueDate:DateTime?', 'FinalVersionDueDate:DateTime?', 'PaperCount:long', 'CitationCount:long', 'Latitude', 'Longitude', 'CreatedDate:DateTime']),
     'ConferenceSeries' : ('mag/ConferenceSeries.txt', ['ConferenceSeriesId:long', 'Rank:uint', 'NormalizedName:string', 'DisplayName:string', 'PaperCount', 'CitationCount:long', 'CreatedDate:DateTime']),
     'EntityRelatedEntities' : ('advanced/EntityRelatedEntities.txt', ['EntityId:long', 'EntityType:string', 'RelatedEntityId:long', 'RelatedEntityType:string', 'RelatedType:int', 'Score:float']),
     'FieldOfStudyChildren' : ('advanced/FieldOfStudyChildren.txt', ['FieldOfStudyId', 'ChildFieldOfStudyId']),
@@ -59,8 +59,8 @@ def get_author_name(sline, newauthor, author_idx):
     return newauthor
 
 def load_mag_affiliations(database, path2files = '', filename_dict = None):
-    affiliation_idx = {dn:filename_dict['affiliaions'][1].index(dn) for dn in ['AffiliationId', 'NormalizedName', 'GridId', 'OfficialPage', 'WikiPage', 'Latitude', 'Longitude']}
-    with open(os.path.join(path2files, filename_dict['affiliaions'][0]), 'r') as pubreffile:
+    affiliation_idx = {dn:filename_dict['affiliations'][1].index(dn) for dn in ['AffiliationId', 'NormalizedName', 'GridId', 'OfficialPage', 'WikiPage', 'Latitude', 'Longitude']}
+    with open(os.path.join(path2files, filename_dict['affiliations'][0]), 'r') as pubreffile:
         for line in pubreffile:
             sline = line.replace('\n', '').split('\t')
             newaffiliation = Affiliation(database)
@@ -172,11 +172,11 @@ def load_mag(database, path2files = '', filename_dict = None, files2load = None,
     if files2load is None:
         files2load = list(default_filenames.keys())
 
-    if 'affiliaions' in files2load:
-        load_mag_affiliations(database, path2files, filename_dict)
+    if 'affiliations' in files2load:
+        load_mag_affiliations(database, path2files, filenames)
 
     if 'authors' in files2load:
-        load_mag_authors(database, author_subset, path2files, filename_dict, full_info, keep_affiliation)
+        load_mag_authors(database, author_subset, path2files, filenames, full_info, keep_affiliation)
 
     if 'publications' in files2load:
         if not author_subset is None:
@@ -184,14 +184,14 @@ def load_mag(database, path2files = '', filename_dict = None, files2load = None,
                 publication_subset = []
             publication_subset = list(set(p for a in database.author_generator() for p in a.publications).union(set(publication_subset)))
 
-        load_mag_pubs(database, publication_subset, path2files, filename_dict, full_info)
+        load_mag_pubs(database, publication_subset, path2files, filenames, full_info)
 
-        load_mag_references(database, publication_subset, path2files, filename_dict)
+        load_mag_references(database, publication_subset, path2files, filenames)
 
     if 'journals' in files2load:
-            load_mag_journals(database, path2files, filename_dict)
+            load_mag_journals(database, path2files, filenames)
 
     if 'fields' in files2load:
-        load_mag_fields(database, publication_subset, path2files, filename_dict)
+        load_mag_fields(database, publication_subset, path2files, filenames)
 
 
