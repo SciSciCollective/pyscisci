@@ -13,7 +13,7 @@ from .publication import Publication
 from .author import Author
 from .journal import Journal
 from .affiliation import Affiliation
-from dataset_interface.mag_interface import *
+from .dataset_interface.mag_interface import *
 
 
 class BibDatabase(object):
