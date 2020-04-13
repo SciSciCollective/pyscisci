@@ -7,6 +7,7 @@
 """
 
 import os
+import sys
 from nameparser import HumanName
 from tqdm import tqdm #progress bar support
 
@@ -79,16 +80,19 @@ def load_mag_authors(database, author_subset = None, path2files = '', filename_d
     filesize = os.path.getsize(os.path.join(path2files, filename_dict['authors'][0]))
     author_idx = {dn:filename_dict['authors'][1].index(dn) for dn in ['AuthorId', 'NormalizedName']}
     with open(os.path.join(path2files, filename_dict['authors'][0]), 'r') as authorfile:
-        for line in tqdm(authorfile, desc="loading mag authors", total=filesize,
-              unit='B', unit_scale=True, unit_divisor=1024):
-            sline = line.replace('\n', '').split('\t')
-            authorid = default_datatypes['AuthorId'](sline[author_idx['AuthorId']])
-            if author_subset is None or authorid in author_subset:
-                newauthor = Author(database)
-                newauthor.id = authorid
-                if full_info:
-                    newauthor = get_author_name(sline, newauthor, author_idx)
-                database.add_author(newauthor)
+        with tqdm(desc="loading mag authors", total=filesize,
+                  unit='B', unit_scale=True, unit_divisor=1024) as pbar:
+            for line in authorfile:
+                sline = line.replace('\n', '').split('\t')
+                authorid = default_datatypes['AuthorId'](sline[author_idx['AuthorId']])
+                if author_subset is None or authorid in author_subset:
+                    newauthor = Author(database)
+                    newauthor.id = authorid
+                    if full_info:
+                        newauthor = get_author_name(sline, newauthor, author_idx)
+                    database.add_author(newauthor)
+                pbar.update(sys.getsizeof(line))
+
 
     filesize = os.path.getsize(os.path.join(path2files, filename_dict['publicationauthoraffiliation'][0]))
     paa_idx = {dn:filename_dict['publicationauthoraffiliation'][1].index(dn) for dn in ['PaperId', 'AuthorId', 'AffiliationId']}
