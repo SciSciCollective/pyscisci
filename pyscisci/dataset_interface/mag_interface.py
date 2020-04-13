@@ -165,7 +165,7 @@ def load_mag(database, path2files = '', filename_dict = None, files2load = None,
     publication_subset = None, full_info = False, keep_affiliation = True):
 
     filenames = default_filenames
-    if isintance(filename_dict, dict):
+    if isinstance(filename_dict, dict):
         for filetype, filename in filename_dict.items():
             filename[filetype] = filename
 
