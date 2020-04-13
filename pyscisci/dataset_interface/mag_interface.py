@@ -42,7 +42,7 @@ default_filenames = {
 default_datatypes = {'PaperId':load_int, 'Doi':load_str, 'DocType':load_str, 'PaperTitle':load_str, 'PaperCount':load_int,
 'OriginalTitle':load_str, 'AffiliationId':load_int, 'Year':load_int, 'Rank':load_int, 'AuthorId':load_int,
 'JournalId':load_int, 'NormalizedName':load_str, 'FieldOfStudyId':load_int, 'DisplayName':load_str, 'GridId':load_str,
-'OfficialPage':load_str, 'WikiPage':load_str, 'Latitude':load_str, 'Longitude':load_str, 'City':load_str,
+'OfficialPage':load_str, 'WikiPage':load_str, 'Latitude':load_float, 'Longitude':load_float, 'City':load_str,
 'Country':load_str, 'LastKnownAffiliationId':load_int, 'Issn':load_str, 'ChildFieldOfStudyId':load_int, 'MainType':load_str,
 'Latitude':load_float, 'Longitude':load_float, 'Level':load_int, 'PaperReferenceId':load_int, 'Date':load_str,
 'Volume':load_str, 'Issue':load_str, 'FirstPage':load_str, 'LastPage':load_str, 'Publisher':load_str, 'Score':load_float,
@@ -58,22 +58,23 @@ def get_author_name(sline, newauthor, author_idx):
     newauthor.middlename = hname.middle
     return newauthor
 
-def load_mag_affiliations(database, path2files = '', filename_dict = None):
+def load_mag_affiliations(database, path2files = '', filename_dict = None, full_info=False):
     affiliation_idx = {dn:filename_dict['affiliations'][1].index(dn) for dn in ['AffiliationId', 'NormalizedName', 'GridId', 'OfficialPage', 'WikiPage', 'Latitude', 'Longitude']}
     with open(os.path.join(path2files, filename_dict['affiliations'][0]), 'r') as pubreffile:
         for line in pubreffile:
             sline = line.replace('\n', '').split('\t')
             newaffiliation = Affiliation(database)
             newaffiliation.id = default_datatypes['AffiliationId'](sline[affiliation_idx['AffiliationId']])
-            newaffiliation.fullname = default_datatypes['NormalizedName'](sline[affiliation_idx['NormalizedName']])
-            newaffiliation.gridid = default_datatypes['GridId'](sline[affiliation_idx['GridId']])
-            newaffiliation.webpage = default_datatypes['OfficialPage'](sline[affiliation_idx['OfficialPage']])
-            newaffiliation.wikipage = default_datatypes['WikiPage'](sline[affiliation_idx['WikiPage']])
-            newaffiliation.latitude = default_datatypes['Latitude'](sline[affiliation_idx['Latitude']])
-            newaffiliation.longitude = default_datatypes['Longitude'](sline[affiliation_idx['Longitude']])
+            if full_info:
+                newaffiliation.fullname = default_datatypes['NormalizedName'](sline[affiliation_idx['NormalizedName']])
+                newaffiliation.gridid = default_datatypes['GridId'](sline[affiliation_idx['GridId']])
+                newaffiliation.webpage = default_datatypes['OfficialPage'](sline[affiliation_idx['OfficialPage']])
+                newaffiliation.wikipage = default_datatypes['WikiPage'](sline[affiliation_idx['WikiPage']])
+                newaffiliation.latitude = default_datatypes['Latitude'](sline[affiliation_idx['Latitude']])
+                newaffiliation.longitude = default_datatypes['Longitude'](sline[affiliation_idx['Longitude']])
             database.add_affiliation(newaffiliation)
 
-def load_mag_authors(database, author_subset = None, path2files = '', filename_dict = None, full_info = False, keep_affiliation = True):
+def load_mag_authors(database, author_subset = None, path2files = '', filename_dict = None, full_info = False, keep_author_affiliation = True):
     author_idx = {dn:filename_dict['authors'][1].index(dn) for dn in ['AuthorId', 'NormalizedName']}
     with open(os.path.join(path2files, filename_dict['authors'][0]), 'r') as authorfile:
         for line in authorfile:
@@ -94,7 +95,7 @@ def load_mag_authors(database, author_subset = None, path2files = '', filename_d
             if author_subset is None or authorid in author_subset:
                 pubid = default_datatypes['PaperId'](sline[paa_idx['PaperId']])
                 database.get_author(authorid).add_publication(pubid)
-                if keep_affiliation:
+                if keep_author_affiliation:
                     affid = default_datatypes['AffiliationId'](sline[paa_idx['AffiliationId']])
                     database.get_author(authorid).affiliation2pub[affid].append(pubid)
                     database.get_affiliation(affid).authors.add(authorid)
@@ -162,7 +163,7 @@ def load_mag_fields(database, publication_subset = None, path2files = '', filena
 
 
 def load_mag(database, path2files = '', filename_dict = None, files2load = None, author_subset = None,
-    publication_subset = None, full_info = False, keep_affiliation = True, verbose = True):
+    publication_subset = None, full_info = False, keep_author_affiliation = True, verbose = True):
 
     filenames = default_filenames
     if isinstance(filename_dict, dict):
@@ -172,14 +173,14 @@ def load_mag(database, path2files = '', filename_dict = None, files2load = None,
     if files2load is None:
         files2load = list(default_filenames.keys())
 
-    if 'affiliations' in files2load:
-        load_mag_affiliations(database, path2files, filenames)
+    if 'affiliations' in files2load and keep_author_affiliation:
+        load_mag_affiliations(database, path2files, filenames, full_info)
 
         if verbose:
             print("{} affiliations loaded".format(database.n_affiliations))
 
     if 'authors' in files2load:
-        load_mag_authors(database, author_subset, path2files, filenames, full_info, keep_affiliation)
+        load_mag_authors(database, author_subset, path2files, filenames, full_info, keep_author_affiliation)
 
         if verbose:
             print("{} authors loaded".format(database.n_affiliations))
