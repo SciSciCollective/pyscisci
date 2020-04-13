@@ -84,7 +84,7 @@ def load_mag_authors(database, author_subset = None, path2files = '', filename_d
                 newauthor.id = authorid
                 if full_info:
                     newauthor = get_author_name(sline, newauthor, author_idx)
-                database.add_author()
+                database.add_author(newauthor)
 
     paa_idx = {dn:filename_dict['publicationauthoraffiliation'][1].index(dn) for dn in ['PaperId', 'AuthorId', 'AffiliationId']}
     with open(os.path.join(path2files, filename_dict['publicationauthoraffiliation'][0]), 'r') as authorfile:
