@@ -162,7 +162,7 @@ def load_mag_fields(database, publication_subset = None, path2files = '', filena
 
 
 def load_mag(database, path2files = '', filename_dict = None, files2load = None, author_subset = None,
-    publication_subset = None, full_info = False, keep_affiliation = True):
+    publication_subset = None, full_info = False, keep_affiliation = True, verbose = True):
 
     filenames = default_filenames
     if isinstance(filename_dict, dict):
@@ -175,8 +175,14 @@ def load_mag(database, path2files = '', filename_dict = None, files2load = None,
     if 'affiliations' in files2load:
         load_mag_affiliations(database, path2files, filenames)
 
+        if verbose:
+            print("{} affiliations loaded".format(database.n_affiliations))
+
     if 'authors' in files2load:
         load_mag_authors(database, author_subset, path2files, filenames, full_info, keep_affiliation)
+
+        if verbose:
+            print("{} authors loaded".format(database.n_affiliations))
 
     if 'publications' in files2load:
         if not author_subset is None:
@@ -188,10 +194,19 @@ def load_mag(database, path2files = '', filename_dict = None, files2load = None,
 
         load_mag_references(database, publication_subset, path2files, filenames)
 
+        if verbose:
+            print("{} publications loaded".format(database.n_affiliations))
+
     if 'journals' in files2load:
             load_mag_journals(database, path2files, filenames)
 
-    if 'fields' in files2load:
+            if verbose:
+                print("{} journals loaded".format(database.n_affiliations))
+
+    if False and 'fields' in files2load:
         load_mag_fields(database, publication_subset, path2files, filenames)
+
+        if verbose:
+            print("{} fields loaded".format(database.n_affiliations))
 
 
