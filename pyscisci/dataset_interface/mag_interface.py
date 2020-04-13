@@ -14,7 +14,7 @@ from pyscisci.author import Author
 from pyscisci.journal import Journal
 from pyscisci.affiliation import Affiliation
 
-from .utils import load_long, load_str, load_int, load_float
+from .utils import load_str, load_int, load_float
 
 default_filenames = {
     'affiliations' : ('mag/Affiliations.txt', ['AffiliationId', 'Rank', 'NormalizedName', 'DisplayName', 'GridId', 'OfficialPage', 'WikiPage', 'PaperCount', 'CitationCount:long', 'Latitude', 'Longitude', 'CreatedDate:DateTime']),
