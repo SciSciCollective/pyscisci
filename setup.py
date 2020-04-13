@@ -27,7 +27,8 @@ setup(name=__package__,
             'scipy',
             'networkx',
             'python-igraph',
-            'nameparser'
+            'nameparser',
+            'tqdm'
       ],
       include_package_data=True
       )

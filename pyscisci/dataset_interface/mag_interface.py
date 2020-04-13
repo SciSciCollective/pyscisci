@@ -76,10 +76,11 @@ def load_mag_affiliations(database, path2files = '', filename_dict = None, full_
             database.add_affiliation(newaffiliation)
 
 def load_mag_authors(database, author_subset = None, path2files = '', filename_dict = None, full_info = False, keep_author_affiliation = True, verbose = True):
-
+    filesize = os.path.size(os.path.join(path2files, filename_dict['authors'][0]))
     author_idx = {dn:filename_dict['authors'][1].index(dn) for dn in ['AuthorId', 'NormalizedName']}
     with open(os.path.join(path2files, filename_dict['authors'][0]), 'r') as authorfile:
-        for line in tqdm(authorfile, desc="mag author information",):
+        for line in tqdm(authorfile, desc="loading mag authors", total=filesize,
+              unit='B', unit_scale=True, unit_divisor=1024):
             sline = line.replace('\n', '').split('\t')
             authorid = default_datatypes['AuthorId'](sline[author_idx['AuthorId']])
             if author_subset is None or authorid in author_subset:
@@ -89,9 +90,11 @@ def load_mag_authors(database, author_subset = None, path2files = '', filename_d
                     newauthor = get_author_name(sline, newauthor, author_idx)
                 database.add_author(newauthor)
 
+    filesize = os.path.size(os.path.join(path2files, filename_dict['publicationauthoraffiliation'][0]))
     paa_idx = {dn:filename_dict['publicationauthoraffiliation'][1].index(dn) for dn in ['PaperId', 'AuthorId', 'AffiliationId']}
     with open(os.path.join(path2files, filename_dict['publicationauthoraffiliation'][0]), 'r') as authorfile:
-        for line in authorfile:
+        for line in tqdm(authorfile, desc = "loading mag author publications", total=filesize,
+              unit='B', unit_scale=True, unit_divisor=1024):
             sline = line.replace('\n', '').split('\t')
             authorid = default_datatypes['AuthorId'](sline[paa_idx['AuthorId']])
             if author_subset is None or authorid in author_subset:
@@ -115,9 +118,11 @@ def get_publication_info(sline, newpub, pub_idx):
     return newpub
 
 def load_mag_pubs(database, publication_subset = None, path2files = '', filename_dict = None, full_info=False):
+    filesize = os.path.size(os.path.join(path2files, filename_dict['publications'][0]))
     pub_idx = {dn:filename_dict['publications'][1].index(dn) for dn in ['PaperId', 'Year', 'Doi', 'DocType', 'PaperTitle', 'Date', 'Volume', 'Issue', 'FirstPage', 'LastPage', 'FamilyId']}
     with open(os.path.join(path2files, filename_dict['publications'][0]), 'r') as pubfile:
-        for line in pubfile:
+        for line in tqdm(pubfile, desc = "loading mag publications", total=filesize,
+              unit='B', unit_scale=True, unit_divisor=1024) :
             sline = line.replace('\n', '').split('\t')
             pubid = default_datatypes['PaperId'](sline[pub_idx['PaperId']])
             if publication_subset is None or pubid in publication_subset:
@@ -141,9 +146,11 @@ def load_mag_journals(database, path2files = '', filename_dict=None):
             database.add_journal(newjournal)
 
 def load_mag_references(database, publication_subset = None, path2files = '', filename_dict = None):
+    filesize = os.path.size(os.path.join(path2files, filename_dict['publicationreferences'][0]))
     ref_idx = {dn:filename_dict['publicationreferences'][1].index(dn) for dn in ['PaperId', 'PaperReferenceId']}
     with open(os.path.join(path2files, filename_dict['publicationreferences'][0]), 'r') as pubreffile:
-        for line in pubreffile:
+        for line in tqdm(pubreffile, desc = "loading mag citations", total=filesize,
+              unit='B', unit_scale=True, unit_divisor=1024):
             sline = line.replace('\n', '').split('\t')
             citingid = default_datatypes['PaperId'](sline[ref_idx['PaperId']])
             citedid = default_datatypes['PaperReferenceId'](sline[ref_idx['PaperReferenceId']])
