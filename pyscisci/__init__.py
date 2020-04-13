@@ -15,3 +15,5 @@ from .metrics import *
 from .author import Author
 from .publication import Publication
 from .bibdatabase import BibDatabase
+
+from .dataset_interface import *
