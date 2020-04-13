@@ -42,6 +42,5 @@ class Affiliation(PublicationCollection):
 
         self.collection_from_dict(affiliation_dict)
 
-        self.publications = set(publications)
         self.authors = set(affiliation_dict.get('authors', []))
 
