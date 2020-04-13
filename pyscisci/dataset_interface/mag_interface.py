@@ -97,18 +97,21 @@ def load_mag_authors(database, author_subset = None, path2files = '', filename_d
     filesize = os.path.getsize(os.path.join(path2files, filename_dict['publicationauthoraffiliation'][0]))
     paa_idx = {dn:filename_dict['publicationauthoraffiliation'][1].index(dn) for dn in ['PaperId', 'AuthorId', 'AffiliationId']}
     with open(os.path.join(path2files, filename_dict['publicationauthoraffiliation'][0]), 'r') as authorfile:
-        for line in tqdm(authorfile, desc = "loading mag author publications", total=filesize,
-              unit='B', unit_scale=True, unit_divisor=1024):
-            sline = line.replace('\n', '').split('\t')
-            authorid = default_datatypes['AuthorId'](sline[paa_idx['AuthorId']])
-            if author_subset is None or authorid in author_subset:
-                pubid = default_datatypes['PaperId'](sline[paa_idx['PaperId']])
-                database.get_author(authorid).add_publication(pubid)
-                if keep_author_affiliation:
                     affid = default_datatypes['AffiliationId'](sline[paa_idx['AffiliationId']])
-                    database.get_author(authorid).affiliation2pub[affid].append(pubid)
-                    database.get_affiliation(affid).authors.add(authorid)
-                    database.get_affiliation(affid).publications.add(pubid)
+        with tqdm(desc="loading mag author publications", total=filesize,
+                  unit='B', unit_scale=True, unit_divisor=1024) as pbar:
+            for line in authorfile:
+                sline = line.replace('\n', '').split('\t')
+                authorid = default_datatypes['AuthorId'](sline[paa_idx['AuthorId']])
+                if author_subset is None or authorid in author_subset:
+                    pubid = default_datatypes['PaperId'](sline[paa_idx['PaperId']])
+                    database.get_author(authorid).add_publication(pubid)
+                    if keep_author_affiliation:
+                        affid = default_datatypes['AffiliationId'](sline[paa_idx['AffiliationId']])
+                        database.get_author(authorid).affiliation2pub[affid].append(pubid)
+                        database.get_affiliation(affid).authors.add(authorid)
+                        database.get_affiliation(affid).publications.add(pubid)
+                pbar.update(sys.getsizeof(line))
 
 def get_publication_info(sline, newpub, pub_idx):
     newpub.journal = default_datatypes['JournalId'](sline[pub_idx['JournalId']])
@@ -125,17 +128,19 @@ def load_mag_pubs(database, publication_subset = None, path2files = '', filename
     filesize = os.path.getsize(os.path.join(path2files, filename_dict['publications'][0]))
     pub_idx = {dn:filename_dict['publications'][1].index(dn) for dn in ['PaperId', 'Year', 'Doi', 'DocType', 'PaperTitle', 'Date', 'Volume', 'Issue', 'FirstPage', 'LastPage', 'FamilyId']}
     with open(os.path.join(path2files, filename_dict['publications'][0]), 'r') as pubfile:
-        for line in tqdm(pubfile, desc = "loading mag publications", total=filesize,
-              unit='B', unit_scale=True, unit_divisor=1024) :
-            sline = line.replace('\n', '').split('\t')
-            pubid = default_datatypes['PaperId'](sline[pub_idx['PaperId']])
-            if publication_subset is None or pubid in publication_subset:
-                newpub = Publication(database)
-                newpub.id = pubid
-                newpub.year = default_datatypes['Year'](sline[pub_idx['Year']])
-                if full_info:
-                    newpub = get_publication_info(sline, newpub, pub_idx)
-                database.add_pub(newpub)
+        with tqdm(desc = "loading mag publications", total=filesize,
+              unit='B', unit_scale=True, unit_divisor=1024) as pbar:
+            for line in pubfile:
+                sline = line.replace('\n', '').split('\t')
+                pubid = default_datatypes['PaperId'](sline[pub_idx['PaperId']])
+                if publication_subset is None or pubid in publication_subset:
+                    newpub = Publication(database)
+                    newpub.id = pubid
+                    newpub.year = default_datatypes['Year'](sline[pub_idx['Year']])
+                    if full_info:
+                        newpub = get_publication_info(sline, newpub, pub_idx)
+                    database.add_pub(newpub)
+                pbar.update(sys.getsizeof(line))
 
 def load_mag_journals(database, path2files = '', filename_dict=None):
     jour_idx = {dn:filename_dict['journals'][1].index(dn) for dn in ['JournalId', 'NormalizedName', 'Issn', 'Publisher']}
@@ -153,19 +158,21 @@ def load_mag_references(database, publication_subset = None, path2files = '', fi
     filesize = os.path.getsize(os.path.join(path2files, filename_dict['publicationreferences'][0]))
     ref_idx = {dn:filename_dict['publicationreferences'][1].index(dn) for dn in ['PaperId', 'PaperReferenceId']}
     with open(os.path.join(path2files, filename_dict['publicationreferences'][0]), 'r') as pubreffile:
-        for line in tqdm(pubreffile, desc = "loading mag citations", total=filesize,
-              unit='B', unit_scale=True, unit_divisor=1024):
-            sline = line.replace('\n', '').split('\t')
-            citingid = default_datatypes['PaperId'](sline[ref_idx['PaperId']])
-            citedid = default_datatypes['PaperReferenceId'](sline[ref_idx['PaperReferenceId']])
-            if publication_subset is None:
-                database.get_pub(citingid).references.append(citedid)
-                database.get_pub(citedid).citations.append(citingid)
-            else:
-                if citedid in publication_subset:
+        with tqdm(desc = "loading mag citations", total=filesize,
+              unit='B', unit_scale=True, unit_divisor=1024) as pbar:
+            for line in pubreffile:
+                sline = line.replace('\n', '').split('\t')
+                citingid = default_datatypes['PaperId'](sline[ref_idx['PaperId']])
+                citedid = default_datatypes['PaperReferenceId'](sline[ref_idx['PaperReferenceId']])
+                if publication_subset is None:
+                    database.get_pub(citingid).references.append(citedid)
                     database.get_pub(citedid).citations.append(citingid)
-                if citingid in publication_subset:
-                    database.get_pub(citingid).citations.append(citedid)
+                else:
+                    if citedid in publication_subset:
+                        database.get_pub(citedid).citations.append(citingid)
+                    if citingid in publication_subset:
+                        database.get_pub(citingid).citations.append(citedid)
+                pbar.update(sys.getsizeof(line))
 
 def load_mag_fields(database, publication_subset = None, path2files = '', filename_dict = None):
     if False:
