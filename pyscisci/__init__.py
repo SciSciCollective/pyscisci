@@ -11,9 +11,3 @@ __author__ = """\n""".join([
 __version__ = '0.0.1'
 __release__ = '0.0.1'
 
-from .metrics import *
-from .author import Author
-from .publication import Publication
-from .bibdatabase import BibDatabase
-
-from .dataset_interface import *
