@@ -10,8 +10,8 @@ import gzip
 import numpy as np
 from nameparser import HumanName
 
-from utils import isin_sorted, zip2dict, load_int, load_float
-from analysis import groupby_count
+from .utils import isin_sorted, zip2dict, load_int, load_float
+from .analysis import groupby_count
 
 def load_preprocessed_data(dataname, path2database, columns = None, isindict = None, duplicate_subset = None,
     duplicate_keep = 'last', dropna = None, keep_file = False):
@@ -22,9 +22,9 @@ def load_preprocessed_data(dataname, path2database, columns = None, isindict = N
     if not os.path.exists(path2file):
         # TODO: make a real warning
         print("First preprocess the raw data.")
-        break
+        return []
 
-     if isinstance(columns, str):
+    if isinstance(columns, str):
         columns = [columns]
 
     if isinstance(dropna, str):

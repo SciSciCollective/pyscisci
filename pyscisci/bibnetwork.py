@@ -5,11 +5,24 @@
 
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
  """
-
+from collections import defaultdict
+from itertools import combinations
 import numpy as np
 import pandas as pd
 import igraph
 import scipy.sparse as sparse
+
+
+def cocited_edgedict(refdf):
+
+    cocite_dict = defaultdict(int)
+    def count_cocite(refseries):
+        for i, j in combinations(np.sort(refseries.values), 2):
+            cocite_dict[(i, j)] += 1
+
+    refdf.groupby('CitingPublicationId', sort=False)['CitedPublicationId'].apply(count_cocite)
+
+    return cocite_dict
 
 
 def dataframe2sparse(df, index_columns = ['name_citing', 'name_cited'], weight_values = None):
