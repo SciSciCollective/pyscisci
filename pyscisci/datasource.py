@@ -156,7 +156,7 @@ class BibDataSource(object):
             pub2ref = self.pub2refnoself_df
 
             # drop all citations that happend before the publication year
-             pub2ref = pub2ref.loc[[pub2year.get(citingpid, 0) >= pub2year.get(citedpid, 0) for citingpid, cited in pub2ref[['CitingPublicationYear', 'CitedPublicationYear']].values]]
+            pub2ref = pub2ref.loc[[pub2year.get(citingpid, 0) >= pub2year.get(citedpid, 0) for citingpid, cited in pub2ref[['CitingPublicationYear', 'CitedPublicationYear']].values]]
 
             # calcuate the total citations
             citation_noself_df = groupby_count(pub2ref, colgroupby='CitedPublicationId', colcountby='CitingPublicationId', unique=True )
