@@ -122,7 +122,7 @@ class BibDataSource(object):
     def compute_impact(self, preprocess=True, citation_horizons = [5,10], noselfcite = True):
 
         # first load the publication year information
-        pub2year = self.load_pub2year
+        pub2year = self.load_pub2year()
 
         # now get the reference list and merge with year info
         pub2ref = self.pub2ref_df
