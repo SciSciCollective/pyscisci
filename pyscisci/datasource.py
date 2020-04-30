@@ -21,8 +21,8 @@ def load_preprocessed_data(dataname, path2database, columns = None, isindict = N
 
     #TODO: progress bar
 
-    path2files = os.path.join(path2data, dataname)
-    if not os.path.exists(path2file):
+    path2files = os.path.join(path2database, dataname)
+    if not os.path.exists(path2files):
         # TODO: make a real warning
         print("First preprocess the raw data.")
         return []
