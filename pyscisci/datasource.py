@@ -10,6 +10,7 @@ import json
 import gzip
 from collections import defaultdict
 
+import pandas as pd
 import numpy as np
 from nameparser import HumanName
 
