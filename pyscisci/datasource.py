@@ -5,6 +5,7 @@
 
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
  """
+import os
 import json
 import gzip
 from collections import defaultdict
