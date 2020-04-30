@@ -25,43 +25,42 @@ class CitationDataFrame(object):
         return compute_disruption_index(self.pub2ref)
 
 
-class AuthorCareerDataFrame(object):
+class AuthorCareer(object):
 
-    def __init__(self, author2pub):
-        self.author2pub = author2pub
+    def __init__(self, bibdatabase):
+        self.bibdatabase = bibdatabase
 
 
     def productivity(self, df=None, colgroupby = 'AuthorId', colcountby = 'PublicationId'):
         if df is None:
-            df = self.author2pub
+            df = self.bibdatabase.author2pub_df
 
         newname_dict = zip2dict([str(colcountby), '0'], ['Productivity']*2)
-        return groupby_count(df, colgroupby, colcountby, unique=True).rename(newname_dict)
+        return groupby_count(df, colgroupby, colcountby, unique=True).rename(columns=newname_dict)
 
     def yearly_productivity(self, df=None, colgroupby = 'AuthorId', datecol = 'Year', colcountby = 'PublicationId'):
-         if df is None:
-            df = self.author2pub
+        if df is None:
+            df = self.bibdatabase.author2pub_df
 
         newname_dict = zip2dict([str(colcountby)+'Count', '0'], ['YearlyProductivity']*2)
-        return groupby_count(df, [colgroupby, datecol], colcountby, unique=True).rename(newname_dict)
+        return groupby_count(df, [colgroupby, datecol], colcountby, unique=True).rename(columns=newname_dict)
 
     def career_length(self, df = None, colgroupby = 'AuthorId', colrange = 'Year'):
-         if df is None:
-            df = self.author2pub
+        if df is None:
+            df = self.bibdatabase.author2pub_df
 
         newname_dict = zip2dict([str(colrange)+'Range', '0'], ['CareerLength']*2)
-        return groupby_range(df, colgroupby, colrange, unique=True).rename(newname_dict)
+        return groupby_range(df, colgroupby, colrange, unique=True).rename(columns=newname_dict)
 
     def productivity_trajectory(self, df =None, colgroupby = 'AuthorId', datecol = 'Year', colcountby = 'PublicationId'):
         if df is None:
-            df = self.author2pub
+            df = self.bibdatabase.author2pub_df
 
         return compute_yearly_productivity_traj(df, colgroupby = colgroupby)
 
-
-    def hindex(self, df = None, colgroupby = 'AuthorId', colcountby = 'TotalCitations'):
+    def hindex(self, df = None, colgroupby = 'AuthorId', colcountby = 'Ctotal'):
         if df is None:
-            df = self.author2pub
+            df = self.bibdatabase.author2pub_df.merge(self.bibdatabase.impact_df[['AuthorId', colcountby]], on='PublicationId', how='left')
         return compute_hindex(df, colgroupby = colgroupby, colcountby = colcountby)
 
 

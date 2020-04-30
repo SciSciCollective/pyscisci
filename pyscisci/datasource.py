@@ -10,7 +10,7 @@ import gzip
 import numpy as np
 from nameparser import HumanName
 
-from .utils import isin_sorted, zip2dict, load_int, load_float
+from .utils import isin_sorted, zip2dict, load_int, load_float, groupby_count
 from .analysis import groupby_count
 
 def load_preprocessed_data(dataname, path2database, columns = None, isindict = None, duplicate_subset = None,
@@ -69,7 +69,158 @@ def load_preprocessed_data(dataname, path2database, columns = None, isindict = N
 
     return data_df
 
-class MAG(object):
+def append_to_preprocessed_df(newdf, path2database, preprocessname):
+
+    path2files = os.path.join(path2data, preprocessname)
+
+    Nfiles = sum(preprocessname in fname for fname in os.listdir(path2files))
+
+    for ifile in range(Nfiles):
+        datadf = pd.read_hdf(os.path.join(path2files, preprocessname + '{}.hdf'.format(ifile)))
+        datadf = datadf.merge(newdf, how = 'left')
+        datadf.to_hdf(os.path.join(path2files, preprocessname + '{}.hdf'.format(ifile)), key = preprocessname, mode = 'w')
+
+
+
+class BibDataSource(object):
+
+    """
+    Base class for all bibliometric database interfaces.
+
+    """
+
+    def __init__(self, path2database = '', keep_in_memory = False):
+
+        self.path2database = path2database
+        self.keep_in_memory = keep_in_memory
+
+        self._affiliation_df = None
+        self._pub_df = None
+        self._author_df = None
+        self._pub2year = None
+        self._pub2ref_df = None
+        self._author2pub_df = None
+        self._paa_df = None
+
+    @property
+    def pub_df(self):
+        #TODO: Error Raising when database isnt defined
+
+    @property
+    def pub2ref_df(self):
+        #TODO: Error Raising when database isnt defined
+
+    def compute_impact(self, preprocess=True, citation_horizons = [5,10]):
+
+        # first load the publication year information
+        pub2year = self.load_publications(preprocess = True, columns = ['PublicationId', 'Year'])
+        pub2year.drop_duplicates(subset=['PublicationId'], inplace=True)
+        pub2year.dropna(subset=['Year'], inplace=True)
+
+        # now get the reference list and merge with year info
+        pub2ref = self.pub2ref_df
+        pub2ref = pub2ref.merge(pub2year, how='left', left_on='CitingPublicationId', right_on='PublicationId').rename(columns = {'Year':'CitingPublicationYear'})
+        del pub2ref['PublicationId']
+
+        pub2ref = pub2ref.merge(pub2year, how='left', left_on='CitedPublicationId', right_on='PublicationId').rename(columns = {'Year':'CitedPublicationYear'})
+        del pub2ref['PublicationId']
+
+        # drop all citations that happend before the publication year
+        pub2ref = pub2ref.loc[pub2ref['CitingPublicationYear'] >= pub2ref['CitedPublicationYear']]
+
+        # calcuate the total citations
+        citation_df = groupby_count(pub2ref, colgroupby='CitedPublicationId', colcountby='CitingPublicationId', unique=True )
+        citation_df.rename(columns={'CitingPublicationIdCount':'Ctotal', 'CitedPublicationId':'PublicationId'}, inplace=True)
+
+        # go from the larest k down
+        for k in np.sort(citation_horizons)[::-1]:
+
+            # drop all citations that happend after the k
+            pub2ref = pub2ref.loc[pub2ref['CitingPublicationYear'] <= pub2ref['CitedPublicationYear'] + k]
+
+            # recalculate the impact
+            k_citation_df = groupby_count(pub2ref, colgroupby='CitedPublicationId', colcountby='CitingPublicationId', unique=True )
+            k_citation_df.rename(columns={'CitingPublicationIdCount':'C{}'.format(k), 'CitedPublicationId':'PublicationId'}, inplace=True)
+
+            citation_df = citation_df.merge(k_citation_df, how='left', on='PublicationId')
+
+        # set all nan to 0
+        citation_df.fillna(0, inplace=True)
+
+        # get the Cited Year
+        citation_df = citation_df.merge(pub2year, how='left', on='PublicationId')
+
+        if preprocess:
+
+            if not os.path.exists(os.path.join(self.path2database, 'impact')):
+                os.mkdir(os.path.join(self.path2database, 'impact'))
+
+            for y, cdf in citation_df.groupby('Year', sort=True):
+                cdf.to_hdf(os.path.join(self.path2database, 'impact', 'impact{}.hdf'.format(y)), mode='w', key ='impact')
+
+        else:
+            return citation_df
+
+
+
+
+    def compute_teamsize(self, save2pubdf = True):
+
+        pub2teamsize = self.author2pub_df.groupby('PublicationId', sort=False)['AuthorSequence'].max().astype(int).to_frame().reset_index().rename(columns={'AuthorSequence':'TeamSize'})
+
+        if save2pubdf:
+            append_to_preprocessed_df(pub2teamsize, self.path2database, 'publication')
+
+        return pub2teamsize
+
+    def remove_selfcitations(self, preprocess = True):
+
+        if preprocess:
+            if not os.path.exists(os.path.join(self.path2database, 'pub2refnoself')):
+                os.mkdir(os.path.join(self.path2database, 'pub2refnoself'))
+
+        # first get all authors
+        author_productivity = groupby_count(self.author2pub_df, colgroupby='AuthorId', colcountby='PublicationId', unique=True )
+        # and drop authors that only have 1 paper
+        author_productivity = author_productivity.loc[author_productivity['PublicationIdCount'] > 1]
+
+        author2pub = self.author2pub_df.loc[isin_sorted(self.author2pub_df['AuthorId'].values, np.sort(author_productivity['AuthorId'].unique()))]
+
+        fullrefdf = []
+        # loop through all pub2ref files
+        Nreffiles = sum('pub2ref' in fname for fname in os.listdir(os.path.join(path2mag, 'pub2ref')))
+        for ifile in range(Nreffiles):
+            refdf = pd.read_hdf(os.path.join(path2mag, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)))
+
+            # get the citing authors
+            refdf = refdf.merge(author2pub, how='left', left_on='CitingPublicationId', right_on = 'PublicationId').rename(columns = {'AuthorId':'CitingAuthorId'})
+            del refdf['PublicationId']
+
+            # get the cited authors
+            refdf = refdf.merge(author2pub, how='left', left_on='CitedPublicationId', right_on = 'PublicationId').rename(columns = {'AuthorId':'CitedAuthorId'})
+            del refdf['PublicationId']
+
+            # identify when a citing and cited author are the same
+            refdf['IsSelfCite'] = refdf['CitedAuthorId'] == refdf['CitingAuthorId']
+            # add back in the publications without authors
+            refdf.loc[np.any(refdf[['CitingPublicationId', 'CitedPublicationId']].isna(), axis=1), 'IsSelfCite'] = 0
+
+            # now find citing-cited pairs where at least one author is the same
+            refdf = refdf.groupby(['CitingPublicationId', 'CitedPublicationId'], sort = False)['IsSelfCite'].max().to_frame().reset_index()
+
+            # keep only citing-cited pairs without a common author
+            refdf = refdf.loc[refdf['IsSelfCite'] == 0]
+
+            if preprocess:
+                refdf[['CitingPublicationId', 'CitedPublicationId']].to_hdf(os.path.join(path2mag, 'pub2refnoself', 'pub2refnoself{}.hdf'.format(ifile)), key = 'pub2ref')
+            else:
+                fullrefdf.append(refdf[['CitingPublicationId', 'CitedPublicationId']])
+
+        if not preprocess:
+            return pd.concat(fullrefdf)
+
+
+class MAG(BibDataSource):
     """
     Base class for Microsoft Academic Graph interface.
 
@@ -78,19 +229,22 @@ class MAG(object):
 
     """
 
-    def __init__(self, path2database = ''):
+    def __init__(self, path2database = '', keep_in_memory = False):
 
         self.path2database = path2database
+        self.keep_in_memory = keep_in_memory
 
-        self.affiliation_df = None
-        self.pub_df = None
-        self.author_df = None
-        self.pub2year = None
-        self.pub2ref_df = None
+        self._affiliation_df = None
+        self._pub_df = None
+        self._author_df = None
+        self._pub2year = None
+        self._pub2ref_df = None
+        self._author2pub_df = None
+        self._paa_df = None
 
     def preprocess(self, dflist = None):
         if dflist is None:
-            dflist = ['affiliation', 'author', 'publication', 'reference']
+            dflist = ['affiliation', 'author', 'publication', 'reference', 'publicationauthoraffiliation', 'fields']
 
         if 'affiliation' in dflist:
             self.parse_affiliations(preprocess = True)
@@ -104,14 +258,30 @@ class MAG(object):
         if 'reference' in dflist:
             self.parse_references(preprocess = True)
 
+        if 'publicationauthoraffiliation' in dflist:
+            self.parse_publicationauthoraffiliation(preprocess = True)
+
+        if 'fields' in dflist:
+            self.parse_fields(preprocess=True)
+
+    @property
+    def affiliation_df(self):
+        if self._affiliation_df is None:
+            if self.keep_in_memory:
+                self._affiliation_df = self.load_affiliations()
+            else:
+                return self.load_affiliations()
+
+        return self._affiliation_df
+
 
     def load_affiliations(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
         duplicate_keep = 'last', dropna = None):
 
-        if preprocess:
-            self.affiliation_df = load_preprocessed_data('affiliation', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna)
+        if preprocess and os.path.exists(os.path.join(self.path2database, 'affiliation')):
+            return load_preprocessed_data('affiliation', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna)
         else:
-            self.parse_affiliations()
+            return self.parse_affiliations()
 
     def parse_affiliations(self, preprocess = False):
 
@@ -130,23 +300,34 @@ class MAG(object):
                 affline += [load_float(sline[i]) for i in affil_float_columns]
                 affiliation_info.append(affline)
 
-        self.affiliation_df = pd.DataFrame(affiliation_info, columns = affil_column_names)
+        aff_df = pd.DataFrame(affiliation_info, columns = affil_column_names)
 
         if preprocess:
             if not os.path.exists(os.path.join(self.path2database, 'affiliation')):
                 os.mkdir(os.path.join(self.path2database, 'affiliation'))
-            self.affiliation_df.to_hdf(os.path.join(self.path2database, 'affiliation', 'affiliation0.hdf'), key = 'affiliation', mode = 'w')
-            self.affiliation_df = None
+            aff_df.to_hdf(os.path.join(self.path2database, 'affiliation', 'affiliation0.hdf'), key = 'affiliation', mode = 'w')
+
+        return aff_df
+
+    @property
+    def author_df(self):
+        if self._author_df is None:
+            if self.keep_in_memory:
+                self._author_df = self.load_authors()
+            else:
+                return self.load_authors()
+
+        return self._author_df
 
     def load_authors(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
         duplicate_keep = 'last', dropna = None, process_name = True):
 
-        if preprocess:
-            self.author_df = load_preprocessed_data('author', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna)
+        if preprocess and os.path.exists(os.path.join(self.path2database, 'author')):
+            return load_preprocessed_data('author', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna)
         else:
-            self.parse_authors(process_name=process_name)
+            return self.parse_authors(process_name=process_name)
 
-    def parse_authors(self, preprocess = False, process_name = True):
+    def parse_authors(self, preprocess = False, process_name = True, num_file_lines = 5*10**6):
 
         author_int_columns = [0, 4, 5, 6]
 
@@ -173,7 +354,7 @@ class MAG(object):
                 authorinfo.append(adata)
                 iauthor += 1
 
-                if preprocess and iauthor % (5*10**6) == 0:
+                if preprocess and iauthor % num_file_lines == 0:
                     pd.DataFrame(authorinfo, columns = author_column_names).to_hdf(
                         os.path.join(self.path2database, 'author', 'author{}.hdf'.format(ifile)),
                                                                                 key = 'author', mode = 'w')
@@ -181,29 +362,78 @@ class MAG(object):
                     ifile += 1
                     authorinfo = []
 
-            self.author_df = pd.DataFrame(authorinfo, columns = author_column_names)
+            author_df = pd.DataFrame(authorinfo, columns = author_column_names)
             if preprocess:
-                self.author_df.to_hdf(os.path.join(self.path2database, 'author', 'author{}.hdf'.format(ifile)),
+                author_df.to_hdf(os.path.join(self.path2database, 'author', 'author{}.hdf'.format(ifile)),
                                                                             key = 'author', mode = 'w')
 
-                self.author_df = None
+        return author_df
+
+    @property
+    def pub_df(self):
+        if self._pub_df is None:
+            if self.keep_in_memory:
+                self._pub_df = self.load_publications()
+            else:
+                return self.load_publications()
+
+        return self._pub_df
 
     def load_publications(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
         duplicate_keep = 'last', dropna = None):
 
-        if preprocess:
-            self.pub_df = load_preprocessed_data('publication', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna)
+        if preprocess and os.path.exists(os.path.join(self.path2database, 'publication')):
+            return load_preprocessed_data('publication', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna)
         else:
-            self.parse_publications()
+            return self.parse_publications()
+
+    @property
+    def journal_df(self):
+        if self._journal_df is None:
+            if self.keep_in_memory:
+                self._journal_df = self.load_journals()
+            else:
+                return self.load_journals()
+
+        return self._journal_df
+
+    def load_journals(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
+        duplicate_keep = 'last', dropna = None):
+
+        if preprocess and os.path.exists(os.path.join(self.path2database, 'journal')):
+            return load_preprocessed_data('journal', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna)
+        else:
+            return self.parse_publications()
 
     def load_pub2year(self):
 
         with gzip.open(os.path.join(self.path2database, 'pub2year.json.gz'), 'r') as infile:
-            for line in infile:
-                pub2year = json.loads(line.decode('utf8'))
-        self.pub2year = {int(k):int(v) for k,v in pub2year.items() if not v is None}
+            pub2year = json.loads(infile.read().decode('utf8'))
+        return {int(k):int(v) for k,v in pub2year.items() if not v is None}
 
-    def parse_publications(self, preprocess = False):
+    def parse_publications(self, preprocess = False, num_file_lines=10**7):
+
+        # first do the journal information
+        journal_str_col = [2, 4, 5, 6]
+        journal_column_names = ['JournalId', 'FullName', 'Issn', 'Publisher', 'Webpage']
+
+        if preprocess:
+            if not os.path.exists(os.path.join(self.path2database, 'journal')):
+                os.mkdir(os.path.join(self.path2database, 'journal'))
+
+        journal_info = []
+        with open(os.path.join(path2mag, 'RawTXT/mag', 'Journals.txt'), 'r') as infile:
+            for line in infile:
+                sline = line.replace('\n', '').split('\t')
+                jline = [load_int(sline[0])] + [sline[i] for i in journal_str_col]
+                journal_info.append(jline)
+
+        journal_df = pd.DataFrame(journal_info, columns = journal_column_names)
+        if preprocess:
+            journal_df.to_hdf(os.path.join(path2mag, 'journal', 'journal.hdf'), key = 'journal', mode = 'w')
+
+        #now lets do the publication information
+
         doctype = {'Journal': 'j', 'Book':'b', '':'', 'BookChapter':'bc', 'Conference':'c', 'Dataset':'d', 'Patent':'p', 'Repository':'r'}
 
         pub_int_columns = [0, 7, 10, 21]
@@ -218,17 +448,17 @@ class MAG(object):
         ifile = 0
         pubinfo = []
 
-        self.pub2year = {}
+        pub2year = {}
 
         with open(os.path.join(self.path2database, 'mag', 'Papers.txt'), 'r') as infile:
             for line in infile:
                 sline = line.replace('\n', '').split('\t')
                 pline = [load_int(sline[ip]) for ip in pub_int_columns] + [sline[ip] for ip in pub_str_columns] + [doctype[sline[3]]]
-                self.pub2year[pline[0]] = pline[1]
+                pub2year[pline[0]] = pline[1]
                 pubinfo.append(pline)
                 ipub += 1
 
-                if preprocess and ipub % 10**7 == 0:
+                if preprocess and ipub % num_file_lines == 0:
                         pd.DataFrame(pubinfo, columns = pub_column_names).to_hdf(
                             os.path.join(self.path2database, 'publication', 'publication{}.hdf'.format(ifile)),
                                                                                     key = 'publication', mode = 'w')
@@ -236,19 +466,35 @@ class MAG(object):
                         ifile += 1
                         pubinfo = []
 
-            self.pub_df = pd.DataFrame(pubinfo, columns = pub_column_names)
+            pub_df = pd.DataFrame(pubinfo, columns = pub_column_names)
             if preprocess:
-                self.pub_df.to_hdf(os.path.join(self.path2database, 'publication', 'publications{}.hdf'.format(ifile)),
+                pub_df.to_hdf(os.path.join(self.path2database, 'publication', 'publications{}.hdf'.format(ifile)),
                                                                                 key = 'publication', mode = 'w')
 
                 with gzip.open(os.path.join(self.path2database, 'pub2year.json.gz'), 'w') as outfile:
                     outfile.write(json.dumps(self.pub2year).encode('utf8'))
 
-                self.pub_df = None
-                self.pub2year = None
+        return pub_df
 
+    @property
+    def pub2ref_df(self):
+        if self._pub2ref_df is None:
+            if self.keep_in_memory:
+                self._pub2ref_df = self.load_references()
+            else:
+                return self.load_references()
 
-    def parse_references(self, preprocess = False):
+        return self._pub2ref_df
+
+    def load_references(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
+        duplicate_keep = 'last', dropna = None):
+
+        if preprocess and os.path.exists(os.path.join(self.path2database, 'pub2ref')):
+            return load_preprocessed_data('pub2ref', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna)
+        else:
+            return self.parse_references()
+
+    def parse_references(self, preprocess = False, num_file_lines=10**7):
 
         if preprocess:
             if not os.path.exists(os.path.join(self.path2database, 'pub2ref')):
@@ -263,7 +509,7 @@ class MAG(object):
                 pub2ref_info.append([load_int(sline[ip]) for ip in range(2)])
                 iref += 1
 
-                if preprocess and iref % 10**8 == 0:
+                if preprocess and iref % num_file_lines == 0:
                     pd.DataFrame(pub2ref_info, columns = ['CitingPublicationId', 'CitedPublicationId']).to_hdf(
                         os.path.join(self.path2database, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)),
                                                                                 key = 'pub2ref', mode = 'w')
@@ -271,135 +517,167 @@ class MAG(object):
                     ifile += 1
                     pub2ref_info = []
 
-            self.pub2ref_df = pd.DataFrame(pub2ref_info, columns = ['CitingPublicationId', 'CitedPublicationId'])
+            pub2ref_df = pd.DataFrame(pub2ref_info, columns = ['CitingPublicationId', 'CitedPublicationId'])
             if preprocess:
-                self.pub2ref_df.to_hdf(os.path.join(self.path2database, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)),
+                pub2ref_df.to_hdf(os.path.join(self.path2database, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)),
                                                                                 key = 'pub2ref', mode = 'w')
-                self.pub2ref_df = None
 
-    def load_refdict(self, years=None):
-        if years is None:
-            years = list(range(1800, 2021))
+        return pub2ref_df
 
-        elif isinstance(years, int):
-            years = [years]
+    @property
+    def paa_df(self):
+        if self._paa_df is None:
+            if self.keep_in_memory:
+                self._paa_df = self.load_publicationauthoraffiliation()
+            else:
+                return self.load_publicationauthoraffiliation()
 
-        self.pub2refdict = {}
-        for y in years:
-            with gzip.open(os.path.join(self.path2database, 'pub2refdict', 'pub2refdict{}.json.gz'.format(y)), 'r') as infile:
-                for line in infile:
-                    self.pub2refdict[y] = {int(k):citelist for k, reflist in json.loads(line.decode('utf8')).items()}
+        return self._paa_df
 
-    def process_refdict(self, preprocess = True):
-        year_breakpts = [1800, 1990, 2011, 2016, 2021]
+    def load_publicationauthoraffiliation(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
+        duplicate_keep = 'last', dropna = None):
 
-        if self.pub2year is None:
-            self.load_pub2year()
+        if preprocess and os.path.exists(os.path.join(self.path2database, 'publicationauthoraffiliation')):
+            return load_preprocessed_data('publicationauthoraffiliation', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna)
+        else:
+            return self.parse_publicationauthoraffiliation()
 
-        for ibreak in range(len(year_breakpts) - 1):
-            start_year = year_breakpts[ibreak]
-            end_year = year_breakpts[ibreak - 1]
+    def parse_publicationauthoraffiliation(self, preprocess = False, num_file_lines=10**7):
 
-            pub2ref = {y:{} for y in range(start_year, end_year)}
+        pubauthaff_int_columns = [0, 1, 2, 3]
+        pubauthaff_str_columns = [4, 5]
+        pub_column_names = ['PublicationId', 'AuthorId', 'AffiliationId', 'AuthorSequence',  'OrigAuthorName', 'OrigAffiliationName']
 
-            Nreffiles = sum('pub2ref' in fname for fname in os.listdir(os.path.join(self.path2database, 'pub2ref')))
+        if preprocess:
+            if not os.path.exists(os.path.join(self.path2database, 'publicationauthoraffiliation')):
+                os.mkdir(os.path.join(self.path2database, 'publicationauthoraffiliation'))
 
-            for ifile in range(Nreffiles):
+        iref = 0
+        ifile = 0
+        pubauthaff_info = []
+        with open(os.path.join(path2mag, 'RawTXT/mag', 'PaperAuthorAffiliations.txt'), 'r') as infile:
+            for line in infile:
+                sline = line.replace('\n', '').split('\t')
+                pubauthaff_info.append([load_int(sline[ip]) for ip in pubauthaff_int_columns] + [sline[ip] if len(sline) > ip else '' for ip in pubauthaff_str_columns ])
+                iref += 1
 
-                refdf = pd.read_hdf(os.path.join(self.path2database, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)))
+                if preprocess and iref % num_file_lines == 0:
+                    pd.DataFrame(pubauthaff_info, columns = pub_column_names).to_hdf(
+                        os.path.join(path2mag, 'publicationauthoraffiliation', 'publicationauthoraffiliation{}.hdf'.format(ifile)),
+                                                                                key = 'publicationauthoraffiliation', mode = 'w')
 
-                for citing, cited in refdf.values:
-
-                    citingyear = self.pub2year.get(citing, 0)
-                    citedyear = self.pub2year.get(cited, 0)
-
-                    if citingyear >= start_year and citingyear < end_year and citedyear > 0:
-                        if pub2ref[citingyear].get(citing, None) is None:
-                            pub2ref[citingyear][int(citing)] = [int(cited)]
-                        else:
-                            pub2ref[citingyear][int(citing)].append(int(cited))
-
-            for y in sorted(pub2ref.keys()):
-                with gzip.open(os.path.join(self.path2database, 'pub2refdict', 'pub2refdict{}.json.gz'.format(y)), 'w') as outfile:
-                    outfile.write(json.dumps(pub2ref[y]).encode('utf8'))
-
-    def load_citedict(self, years=None):
-        if years is None:
-            years = list(range(1800, 2021))
-
-        elif isinstance(years, int):
-            years = [years]
-
-        self.pub2citedict = {}
-        for y in years:
-            with gzip.open(os.path.join(self.path2database, 'pub2citedict', 'pub2citedict{}.json.gz'.format(y)), 'r') as infile:
-                for line in infile:
-                    self.pub2citedict[y] = {int(k):citelist for k, citelist in json.loads(line.decode('utf8')).items()}
+                    ifile += 1
+                    pubauthaff_info = []
 
 
+            paa_df = pd.DataFrame(pubauthaff_info, columns = pub_column_names)
+            if preprocess:
+                paa_df.to_hdf(os.path.join(path2mag, 'publicationauthoraffiliation', 'publicationauthoraffiliation{}.hdf'.format(ifile)),
+                                                                            key = 'publicationauthoraffiliation', mode = 'w')
+        return paa_df
 
-    def process_citedict(self, preprocess = True):
-        year_breakpts = [1800, 1990, 2011, 2016, 2021]
+    @property
+    def author2pub_df(self):
+        if self._paa_df is None:
+            if self.keep_in_memory:
+                self._paa_df = self.load_publicationauthoraffiliation(columns = ['AuthorId', 'PublicationId'],
+                    duplicate_subset = ['AuthorId', 'PublicationId'], dropna = ['AuthorId', 'PublicationId'])
+            else:
+                return self.load_publicationauthoraffiliation(columns = ['AuthorId', 'PublicationId'],
+                    duplicate_subset = ['AuthorId', 'PublicationId'], dropna = ['AuthorId', 'PublicationId'])
 
-        if self.pub2year is None:
-            self.load_pub2year()
+        return self._paa_df
 
-        for ibreak in range(len(year_breakpts) - 1):
-            start_year = year_breakpts[ibreak]
-            end_year = year_breakpts[ibreak - 1]
+    @property
+    def pub2field_df(self):
+        if self._pub2field_df is None:
+            if self.keep_in_memory:
+                self._pub2field_df = self.load_pub2field()
+            else:
+                return self.load_pub2field()
 
-            pub2cite = {y:{} for y in range(start_year, end_year)}
+        return self._pub2field_df
 
-            Nreffiles = sum('pub2ref' in fname for fname in os.listdir(os.path.join(self.path2database, 'pub2ref')))
+    def load_pub2field(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
+        duplicate_keep = 'last', dropna = None):
 
-            for ifile in range(Nreffiles):
+        if preprocess and os.path.exists(os.path.join(self.path2database, 'pub2field')):
+            return load_preprocessed_data('pub2field', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna)
+        else:
+            return self.parse_fields()
 
-                refdf = pd.read_hdf(os.path.join(self.path2database, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)))
+    @property
+    def fieldinfo_df(self):
+        if self._fieldinfo_df is None:
+            if self.keep_in_memory:
+                self._fieldinfo_df = self.load_fieldinfo()
+            else:
+                return self.load_fieldinfo()
 
-                for citing, cited in refdf.values:
+        return self._fieldinfo_df
 
-                    citingyear = self.pub2year.get(citing, 0)
-                    citedyear = self.pub2year.get(cited, 0)
+    def load_fieldinfo(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
+        duplicate_keep = 'last', dropna = None):
 
-                    if citedyear >= start_year and citedyear < end_year and citingyear >= citedyear:
-                        if pub2cite[citedyear].get(cited, None) is None:
-                            pub2cite[citedyear][int(cited)] = [int(citing)]
-                        else:
-                            pub2cite[citedyear][int(cited)].append(int(citing))
+        if preprocess and os.path.exists(os.path.join(self.path2database, 'fieldinfo')):
+            return load_preprocessed_data('fieldinfo', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna)
+        else:
+            return self.parse_fields()
 
-            for y in sorted(pub2cite.keys()):
-                with gzip.open(os.path.join(self.path2database, 'pub2citedict', 'pub2citedict{}.json.gz'.format(y)), 'w') as outfile:
-                    outfile.write(json.dumps(pub2cite[y]).encode('utf8'))
+    def parse_fields(self, preprocess = False, num_file_lines=10**7):
 
+        field2get = [0, 5, 6]
+        fieldnames = ['FieldId', 'FieldLevel', 'NumberPublications', 'FieldName']
 
-    def process_author2affil():
+        if preprocess:
+            if not os.path.exists(os.path.join(self.path2database, 'fieldinfo')):
+                os.mkdir(os.path.join(self.path2database, 'fieldinfo'))
 
-        Nafffiles = sum('publicationauthoraffiliation' in fname for fname in os.listdir(os.path.join(self.path2database, 'publicationauthoraffiliation')) )
+        fieldinfo = []
+        with open(os.path.join(path2mag, 'RawTXT/advanced', 'FieldsOfStudy.txt'), 'r') as infile:
 
-        author2affildict = {}
-        for ifile in range(Nafffiles):
-            affdf = pd.read_hdf(os.path.join(self.path2database, 'publicationauthoraffiliation', 'publicationauthoraffiliation{}.hdf'.format(ifile)))
-            affdf.dropna(subset=['AffiliationId'], inplace=True)
-            for authid, affid in affdf[['AuthorId', 'AffiliationId']].values:
-                affid = str(affid)
-                if author2affildict.get(authid, None) is None:
-                    author2affildict[authid] = {affid:1}
-                elif author2affildict[authid].get(affid, None) is None:
-                    author2affildict[authid][affid] = 1
-                else:
-                    author2affildict[authid][affid] += 1
+            for line in infile:
+                sline = line.split('\t')
+                fielddata = [load_int(sline[ip]) for ip in field2get] + [sline[2]]
+                fieldinfo.append(fielddata)
 
-        Nauthorfiles = sum('author' in fname for fname in os.listdir(os.path.join(self.path2database, 'author')) )
-        for ifile in range(Nauthorfiles):
-            authordf = pd.read_hdf(os.path.join(self.path2database, 'author', 'author{}.hdf'.format(ifile)))
-
-            with gzip.open(os.path.join(self.path2database, 'authoraffiliation', 'authoraffiliation{}.tsv.gz'.format(ifile)), 'w') as outfile:
-                for aid in authordf['AuthorID'].values:
-                    outfile.write("{}\t{}\n".format(aid, json.dumps(author2affildict.get(aid, {}))).encode('utf8'))
-
-
+        field_df = pd.DataFrame(fieldinfo, columns = fieldnames)
+        if preprocess:
+            field_df.to_hdf(os.path.join(path2mag, 'fieldinfo', 'fieldinfo.hdf'), key = 'field', mode = 'w')
 
 
+        # and now do pub2field
+        paperfields = [0, 1]
+        paperfieldnames = ['PublicationId', 'FieldId']
+
+        if preprocess:
+            if not os.path.exists(os.path.join(self.path2database, 'pub2field')):
+                os.mkdir(os.path.join(self.path2database, 'pub2field'))
+
+        ipaper = 0
+        ifile = 0
+        fieldinfo = []
+        with open(os.path.join(path2mag, 'RawTXT/advanced', 'PaperFieldsOfStudy.txt'), 'r') as infile:
+
+            for line in infile:
+                sline = line.split('\t')
+                fielddata = [int(sline[ip]) for ip in paperfields]
+                fieldinfo.append(fielddata)
+                ipaper += 1
+
+                if preprocess and ipaper % num_file_lines == 0:
+                    pd.DataFrame(fieldinfo, columns = paperfieldnames).to_hdf(
+                        os.path.join(path2mag, 'pub2field', 'pub2field' + str(ifile) + '.hdf'),
+                                                                                key = 'pub2field', mode = 'w')
+
+                    ifile += 1
+                    fieldinfo = []
+
+        pub2field_df = pd.DataFrame(fieldinfo, columns = paperfieldnames)
+        if preprocess:
+            pub2field_df.to_hdf(os.path.join(path2mag, 'pub2field', 'pub2field' + str(ifile) + '.hdf'),
+                                                                                key = 'pub2field', mode = 'w')
+        return pub2field_df
 
 
 class WOS(object):
