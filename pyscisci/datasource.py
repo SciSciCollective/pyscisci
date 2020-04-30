@@ -122,20 +122,13 @@ class BibDataSource(object):
     def compute_impact(self, preprocess=True, citation_horizons = [5,10], noselfcite = True):
 
         # first load the publication year information
-        pub2year = self.load_publications(preprocess = True, columns = ['PublicationId', 'Year'])
-        pub2year.drop_duplicates(subset=['PublicationId'], inplace=True)
-        pub2year.dropna(subset=['Year'], inplace=True)
+        pub2year = self.load_pub2year
 
         # now get the reference list and merge with year info
         pub2ref = self.pub2ref_df
-        pub2ref = pub2ref.merge(pub2year, how='left', left_on='CitingPublicationId', right_on='PublicationId').rename(columns = {'Year':'CitingPublicationYear'})
-        del pub2ref['PublicationId']
-
-        pub2ref = pub2ref.merge(pub2year, how='left', left_on='CitedPublicationId', right_on='PublicationId').rename(columns = {'Year':'CitedPublicationYear'})
-        del pub2ref['PublicationId']
 
         # drop all citations that happend before the publication year
-        pub2ref = pub2ref.loc[pub2ref['CitingPublicationYear'] >= pub2ref['CitedPublicationYear']]
+        pub2ref = pub2ref.loc[[pub2year.get(citingpid, 0) >= pub2year.get(citedpid, 0) for citingpid, cited in pub2ref[['CitingPublicationYear', 'CitedPublicationYear']].values]]
 
         # calcuate the total citations
         citation_df = groupby_count(pub2ref, colgroupby='CitedPublicationId', colcountby='CitingPublicationId', unique=True )
@@ -145,7 +138,8 @@ class BibDataSource(object):
         for k in np.sort(citation_horizons)[::-1]:
 
             # drop all citations that happend after the k
-            pub2ref = pub2ref.loc[pub2ref['CitingPublicationYear'] <= pub2ref['CitedPublicationYear'] + k]
+            #pub2ref = pub2ref.loc[pub2ref['CitingPublicationYear'] <= pub2ref['CitedPublicationYear'] + k]
+            pub2ref = pub2ref.loc[[pub2year.get(citingpid, 0) <= pub2year.get(citedpid, 0) + k for citingpid, cited in pub2ref[['CitingPublicationYear', 'CitedPublicationYear']].values]]
 
             # recalculate the impact
             k_citation_df = groupby_count(pub2ref, colgroupby='CitedPublicationId', colcountby='CitingPublicationId', unique=True )
@@ -158,15 +152,11 @@ class BibDataSource(object):
 
 
         if noselfcite:
+            del pub2ref
             pub2ref = self.pub2refnoself_df
-            pub2ref = pub2ref.merge(pub2year, how='left', left_on='CitingPublicationId', right_on='PublicationId').rename(columns = {'Year':'CitingPublicationYear'})
-            del pub2ref['PublicationId']
-
-            pub2ref = pub2ref.merge(pub2year, how='left', left_on='CitedPublicationId', right_on='PublicationId').rename(columns = {'Year':'CitedPublicationYear'})
-            del pub2ref['PublicationId']
 
             # drop all citations that happend before the publication year
-            pub2ref = pub2ref.loc[pub2ref['CitingPublicationYear'] >= pub2ref['CitedPublicationYear']]
+             pub2ref = pub2ref.loc[[pub2year.get(citingpid, 0) >= pub2year.get(citedpid, 0) for citingpid, cited in pub2ref[['CitingPublicationYear', 'CitedPublicationYear']].values]]
 
             # calcuate the total citations
             citation_noself_df = groupby_count(pub2ref, colgroupby='CitedPublicationId', colcountby='CitingPublicationId', unique=True )
@@ -176,7 +166,8 @@ class BibDataSource(object):
             for k in np.sort(citation_horizons)[::-1]:
 
                 # drop all citations that happend after the k
-                pub2ref = pub2ref.loc[pub2ref['CitingPublicationYear'] <= pub2ref['CitedPublicationYear'] + k]
+                #pub2ref = pub2ref.loc[pub2ref['CitingPublicationYear'] <= pub2ref['CitedPublicationYear'] + k]
+                pub2ref = pub2ref.loc[[pub2year.get(citingpid, 0) <= pub2year.get(citedpid, 0) + k for citingpid, cited in pub2ref[['CitingPublicationYear', 'CitedPublicationYear']].values]]
 
                 # recalculate the impact
                 k_citation_df = groupby_count(pub2ref, colgroupby='CitedPublicationId', colcountby='CitingPublicationId', unique=True )
