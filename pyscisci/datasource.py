@@ -128,7 +128,7 @@ class BibDataSource(object):
         pub2ref = self.pub2ref_df
 
         # drop all citations that happend before the publication year
-        pub2ref = pub2ref.loc[[pub2year.get(citingpid, 0) >= pub2year.get(citedpid, 0) for citingpid, cited in pub2ref[['CitingPublicationYear', 'CitedPublicationYear']].values]]
+        pub2ref = pub2ref.loc[[pub2year.get(citingpid, 0) >= pub2year.get(citedpid, 0) for citingpid, citedpid in pub2ref[['CitingPublicationId', 'CitedPublicationId']].values]]
 
         # calcuate the total citations
         citation_df = groupby_count(pub2ref, colgroupby='CitedPublicationId', colcountby='CitingPublicationId', unique=True )
@@ -139,7 +139,7 @@ class BibDataSource(object):
 
             # drop all citations that happend after the k
             #pub2ref = pub2ref.loc[pub2ref['CitingPublicationYear'] <= pub2ref['CitedPublicationYear'] + k]
-            pub2ref = pub2ref.loc[[pub2year.get(citingpid, 0) <= pub2year.get(citedpid, 0) + k for citingpid, cited in pub2ref[['CitingPublicationYear', 'CitedPublicationYear']].values]]
+            pub2ref = pub2ref.loc[[pub2year.get(citingpid, 0) <= pub2year.get(citedpid, 0) + k for citingpid, citedpid in pub2ref[['CitingPublicationId', 'CitedPublicationId']].values]]
 
             # recalculate the impact
             k_citation_df = groupby_count(pub2ref, colgroupby='CitedPublicationId', colcountby='CitingPublicationId', unique=True )
@@ -156,7 +156,7 @@ class BibDataSource(object):
             pub2ref = self.pub2refnoself_df
 
             # drop all citations that happend before the publication year
-            pub2ref = pub2ref.loc[[pub2year.get(citingpid, 0) >= pub2year.get(citedpid, 0) for citingpid, cited in pub2ref[['CitingPublicationYear', 'CitedPublicationYear']].values]]
+            pub2ref = pub2ref.loc[[pub2year.get(citingpid, 0) >= pub2year.get(citedpid, 0) for citingpid, citedpid in pub2ref[['CitingPublicationId', 'CitedPublicationId']].values]]
 
             # calcuate the total citations
             citation_noself_df = groupby_count(pub2ref, colgroupby='CitedPublicationId', colcountby='CitingPublicationId', unique=True )
@@ -167,7 +167,7 @@ class BibDataSource(object):
 
                 # drop all citations that happend after the k
                 #pub2ref = pub2ref.loc[pub2ref['CitingPublicationYear'] <= pub2ref['CitedPublicationYear'] + k]
-                pub2ref = pub2ref.loc[[pub2year.get(citingpid, 0) <= pub2year.get(citedpid, 0) + k for citingpid, cited in pub2ref[['CitingPublicationYear', 'CitedPublicationYear']].values]]
+                pub2ref = pub2ref.loc[[pub2year.get(citingpid, 0) <= pub2year.get(citedpid, 0) + k for citingpid, citedpid in pub2ref[['CitingPublicationId', 'CitedPublicationId']].values]]
 
                 # recalculate the impact
                 k_citation_df = groupby_count(pub2ref, colgroupby='CitedPublicationId', colcountby='CitingPublicationId', unique=True )
