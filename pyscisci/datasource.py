@@ -7,14 +7,16 @@
  """
 import json
 import gzip
+from collections import defaultdict
+
 import numpy as np
 from nameparser import HumanName
 
-from .utils import isin_sorted, zip2dict, load_int, load_float, groupby_count
-from .analysis import groupby_count
+from pyscisci.utils import isin_sorted, zip2dict, load_int, load_float, groupby_count
+from pyscisci.analysis import groupby_count
 
 def load_preprocessed_data(dataname, path2database, columns = None, isindict = None, duplicate_subset = None,
-    duplicate_keep = 'last', dropna = None, keep_file = False):
+    duplicate_keep = 'last', dropna = None, keep_source_file = False, func2apply = None):
 
     #TODO: progress bar
 
@@ -57,8 +59,11 @@ def load_preprocessed_data(dataname, path2database, columns = None, isindict = N
         if isinstance(duplicate_subset, list):
             subdf.drop_duplicates(subset = duplicate_subset, keep = duplicate_keep, inplace = True)
 
-        if keep_file:
+        if keep_source_file:
             subdf['filetag'] = ifile
+
+        if callable(func2apply):
+            func2apply(subdf)
 
         data_df.append(subdf)
 
@@ -105,12 +110,14 @@ class BibDataSource(object):
     @property
     def pub_df(self):
         #TODO: Error Raising when database isnt defined
+        return False
 
     @property
     def pub2ref_df(self):
         #TODO: Error Raising when database isnt defined
+        return False
 
-    def compute_impact(self, preprocess=True, citation_horizons = [5,10]):
+    def compute_impact(self, preprocess=True, citation_horizons = [5,10], noselfcite = True):
 
         # first load the publication year information
         pub2year = self.load_publications(preprocess = True, columns = ['PublicationId', 'Year'])
@@ -144,11 +151,41 @@ class BibDataSource(object):
 
             citation_df = citation_df.merge(k_citation_df, how='left', on='PublicationId')
 
-        # set all nan to 0
-        citation_df.fillna(0, inplace=True)
-
         # get the Cited Year
         citation_df = citation_df.merge(pub2year, how='left', on='PublicationId')
+
+
+        if noselfcite:
+            pub2ref = self.pub2refnoself_df
+            pub2ref = pub2ref.merge(pub2year, how='left', left_on='CitingPublicationId', right_on='PublicationId').rename(columns = {'Year':'CitingPublicationYear'})
+            del pub2ref['PublicationId']
+
+            pub2ref = pub2ref.merge(pub2year, how='left', left_on='CitedPublicationId', right_on='PublicationId').rename(columns = {'Year':'CitedPublicationYear'})
+            del pub2ref['PublicationId']
+
+            # drop all citations that happend before the publication year
+            pub2ref = pub2ref.loc[pub2ref['CitingPublicationYear'] >= pub2ref['CitedPublicationYear']]
+
+            # calcuate the total citations
+            citation_noself_df = groupby_count(pub2ref, colgroupby='CitedPublicationId', colcountby='CitingPublicationId', unique=True )
+            citation_noself_df.rename(columns={'CitingPublicationIdCount':'Ctotal_noself', 'CitedPublicationId':'PublicationId'}, inplace=True)
+
+            # go from the larest k down
+            for k in np.sort(citation_horizons)[::-1]:
+
+                # drop all citations that happend after the k
+                pub2ref = pub2ref.loc[pub2ref['CitingPublicationYear'] <= pub2ref['CitedPublicationYear'] + k]
+
+                # recalculate the impact
+                k_citation_df = groupby_count(pub2ref, colgroupby='CitedPublicationId', colcountby='CitingPublicationId', unique=True )
+                k_citation_df.rename(columns={'CitingPublicationIdCount':'C{}_noself'.format(k), 'CitedPublicationId':'PublicationId'}, inplace=True)
+
+                citation_noself_df = citation_noself_df.merge(k_citation_df, how='left', on='PublicationId')
+
+        citation_df = citation_df.merge(citation_noself_df, how='left', on='PublicationId')
+
+        # set all nan to 0
+        citation_df.fillna(0, inplace=True)
 
         if preprocess:
 
@@ -179,12 +216,9 @@ class BibDataSource(object):
             if not os.path.exists(os.path.join(self.path2database, 'pub2refnoself')):
                 os.mkdir(os.path.join(self.path2database, 'pub2refnoself'))
 
-        # first get all authors
-        author_productivity = groupby_count(self.author2pub_df, colgroupby='AuthorId', colcountby='PublicationId', unique=True )
-        # and drop authors that only have 1 paper
-        author_productivity = author_productivity.loc[author_productivity['PublicationIdCount'] > 1]
-
-        author2pub = self.author2pub_df.loc[isin_sorted(self.author2pub_df['AuthorId'].values, np.sort(author_productivity['AuthorId'].unique()))]
+        pub2authors = defaultdict(set)
+        for pid, aid in self.author2pub_df[['PublicationId', 'AuthorId']].values:
+            pub2authors[pid].add(aid)
 
         fullrefdf = []
         # loop through all pub2ref files
@@ -192,29 +226,16 @@ class BibDataSource(object):
         for ifile in range(Nreffiles):
             refdf = pd.read_hdf(os.path.join(path2mag, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)))
 
-            # get the citing authors
-            refdf = refdf.merge(author2pub, how='left', left_on='CitingPublicationId', right_on = 'PublicationId').rename(columns = {'AuthorId':'CitingAuthorId'})
-            del refdf['PublicationId']
-
-            # get the cited authors
-            refdf = refdf.merge(author2pub, how='left', left_on='CitedPublicationId', right_on = 'PublicationId').rename(columns = {'AuthorId':'CitedAuthorId'})
-            del refdf['PublicationId']
-
-            # identify when a citing and cited author are the same
-            refdf['IsSelfCite'] = refdf['CitedAuthorId'] == refdf['CitingAuthorId']
-            # add back in the publications without authors
-            refdf.loc[np.any(refdf[['CitingPublicationId', 'CitedPublicationId']].isna(), axis=1), 'IsSelfCite'] = 0
-
-            # now find citing-cited pairs where at least one author is the same
-            refdf = refdf.groupby(['CitingPublicationId', 'CitedPublicationId'], sort = False)['IsSelfCite'].max().to_frame().reset_index()
+            # get citing cited pairs with no common authors
+            noselfcite = np.array([len(pub2authors[citingpid] & pub2authors[citedpid]) == 0 for citingpid, citedpid in refdf.values])
 
             # keep only citing-cited pairs without a common author
-            refdf = refdf.loc[refdf['IsSelfCite'] == 0]
+            refdf = refdf.loc[noselfcite]
 
             if preprocess:
-                refdf[['CitingPublicationId', 'CitedPublicationId']].to_hdf(os.path.join(path2mag, 'pub2refnoself', 'pub2refnoself{}.hdf'.format(ifile)), key = 'pub2ref')
+                refdf.to_hdf(os.path.join(path2mag, 'pub2refnoself', 'pub2refnoself{}.hdf'.format(ifile)), key = 'pub2ref')
             else:
-                fullrefdf.append(refdf[['CitingPublicationId', 'CitedPublicationId']])
+                fullrefdf.append(refdf)
 
         if not preprocess:
             return pd.concat(fullrefdf)
@@ -486,11 +507,26 @@ class MAG(BibDataSource):
 
         return self._pub2ref_df
 
-    def load_references(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
-        duplicate_keep = 'last', dropna = None):
+    @property
+    def pub2refnoself_df(self):
+        if self._pub2refnoself_df is None:
+            if self.keep_in_memory:
+                self._pub2refnoself_df = self.load_references(noselfcite=True)
+            else:
+                return self.load_references(noselfcite=True)
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, 'pub2ref')):
-            return load_preprocessed_data('pub2ref', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna)
+        return self._pub2refnoself_df
+
+    def load_references(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
+        duplicate_keep = 'last', noselfcite = False, dropna = None):
+
+        if noselfcite:
+            fileprefix = 'pub2refnoself'
+        else:
+            fileprefix = 'pub2ref'
+
+        if preprocess and os.path.exists(os.path.join(self.path2database, fileprefix)):
+            return load_preprocessed_data(fileprefix, self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna)
         else:
             return self.parse_references()
 

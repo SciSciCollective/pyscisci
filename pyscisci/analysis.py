@@ -9,10 +9,9 @@ import os
 from functools import reduce
 import pandas as pd
 import numpy as np
-from scipy import optimize
 
 
-from .utils import isin_sorted, zip2dict, check4columns, fit_piecewise_linear, groupby_count, groupby_range
+from pyscisci.utils import isin_sorted, zip2dict, check4columns, fit_piecewise_linear, groupby_count, groupby_range
 
 
 class CitationDataFrame(object):
@@ -50,7 +49,7 @@ class AuthorCareer(object):
             df = self.bibdatabase.author2pub_df
 
         newname_dict = zip2dict([str(colrange)+'Range', '0'], ['CareerLength']*2)
-        return groupby_range(df, colgroupby, colrange, unique=True).rename(columns=newname_dict)
+        return groupby_range(df, colgroupby, colrange).rename(columns=newname_dict)
 
     def productivity_trajectory(self, df =None, colgroupby = 'AuthorId', datecol = 'Year', colcountby = 'PublicationId'):
         if df is None:
@@ -81,16 +80,16 @@ def compute_hindex(df, colgroupby, colcountby):
            DOI: xxx
     """
     newname_dict = zip2dict([str(colcountby), '0'], [str(colgroupby)+'hindex']*2)
-    return df.groupby(colgroupby, sort=False)[colcountby].apply(article_hindex).to_frame().reset_index().rename(newname_dict)
+    return df.groupby(colgroupby, sort=False)[colcountby].apply(article_hindex).to_frame().reset_index().rename(columns=newname_dict)
 
 
 
 ### Productivity Trajectory
 
-def fit_piecewise_lineardf(author_df):
-    return fit_piecewise_linear(author_df['Year'].values, author_df['YearlyProductivity'].values)
+def fit_piecewise_lineardf(author_df, args):
+    return fit_piecewise_linear(author_df[args[0]].values, author_df[args[1]].values)
 
-def compute_yearly_productivity_traj(df, colgroupby = 'AuthorId'):
+def compute_yearly_productivity_traj(df, colgroupby = 'AuthorId', colx='Year',coly='YearlyProductivity'):
     """
     This function calculates the piecewise linear yearly productivity trajectory original studied in [w].
 
@@ -100,8 +99,8 @@ def compute_yearly_productivity_traj(df, colgroupby = 'AuthorId'):
            DOI: xxx
     """
 
-    newname_dict = zip2dict([str(i) for i in range(4)], ['t_break', 'b', 'm1', 'm2' ])
-    return df.groupby(colgroupby, sort=False).apply(fit_piecewise_linear).to_frame().reset_index().rename(newname_dict)
+    newname_dict = zip2dict(list(range(4)), ['t_break', 'b', 'm1', 'm2' ]) #[str(i) for i in range(4)]
+    return df.groupby(colgroupby, sort=False).apply(fit_piecewise_lineardf, args=(colx,coly) ).reset_index().rename(columns = newname_dict)
 
 ### Disruption
 def compute_disruption_index(pub2ref):

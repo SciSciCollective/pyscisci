@@ -7,20 +7,21 @@
  """
 import pandas as pd
 import numpy as np
+from scipy import optimize
 
 def groupby_count(df, colgroupby, colcountby, unique=True):
     newname_dict = zip2dict([str(colcountby), '0'], [str(colcountby)+'Count']*2)
     if unique:
-        return df.groupby(groupby, sort=False)[colcountby].nunique().to_frame().reset_index().rename(columns=newname_dict)
+        return df.groupby(colgroupby, sort=False)[colcountby].nunique().to_frame().reset_index().rename(columns=newname_dict)
     else:
-        return df.groupby(groupby, sort=False)[colcountby].size().to_frame().reset_index().rename(columns=newname_dict)
+        return df.groupby(colgroupby, sort=False)[colcountby].size().to_frame().reset_index().rename(columns=newname_dict)
 
 def groupby_range(df, colgroupby, colrange):
-    newname_dict = zip2dict([str(colcountby), '0'], [str(colcountby)+'Range']*2)
+    newname_dict = zip2dict([str(colrange), '0'], [str(colrange)+'Range']*2)
     return df.groupby(colgroupby, sort=False)[colrange].apply(lambda x: x.max() - x.min()).to_frame().reset_index().rename(columns=newname_dict)
 
 def groupby_zero_col(df, colgroupby, colrange):
-    return df.groupby(colgroupby, sort=False)[colrange].apply(lambda x: x - x.min()).to_frame().reset_index()
+    return df.groupby(colgroupby, sort=False)[colrange].transform(lambda x: x - x.min())
 
 def groupby_total(df, colgroupby, coltotal):
     newname_dict = zip2dict([str(colcountby), '0'], [str(colcountby)+'Total']*2)
@@ -44,7 +45,7 @@ def piecewise_linear(x, x_break, b, m1, m2):
 
 def fit_piecewise_linear(xvalues, yvalues):
     p , e = optimize.curve_fit(piecewise_linear, xvalues, yvalues)
-    return p
+    return pd.Series(p)
 
 
 def changepoint(a):
