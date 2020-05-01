@@ -8,8 +8,8 @@ __author__ = """\n""".join([
     'Alexander J Gates <ajgates42@gmail.com>'
 ])
 
-__version__ = '0.0.8'
-__release__ = '0.0.8'
+__version__ = '0.0.9'
+__release__ = '0.0.9'
 
 #from .analysis import *
 #from .bibnetwork import *

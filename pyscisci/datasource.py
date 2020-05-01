@@ -148,7 +148,7 @@ class BibDataSource(object):
             citation_df = citation_df.merge(k_citation_df, how='left', on='PublicationId')
 
         # get the Cited Year
-        citation_df = citation_df.merge(pub2year, how='left', on='PublicationId')
+        citation_df['Year'] = [pub2year.get(pid, 0) for pid in citation_df['PublicationId'].values]
 
 
         if noselfcite:
