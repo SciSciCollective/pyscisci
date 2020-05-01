@@ -108,6 +108,7 @@ class BibDataSource(object):
         self._pub2ref_df = None
         self._author2pub_df = None
         self._paa_df = None
+        self._pub2refnoself_df = None
 
     @property
     def pub_df(self):
@@ -253,6 +254,7 @@ class MAG(BibDataSource):
         self._author_df = None
         self._pub2year = None
         self._pub2ref_df = None
+        self._pub2refnoself_df = None
         self._author2pub_df = None
         self._paa_df = None
 
