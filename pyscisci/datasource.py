@@ -234,6 +234,37 @@ class BibDataSource(object):
         if not preprocess:
             return pd.concat(fullrefdf)
 
+    def compute_yearly_citations(self, preprocess = True):
+
+        # first load the publication year information
+        pub2year = self.load_pub2year()
+
+        # now get the reference list and merge with year info
+        pub2ref = self.pub2ref_df
+
+        pub2ref['CitingYear'] = [pub2year.get(citingpid, 0) for citingpid in pub2ref['CitingPublicationId'].values]
+
+        # drop all citations that happend before the publication year
+        pub2ref = pub2ref.loc[[citingyear >= pub2year.get(citedpid, 0) for citingyear, citedpid in pub2ref[['CitingYear', 'CitedPublicationId']].values]]
+
+        # calcuate the total citations
+        citation_df = groupby_count(pub2ref, colgroupby=['CitedPublicationId', 'CitingYear'], colcountby='CitingPublicationId', unique=True )
+        citation_df.rename(columns={'CitingPublicationIdCount':'YearlyCitations', 'CitedPublicationId':'PublicationId'}, inplace=True)
+
+        # get the Cited Year
+        citation_df['CitedYear'] = [pub2year.get(pid, 0) for pid in citation_df['PublicationId'].values]
+
+        citation_df.sort_values(subset=['CitedYear', 'CitedPublicationId', 'CitingYear'], inplace=True)
+
+        if preprocess:
+            if not os.path.exists(os.path.join(self.path2database, 'temporalimpact')):
+                os.mkdir(os.path.join(self.path2database, 'temporalimpact'))
+
+            for y, cdf in citation_df.groupby('CitedYear', sort=True):
+                cdf.to_hdf(os.path.join(self.path2database, 'temporalimpact', 'temporalimpact{}.hdf'.format(y)), mode='w', key ='temporalimpact')
+
+        else:
+            return citation_df
 
 class MAG(BibDataSource):
     """

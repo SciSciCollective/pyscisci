@@ -137,6 +137,42 @@ def compute_disruption_index(pub2ref):
     return citation_groups.apply(disruption_index).to_frame().reset_index().rename(columns = newname_dict)
 
 
+### Cnorm
+def compute_cnorm(pub2ref, pub2year):
+    """
+    This function calculates the cnorm for publications.
+
+    References
+    ----------
+    .. [h] Ke, Q., Gates, A. J., Barabasi, A.-L. (2020): "title",
+           *in submission*.
+           DOI: xxx
+    """
+    required_pub2ref_columns = ['CitingPublicationId', 'CitedPublicationId']
+    check4columns(pub2ref, required_pub_columns)
+    pub2ref = pub2ref[required_pub2ref_columns]
+
+    # we need the citation counts and cocitation network
+    temporal_cocitation_dict = {y:defaultdict(set) for y in set(pub2year.values())}
+    temporal_citation_dict = {y:defaultdict(int) for y in temporal_cocitation_dict.keys()}
+
+    def count_cocite(cited_df):
+        y = pub2year[cited_df.name]
+
+        for citedpid in cited_df['CitedPublicationId'].values:
+            temporal_citation_dict[y][citedpid] += 1
+        for icitedpid, jcitedpid in combinations(cited_df['CitedPublicationId'].values, 2):
+            temporal_cocitation_dict[y][icitedpid].add(jcitedpid)
+            temporal_cocitation_dict[y][jcitedpid].add(icitedpid)
+
+    pub2ref.groupby('CitingPublicationId', sort=False).apply(count_cocite)
+
+    cnorm = {}
+    for y in temporal_citation_dict.keys():
+        for citedpid, year_cites in temporal_citation_dict[y].items():
+            if cnorm.get(citedpid, None) is None:
+                cnorm[citedpid] = {y:year_cites/np.mean()}
+
 
 ### Novelty
 
