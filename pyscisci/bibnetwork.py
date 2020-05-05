@@ -24,6 +24,29 @@ def cocited_edgedict(refdf):
 
     return cocite_dict
 
+def temporal_cocited_edgedict(pub2ref, pub2year):
+
+    required_pub2ref_columns = ['CitingPublicationId', 'CitedPublicationId']
+    check4columns(pub2ref, required_pub_columns)
+    pub2ref = pub2ref[required_pub2ref_columns]
+
+    year_values = sorted(list(set(pub2year.values())))
+
+    # we need the citation counts and cocitation network
+    temporal_cocitation_dict = {y:defaultdict(set) for y in year_values}
+    temporal_citation_dict = {y:defaultdict(int) for y in year_values}
+
+    def count_cocite(cited_df):
+        y = pub2year[cited_df.name]
+
+        for citedpid in cited_df['CitedPublicationId'].values:
+            temporal_citation_dict[y][citedpid] += 1
+        for icitedpid, jcitedpid in combinations(cited_df['CitedPublicationId'].values, 2):
+            temporal_cocitation_dict[y][icitedpid].add(jcitedpid)
+            temporal_cocitation_dict[y][jcitedpid].add(icitedpid)
+
+    pub2ref.groupby('CitingPublicationId', sort=False).apply(count_cocite)
+
 
 def dataframe2sparse(df, index_columns = ['name_citing', 'name_cited'], weight_values = None):
 

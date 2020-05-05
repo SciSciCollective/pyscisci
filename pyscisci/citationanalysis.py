@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-.. module:: analysis
-    :synopsis: Set of functions for typical bibliometric analysis
+.. module:: citationanalysis
+    :synopsis: Set of functions for typical bibliometric citation analysis
 
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
  """
@@ -13,66 +13,38 @@ import numpy as np
 
 from pyscisci.utils import isin_sorted, zip2dict, check4columns, fit_piecewise_linear, groupby_count, groupby_range
 
+## Q-factor
+def qfactor():
+    """
+    This function calculates the Q-factor for an author.  See [q] for details.
 
-class CitationDataFrame(object):
+    References
+    ----------
+    .. [q] Sinatra (2016): "title", *Science*.
+           DOI: xxx
+    """
 
-    def __init__(self, pub2ref):
-        self.pub2ref = pub2ref
-
-
-    def disruption_index(self):
-        return compute_disruption_index(self.pub2ref)
-
-
-class AuthorCareer(object):
-
-    def __init__(self, bibdatabase):
-        self.bibdatabase = bibdatabase
-
-
-    def productivity(self, df=None, colgroupby = 'AuthorId', colcountby = 'PublicationId'):
-        if df is None:
-            df = self.bibdatabase.author2pub_df
-
-        newname_dict = zip2dict([str(colcountby), '0'], ['Productivity']*2)
-        return groupby_count(df, colgroupby, colcountby, unique=True).rename(columns=newname_dict)
-
-    def yearly_productivity(self, df=None, colgroupby = 'AuthorId', datecol = 'Year', colcountby = 'PublicationId'):
-        if df is None:
-            df = self.bibdatabase.author2pub_df
-
-        newname_dict = zip2dict([str(colcountby)+'Count', '0'], ['YearlyProductivity']*2)
-        return groupby_count(df, [colgroupby, datecol], colcountby, unique=True).rename(columns=newname_dict)
-
-    def career_length(self, df = None, colgroupby = 'AuthorId', colrange = 'Year'):
-        if df is None:
-            df = self.bibdatabase.author2pub_df
-
-        newname_dict = zip2dict([str(colrange)+'Range', '0'], ['CareerLength']*2)
-        return groupby_range(df, colgroupby, colrange).rename(columns=newname_dict)
-
-    def productivity_trajectory(self, df =None, colgroupby = 'AuthorId', datecol = 'Year', colcountby = 'PublicationId'):
-        if df is None:
-            df = self.bibdatabase.author2pub_df
-
-        return compute_yearly_productivity_traj(df, colgroupby = colgroupby)
-
-    def hindex(self, df = None, colgroupby = 'AuthorId', colcountby = 'Ctotal'):
-        if df is None:
-            df = self.bibdatabase.author2pub_df.merge(self.bibdatabase.impact_df[['AuthorId', colcountby]], on='PublicationId', how='left')
-        return compute_hindex(df, colgroupby = colgroupby, colcountby = colcountby)
-
+    # TODO: implement
+    return False
 
 
 ### H index
 
-def article_hindex(a):
+def pub_hindex(a):
+    """
+    This function calculates the h index for a single publication.  See [h] for details.
+
+    References
+    ----------
+    .. [h] Hirsh (2005): "title", *PNAS*.
+           DOI: xxx
+    """
     d = np.sort(a)[::-1] - np.arange(a.shape[0])
     return (d>0).sum()
 
 def compute_hindex(df, colgroupby, colcountby):
     """
-    This function calculates the h index for the data frame.  See [h] for details.
+    This function applies the h index for all publications in a data frame.  See [h] for details.
 
     References
     ----------
@@ -80,13 +52,13 @@ def compute_hindex(df, colgroupby, colcountby):
            DOI: xxx
     """
     newname_dict = zip2dict([str(colcountby), '0'], [str(colgroupby)+'hindex']*2)
-    return df.groupby(colgroupby, sort=False)[colcountby].apply(article_hindex).to_frame().reset_index().rename(columns=newname_dict)
+    return df.groupby(colgroupby, sort=False)[colcountby].apply(pub_hindex).to_frame().reset_index().rename(columns=newname_dict)
 
 
 
 ### Productivity Trajectory
 
-def fit_piecewise_lineardf(author_df, args):
+def _fit_piecewise_lineardf(author_df, args):
     return fit_piecewise_linear(author_df[args[0]].values, author_df[args[1]].values)
 
 def compute_yearly_productivity_traj(df, colgroupby = 'AuthorId', colx='Year',coly='YearlyProductivity'):
@@ -100,7 +72,7 @@ def compute_yearly_productivity_traj(df, colgroupby = 'AuthorId', colx='Year',co
     """
 
     newname_dict = zip2dict(list(range(4)), ['t_break', 'b', 'm1', 'm2' ]) #[str(i) for i in range(4)]
-    return df.groupby(colgroupby, sort=False).apply(fit_piecewise_lineardf, args=(colx,coly) ).reset_index().rename(columns = newname_dict)
+    return df.groupby(colgroupby, sort=False).apply(_fit_piecewise_lineardf, args=(colx,coly) ).reset_index().rename(columns = newname_dict)
 
 ### Disruption
 def compute_disruption_index(pub2ref):
