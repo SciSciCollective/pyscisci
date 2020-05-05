@@ -435,7 +435,7 @@ class BibDataBase(object):
         # get the Cited Year
         citation_df['CitedYear'] = [pub2year.get(pid, 0) for pid in citation_df['PublicationId'].values]
 
-        citation_df.sort_values(subset=['CitedYear', 'CitedPublicationId', 'CitingYear'], inplace=True)
+        citation_df.sort_values(by=['CitedYear', 'CitedPublicationId', 'CitingYear'], inplace=True)
 
         if verbose:
             print("Yearly Citations Found")
