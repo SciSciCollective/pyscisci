@@ -415,7 +415,7 @@ class BibDataBase(object):
             print("Starting Computation of Yearly Citations")
 
         # first load the publication year information
-        pub2year = self.load_pub2year()
+        pub2year = self.pub2year
 
         # now get the reference list and merge with year info
         pub2ref = self.pub2ref_df
