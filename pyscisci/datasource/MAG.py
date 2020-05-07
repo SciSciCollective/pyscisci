@@ -135,7 +135,7 @@ class MAG(BibDataBase):
                 os.mkdir(os.path.join(self.path2database, 'journal'))
 
         journal_info = []
-        with open(os.path.join(path2mag, 'RawTXT/mag', 'Journals.txt'), 'r') as infile:
+        with open(os.path.join(self.path2database, 'RawTXT/mag', 'Journals.txt'), 'r') as infile:
             for line in infile:
                 sline = line.replace('\n', '').split('\t')
                 jline = [load_int(sline[0])] + [sline[i] for i in journal_str_col]
@@ -143,7 +143,7 @@ class MAG(BibDataBase):
 
         journal_df = pd.DataFrame(journal_info, columns = journal_column_names)
         if preprocess:
-            journal_df.to_hdf(os.path.join(path2mag, 'journal', 'journal.hdf'), key = 'journal', mode = 'w')
+            journal_df.to_hdf(os.path.join(self.path2database, 'journal', 'journal.hdf'), key = 'journal', mode = 'w')
 
         #now lets do the publication information
 
@@ -233,7 +233,7 @@ class MAG(BibDataBase):
         iref = 0
         ifile = 0
         pubauthaff_info = []
-        with open(os.path.join(path2mag, 'RawTXT/mag', 'PaperAuthorAffiliations.txt'), 'r') as infile:
+        with open(os.path.join(self.path2database, 'RawTXT/mag', 'PaperAuthorAffiliations.txt'), 'r') as infile:
             for line in infile:
                 sline = line.replace('\n', '').split('\t')
                 pubauthaff_info.append([load_int(sline[ip]) for ip in pubauthaff_int_columns] + [sline[ip] if len(sline) > ip else '' for ip in pubauthaff_str_columns ])
@@ -241,7 +241,7 @@ class MAG(BibDataBase):
 
                 if preprocess and iref % num_file_lines == 0:
                     pd.DataFrame(pubauthaff_info, columns = pub_column_names).to_hdf(
-                        os.path.join(path2mag, 'publicationauthoraffiliation', 'publicationauthoraffiliation{}.hdf'.format(ifile)),
+                        os.path.join(self.path2database, 'publicationauthoraffiliation', 'publicationauthoraffiliation{}.hdf'.format(ifile)),
                                                                                 key = 'publicationauthoraffiliation', mode = 'w')
 
                     ifile += 1
@@ -250,7 +250,7 @@ class MAG(BibDataBase):
 
             paa_df = pd.DataFrame(pubauthaff_info, columns = pub_column_names)
             if preprocess:
-                paa_df.to_hdf(os.path.join(path2mag, 'publicationauthoraffiliation', 'publicationauthoraffiliation{}.hdf'.format(ifile)),
+                paa_df.to_hdf(os.path.join(self.path2database, 'publicationauthoraffiliation', 'publicationauthoraffiliation{}.hdf'.format(ifile)),
                                                                             key = 'publicationauthoraffiliation', mode = 'w')
         return paa_df
 
@@ -264,7 +264,7 @@ class MAG(BibDataBase):
                 os.mkdir(os.path.join(self.path2database, 'fieldinfo'))
 
         fieldinfo = []
-        with open(os.path.join(path2mag, 'RawTXT/advanced', 'FieldsOfStudy.txt'), 'r') as infile:
+        with open(os.path.join(self.path2database, 'RawTXT/advanced', 'FieldsOfStudy.txt'), 'r') as infile:
 
             for line in infile:
                 sline = line.split('\t')
@@ -273,7 +273,7 @@ class MAG(BibDataBase):
 
         field_df = pd.DataFrame(fieldinfo, columns = fieldnames)
         if preprocess:
-            field_df.to_hdf(os.path.join(path2mag, 'fieldinfo', 'fieldinfo.hdf'), key = 'field', mode = 'w')
+            field_df.to_hdf(os.path.join(self.path2database, 'fieldinfo', 'fieldinfo.hdf'), key = 'field', mode = 'w')
 
 
         # and now do pub2field
@@ -287,7 +287,7 @@ class MAG(BibDataBase):
         ipaper = 0
         ifile = 0
         fieldinfo = []
-        with open(os.path.join(path2mag, 'RawTXT/advanced', 'PaperFieldsOfStudy.txt'), 'r') as infile:
+        with open(os.path.join(self.path2database, 'RawTXT/advanced', 'PaperFieldsOfStudy.txt'), 'r') as infile:
 
             for line in infile:
                 sline = line.split('\t')
@@ -297,7 +297,7 @@ class MAG(BibDataBase):
 
                 if preprocess and ipaper % num_file_lines == 0:
                     pd.DataFrame(fieldinfo, columns = paperfieldnames).to_hdf(
-                        os.path.join(path2mag, 'pub2field', 'pub2field' + str(ifile) + '.hdf'),
+                        os.path.join(self.path2database, 'pub2field', 'pub2field' + str(ifile) + '.hdf'),
                                                                                 key = 'pub2field', mode = 'w')
 
                     ifile += 1
@@ -305,7 +305,7 @@ class MAG(BibDataBase):
 
         pub2field_df = pd.DataFrame(fieldinfo, columns = paperfieldnames)
         if preprocess:
-            pub2field_df.to_hdf(os.path.join(path2mag, 'pub2field', 'pub2field' + str(ifile) + '.hdf'),
+            pub2field_df.to_hdf(os.path.join(self.path2database, 'pub2field', 'pub2field' + str(ifile) + '.hdf'),
                                                                                 key = 'pub2field', mode = 'w')
         return pub2field_df
 
