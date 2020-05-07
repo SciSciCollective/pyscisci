@@ -40,10 +40,6 @@ class BibDataBase(object):
         self._paa_df = None
         self._pub2refnoself_df = None
 
-        self.PublicationIdType = int
-        self.AffiliationIdType = int
-        self.AuthorIdType = int
-
     @property
     def affiliation_df(self):
         if self._affiliation_df is None:

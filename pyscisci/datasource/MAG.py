@@ -33,6 +33,10 @@ class MAG(BibDataBase):
         self._author2pub_df = None
         self._paa_df = None
 
+        self.PublicationIdType = int
+        self.AffiliationIdType = int
+        self.AuthorIdType = int
+
     def preprocess(self, dflist = None):
         if dflist is None:
             dflist = ['affiliation', 'author', 'publication', 'reference', 'publicationauthoraffiliation', 'fields']
