@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 from nameparser import HumanName
 
-from readwrite import load_preprocessed_data
+from pyscisci.datasource.readwrite import load_preprocessed_data
 from pyscisci.database import BibDataBase
 
 class MAG(BibDataBase):
