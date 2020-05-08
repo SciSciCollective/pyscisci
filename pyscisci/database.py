@@ -184,7 +184,7 @@ class BibDataBase(object):
         if os.path.exists(os.path.join(self.path2database, 'pub2year.json.gz')):
             with gzip.open(os.path.join(self.path2database, 'pub2year.json.gz'), 'r') as infile:
                 pub2year = json.loads(infile.read().decode('utf8'))
-            return {self.PublicationIdType(k):int(y) for k,y in pub2year.items() if not v is None}
+            return {self.PublicationIdType(k):int(y) for k,y in pub2year.items() if not y is None}
 
     def load_journals(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
         duplicate_keep = 'last', dropna = None):
@@ -256,7 +256,7 @@ class BibDataBase(object):
 
 
 
-    # Different Analysis
+    # Analysis
 
     def author_productivity(self, df=None, colgroupby = 'AuthorId', colcountby = 'PublicationId'):
         if df is None:
