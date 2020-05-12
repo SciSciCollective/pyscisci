@@ -262,7 +262,7 @@ class BibDataBase(object):
         if df is None:
             df = self.author2pub_df
 
-        newname_dict = zip2dict([str(colcountby), '0'], ['Productivity']*2)
+        newname_dict = zip2dict([str(colcountby)+'Count', '0'], ['Productivity']*2)
         return groupby_count(df, colgroupby, colcountby, unique=True).rename(columns=newname_dict)
 
     def author_yearly_productivity(self, df=None, colgroupby = 'AuthorId', datecol = 'Year', colcountby = 'PublicationId'):
