@@ -10,6 +10,28 @@ import numpy as np
 from scipy import optimize
 
 def groupby_count(df, colgroupby, colcountby, unique=True):
+    """
+    Group the DataFrame and count the number for each group.
+
+    Parameters
+    ----------
+    :param df: DataFrame
+        The DataFrame.
+
+    :param colgroupby: str
+        The column to groupby.
+
+    :param colcountby: str
+        The column to count.
+
+    :param unique: bool, default True
+        If True, count unique items in the rows.  If False, just return the number of rows.
+
+    Returns
+    ----------
+    DataFrame
+        DataFrame with two columns: colgroupby, colcountby+`Count`
+    """
     newname_dict = zip2dict([str(colcountby), '0'], [str(colcountby)+'Count']*2)
     if unique:
         return df.groupby(colgroupby, sort=False)[colcountby].nunique().to_frame().reset_index().rename(columns=newname_dict)
@@ -17,20 +39,112 @@ def groupby_count(df, colgroupby, colcountby, unique=True):
         return df.groupby(colgroupby, sort=False)[colcountby].size().to_frame().reset_index().rename(columns=newname_dict)
 
 def groupby_range(df, colgroupby, colrange):
+    """
+   Group the DataFrame and find the range between the smallest and largest value for each group.
+
+    Parameters
+    ----------
+    :param df: DataFrame
+        The DataFrame.
+
+    :param colgroupby: str
+        The column to groupby.
+
+    :param colrange: str
+        The column to find the range of values.
+
+    Returns
+    ----------
+    DataFrame
+        DataFrame with two columns: colgroupby, colrange+`Range`
+    """
     newname_dict = zip2dict([str(colrange), '0'], [str(colrange)+'Range']*2)
     return df.groupby(colgroupby, sort=False)[colrange].apply(lambda x: x.max() - x.min()).to_frame().reset_index().rename(columns=newname_dict)
 
 def groupby_zero_col(df, colgroupby, colrange):
+    """
+    Group the DataFrame and shift the column so the minimum value is 0.
+
+    Parameters
+    ----------
+    :param df: DataFrame
+        The DataFrame.
+
+    :param colgroupby: str
+        The column to groupby.
+
+    :param colrange: str
+        The column to find the range of values.
+
+    Returns
+    ----------
+    DataFrame
+        DataFrame with two columns: colgroupby, colrange
+    """
     return df.groupby(colgroupby, sort=False)[colrange].transform(lambda x: x - x.min())
 
-def groupby_total(df, colgroupby, coltotal):
+def groupby_total(df, colgroupby, colcountby):
+    """
+    Group the DataFrame and find the total of the column.
+
+    Parameters
+    ----------
+    :param df: DataFrame
+        The DataFrame.
+
+    :param colgroupby: str
+        The column to groupby.
+
+    :param colcountby: str
+        The column to find the total of values.
+
+    Returns
+    ----------
+    DataFrame
+        DataFrame with two columns: colgroupby, colcountby+'Total'
+    """
     newname_dict = zip2dict([str(colcountby), '0'], [str(colcountby)+'Total']*2)
     return df.groupby(colgroupby, sort=False)[colrange].sum().to_frame().reset_index().rename(columns=newname_dict)
 
 def isin_range(values2check, min_value, max_value):
+    """
+    Check if the values2check are in the inclusive range [min_value, max_value].
+
+    Parameters
+    ----------
+    :param values2check: numpy array
+        The values to check.
+
+    :param min_value: float
+        The lowest value of the range.
+
+    :param max_value: float
+        The highest value of the range.
+
+    Returns
+    ----------
+    Numpy Array
+        True if the value is in the range.
+    """
     return np.logical_and(values2check >= min_value, values2check <= max_value)
 
 def isin_sorted(values2check, masterlist):
+    """
+    Check if the values2check are in the sorted masterlist.
+
+    Parameters
+    ----------
+    :param values2check: numpy array
+        The values to check.
+
+    :param masterlist: numpy array
+        The sorted list of master values.
+
+    Returns
+    ----------
+    Numpy Array
+        True if the value is in the masterlist.
+    """
     index = np.searchsorted(masterlist, values2check, side = 'left')
     index[index >= masterlist.shape[0]] = masterlist.shape[0] - 1
     return values2check == masterlist[index]

@@ -30,29 +30,49 @@ def qfactor():
 
 ### H index
 
-def pub_hindex(a):
+def author_hindex(a):
     """
-    This function calculates the h index for a single publication.  See [h] for details.
+    Calculate the h index for the array of citation values.  See :cite:`hirsch2005index` for the definition.
 
-    References
+    Parameters
     ----------
-    .. [h] Hirsh (2005): "title", *PNAS*.
-           DOI: xxx
+    :param a : numpy array
+        An array of citation counts for each publication by the Author.
+
+    Returns
+    -------
+    int
+        The Hindex
+
     """
     d = np.sort(a)[::-1] - np.arange(a.shape[0])
     return (d>0).sum()
 
 def compute_hindex(df, colgroupby, colcountby):
     """
-    This function applies the h index for all publications in a data frame.  See [h] for details.
+    Calculate the h index for each group in the DataFrame.  See :cite:`hirsch2005index` for the definition.
 
-    References
+    The algorithmic implementation for each author can be found in :py:func:`citationanalysis.author_hindex`.
+
+    Parameters
     ----------
-    .. [h] Hirsh (2005): "title", *PNAS*.
-           DOI: xxx
-    """
-    newname_dict = zip2dict([str(colcountby), '0'], [str(colgroupby)+'hindex']*2)
-    return df.groupby(colgroupby, sort=False)[colcountby].apply(pub_hindex).to_frame().reset_index().rename(columns=newname_dict)
+    :param df : DataFrame
+        A DataFrame with the citation information for each Author.
+
+    :param colgroupby : str
+        The DataFrame column with Author Ids.
+
+    :param colcountby : str
+        The DataFrame column with Citation counts for each publication.
+
+    Returns
+    -------
+    DataFrame
+        DataFrame with 2 columns: colgroupby, 'Hindex'
+
+        """
+    newname_dict = zip2dict([str(colcountby), '0'], [str(colgroupby)+'Hindex']*2)
+    return df.groupby(colgroupby, sort=False)[colcountby].apply(author_hindex).to_frame().reset_index().rename(columns=newname_dict)
 
 
 

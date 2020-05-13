@@ -38,6 +38,15 @@ class MAG(BibDataBase):
         self.AuthorIdType = int
 
     def preprocess(self, dflist = None):
+        """
+        Bulk preprocess the MAG raw data.
+
+        Parameters
+        ----------
+        :param dflist: list, default None
+            The list of DataFrames to preprocess.  If None, all MAG DataFrames are preprocessed.
+
+        """
         if dflist is None:
             dflist = ['affiliation', 'author', 'publication', 'reference', 'publicationauthoraffiliation', 'fields']
 
@@ -60,7 +69,21 @@ class MAG(BibDataBase):
             self.parse_fields(preprocess=True)
 
 
-    def parse_affiliations(self, preprocess = False):
+    def parse_affiliations(self, preprocess = True):
+        """
+        Parse the MAG Affilation raw data.
+
+        Parameters
+        ----------
+        :param preprocess: bool, default True, Optional
+            Save the processed data in new DataFrames.
+
+
+        Returns
+        ----------
+        DataFrame
+            Affiliation DataFrame.
+        """
 
         affil_int_columns = [0, 7, 8]
         affil_str_columns = [3, 4, 5, 6]
@@ -87,6 +110,27 @@ class MAG(BibDataBase):
         return aff_df
 
     def parse_authors(self, preprocess = False, process_name = True, num_file_lines = 5*10**6):
+        """
+        Parse the MAG Author raw data.
+
+        Parameters
+        ----------
+        :param preprocess: bool, default True
+            Save the processed data in new DataFrames.
+
+        :param process_name: bool, default True
+            If True, then when processing the raw file, the package `NameParser <https://nameparser.readthedocs.io/en/latest/>`_
+            will be used to split author FullNames.
+
+        :param num_file_lines: int, default 5*10**6
+            The processed data will be saved into smaller DataFrames, each with `num_file_lines` rows.
+
+
+        Returns
+        ----------
+        DataFrame
+            Author DataFrame.
+        """
 
         author_int_columns = [0, 4, 5, 6]
 
@@ -128,7 +172,26 @@ class MAG(BibDataBase):
 
         return author_df
 
-    def parse_publications(self, preprocess = False, num_file_lines=10**7):
+    def parse_publications(self, preprocess = True, num_file_lines=5*10**6, preprocess_dicts = True):
+        """
+        Parse the MAG Publication and Journal raw data.
+
+        Parameters
+        ----------
+        :param preprocess: bool, default True
+            Save the processed data in new DataFrames.
+
+        :param num_file_lines: int, default 5*10**6
+            The processed data will be saved into smaller DataFrames, each with `num_file_lines` rows.
+
+        :param preprocess_dicts: bool, default True
+            Save the processed Year and DocType data as dictionaries.
+
+        Returns
+        ----------
+        DataFrame
+            Publication DataFrame.
+        """
 
         # first do the journal information
         journal_str_col = [2, 4, 5, 6]
@@ -166,12 +229,16 @@ class MAG(BibDataBase):
         pubinfo = []
 
         pub2year = {}
+        pub2doctype = {}
 
         with open(os.path.join(self.path2database, 'mag', 'Papers.txt'), 'r') as infile:
             for line in infile:
                 sline = line.replace('\n', '').split('\t')
                 pline = [load_int(sline[ip]) for ip in pub_int_columns] + [sline[ip] for ip in pub_str_columns] + [doctype[sline[3]]]
                 pub2year[pline[0]] = pline[1]
+                if doctype[sline[3]] != '':
+                    pub2doctype[pline[0]] = doctype[sline[3]]
+
                 pubinfo.append(pline)
                 ipub += 1
 
@@ -185,17 +252,36 @@ class MAG(BibDataBase):
 
             pub_df = pd.DataFrame(pubinfo, columns = pub_column_names)
             if preprocess:
-                pub_df.to_hdf(os.path.join(self.path2database, 'publication', 'publications{}.hdf'.format(ifile)),
+                pub_df.to_hdf(os.path.join(self.path2database, 'publication', 'publication{}.hdf'.format(ifile)),
                                                                                 key = 'publication', mode = 'w')
 
-                with gzip.open(os.path.join(self.path2database, 'pub2year.json.gz'), 'w') as outfile:
-                    outfile.write(json.dumps(self.pub2year).encode('utf8'))
+                if preprocess_dicts:
+                    with gzip.open(os.path.join(self.path2database, 'pub2year.json.gz'), 'w') as outfile:
+                        outfile.write(json.dumps(pub2year).encode('utf8'))
+
+                    with gzip.open(os.path.join(self.path2database, 'pub2doctype.json.gz'), 'w') as outfile:
+                        outfile.write(json.dumps(pub2doctype).encode('utf8'))
 
         return pub_df
 
 
     def parse_references(self, preprocess = False, num_file_lines=10**7):
+        """
+        Parse the MAG References raw data.
 
+        Parameters
+        ----------
+        :param preprocess: bool, default True
+            Save the processed data in new DataFrames.
+
+        :param num_file_lines: int, default 10**7
+            The processed data will be saved into smaller DataFrames, each with `num_file_lines` rows.
+
+        Returns
+        ----------
+        DataFrame
+            Pub2Ref DataFrame.
+        """
         if preprocess:
             if not os.path.exists(os.path.join(self.path2database, 'pub2ref')):
                 os.mkdir(os.path.join(self.path2database, 'pub2ref'))
@@ -218,6 +304,7 @@ class MAG(BibDataBase):
                     pub2ref_info = []
 
             pub2ref_df = pd.DataFrame(pub2ref_info, columns = ['CitingPublicationId', 'CitedPublicationId'])
+
             if preprocess:
                 pub2ref_df.to_hdf(os.path.join(self.path2database, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)),
                                                                                 key = 'pub2ref', mode = 'w')
@@ -225,7 +312,22 @@ class MAG(BibDataBase):
         return pub2ref_df
 
     def parse_publicationauthoraffiliation(self, preprocess = False, num_file_lines=10**7):
+        """
+        Parse the MAG PublicationAuthorAffiliation raw data.
 
+        Parameters
+        ----------
+        :param preprocess: bool, default True
+            Save the processed data in new DataFrames.
+
+        :param num_file_lines: int, default 10**7
+            The processed data will be saved into smaller DataFrames, each with `num_file_lines` rows.
+
+        Returns
+        ----------
+        DataFrame
+            PublicationAuthorAffiliation DataFrame.
+        """
         pubauthaff_int_columns = [0, 1, 2, 3]
         pubauthaff_str_columns = [4, 5]
         pub_column_names = ['PublicationId', 'AuthorId', 'AffiliationId', 'AuthorSequence',  'OrigAuthorName', 'OrigAffiliationName']
@@ -259,7 +361,22 @@ class MAG(BibDataBase):
         return paa_df
 
     def parse_fields(self, preprocess = False, num_file_lines=10**7):
+        """
+        Parse the MAG Paper Field raw data.
 
+        Parameters
+        ----------
+        :param preprocess: bool, default True
+            Save the processed data in new DataFrames.
+
+        :param num_file_lines: int, default 10**7
+            The processed data will be saved into smaller DataFrames, each with `num_file_lines` rows.
+
+        Returns
+        ----------
+        DataFrame
+            Pub2Field DataFrame.
+        """
         field2get = [0, 5, 6]
         fieldnames = ['FieldId', 'FieldLevel', 'NumberPublications', 'FieldName']
 
