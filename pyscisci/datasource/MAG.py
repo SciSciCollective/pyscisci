@@ -6,6 +6,7 @@ import gzip
 import pandas as pd
 import numpy as np
 from nameparser import HumanName
+import unicodedata
 
 from pyscisci.datasource.readwrite import load_preprocessed_data, load_int, load_float
 from pyscisci.database import BibDataBase
