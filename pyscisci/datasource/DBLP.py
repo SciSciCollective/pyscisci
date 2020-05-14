@@ -62,7 +62,8 @@ class DBLP(BibDataBase):
         while element.getprevious() is not None:
             del element.getparent()[0]
 
-    def preprocess(self, file_name = 'dblp.xml.gz', process_name = True, num_file_lines=10**7):
+    def preprocess(self, xml_file_name = 'dblp.xml.gz', dtd_file_name = 'dblp.dtd',
+        process_name = True, num_file_lines=10**6, verbose = True):
         """
         Bulk preprocess the DBLP raw data.
 
@@ -78,6 +79,8 @@ class DBLP(BibDataBase):
 
         html_format_keys = ['<sub>', '</sub>', '<sup>', '</sup>', '<i>', '</i>']
 
+        if verbose:
+            print("Starting to preprocess the DBLP database.")
 
         if not os.path.exists(os.path.join(self.path2database, 'publication')):
             os.mkdir(os.path.join(self.path2database, 'publication'))
@@ -88,8 +91,11 @@ class DBLP(BibDataBase):
         if not os.path.exists(os.path.join(self.path2database, 'publicationauthor')):
             os.mkdir(os.path.join(self.path2database, 'publicationauthor'))
 
-        with gzip.open(os.path.join(self.path2database, file_name), 'r') as infile:
+        with gzip.open(os.path.join(self.path2database, xml_file_name), 'r') as infile:
             xml_file = gzip.decompress(infile.read()).decode('ISO-8859-1')
+
+        with open(os.path.join(self.path2database, dtd_file_name), 'r') as infile:
+            dtd = etree.DTD(infile)
 
         publication_df = []
         author_df = []
@@ -109,6 +115,9 @@ class DBLP(BibDataBase):
         pub_authors = []
 
         ifile = 0
+
+        if verbose:
+            print("Starting to parse the xml tree.")
 
         # extract the desired fields from the XML tree
         xmltree = etree.iterparse(xml_file, dtd_validation=True, load_dtd=True)
@@ -208,10 +217,14 @@ class DBLP(BibDataBase):
 
 
 
-    def download_from_source(self, source_url='https://dblp.uni-trier.de/xml/', file_name = 'dblp.xml.gz'):
+    def download_from_source(self, source_url='https://dblp.uni-trier.de/xml/', xml_file_name = 'dblp.xml.gz',
+        dtd_file_name = 'dblp.dtd'):
 
-        with gzip.open(os.path.join(self.path2database, file_name), "w") as outfile:
-            outfile.write(requests.get(os.path.join(source_url, file_name)).content)
+        with gzip.open(os.path.join(self.path2database, xml_file_name), "w") as outfile:
+            outfile.write(requests.get(os.path.join(source_url, xml_file_name)).content)
+
+        with open(os.path.join(self.path2database, dtd_file_name), 'w') as outfile:
+            outfile.write(requests.get(os.path.join(source_url, dtd_file_name)).content)
 
     def parse_affiliations(self, preprocess = False):
         raise NotImplementedError("DBLP is stored as a single xml file.  Run preprocess to parse the file.")
