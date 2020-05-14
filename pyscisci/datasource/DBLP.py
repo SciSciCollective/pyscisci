@@ -120,7 +120,10 @@ class DBLP(BibDataBase):
             print("Starting to parse the xml tree.")
 
         # extract the desired fields from the XML tree
-        xmltree = etree.iterparse(xml_file, dtd_validation=True, load_dtd=True)
+        xmltree = etree.iterparse(xml_file, dtd_validation=True, load_dtd=True, no_network=True)
+
+        if verbose:
+            print("Xml tree parsed, iterating through elements.")
 
         for event, elem in xmltree:
             if elem.tag == 'title' or elem.tag == 'booktitle':
@@ -177,7 +180,8 @@ class DBLP(BibDataBase):
                 pub_authors = []
 
                 if num_file_lines > 0 and (PublicationId % num_file_lines) == 0:
-
+                    if verbose:
+                        print("Saving file ", ifile)
                     publication_df = pd.DataFrame(publication_df)
                     publication_df.to_hdf( os.path.join(path2database,'publication', 'publication{}.hdf'.format(ifile)), key = 'pub', mode='w')
 
