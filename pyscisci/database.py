@@ -595,24 +595,26 @@ class BibDataBase(object):
     To be rewritten for each specific data source (MAG, WOS, etc.)
     """
 
+    def download_from_source(self):
+        raise NotImplementedError
+
     def parse_affiliations(self, preprocess = False):
-        #TODO: Error Raising when database isnt defined
-        pass
+        raise NotImplementedError
 
     def parse_authors(self, preprocess = False, process_name = True, num_file_lines = 5*10**6):
-        pass
+        raise NotImplementedError
 
     def parse_publications(self, preprocess = False, num_file_lines=10**7):
-        pass
+        raise NotImplementedError
 
     def parse_references(self, preprocess = False, num_file_lines=10**7):
-        pass
+        raise NotImplementedError
 
     def parse_publicationauthoraffiliation(self, preprocess = False, num_file_lines=10**7):
-        pass
+        raise NotImplementedError
 
     def parse_fields(self, preprocess = False, num_file_lines=10**7):
-        pass
+        raise NotImplementedError
 
 
 
@@ -973,7 +975,7 @@ class BibDataBase(object):
         else:
             return citation_df
 
-    def filter_doctypes(self, doctypes = ['j', 'b', 'bc'. 'c']):
+    def filter_doctypes(self, doctypes = ['j', 'b', 'bc', 'c']):
 
         """
         Filter all of the publication files keeping only the publications of specified doctype.

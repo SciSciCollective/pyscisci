@@ -28,7 +28,7 @@ setup(name=__package__,
             'networkx',
             'python-igraph',
             'nameparser',
-            'tqdm'
+            'lxml'
       ],
       include_package_data=True
       )

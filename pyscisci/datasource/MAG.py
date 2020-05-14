@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 from nameparser import HumanName
 
-from pyscisci.datasource.readwrite import load_preprocessed_data
+from pyscisci.datasource.readwrite import load_preprocessed_data, load_int, load_float
 from pyscisci.database import BibDataBase
 
 class MAG(BibDataBase):
@@ -68,6 +68,9 @@ class MAG(BibDataBase):
         if 'fields' in dflist:
             self.parse_fields(preprocess=True)
 
+    def download_from_source(self):
+        #TODO: Error Raising when database isnt defined
+        pass
 
     def parse_affiliations(self, preprocess = True):
         """
