@@ -90,8 +90,7 @@ class DBLP(BibDataBase):
             os.mkdir(os.path.join(self.path2database, 'publicationauthor'))
 
         with gzip.open(os.path.join(self.path2database, file_name), 'r') as infile:
-            xml_file = infile.read().decode('ISO-8859-1')
-        #xml_file = gzip.decompress(xml_file)
+            xml_file = gzip.decompress(infile.read()).decode('ISO-8859-1')
 
         publication_df = []
         author_df = []
@@ -211,7 +210,7 @@ class DBLP(BibDataBase):
 
     def download_from_source(self, source_url='https://dblp.uni-trier.de/xml/', file_name = 'dblp.xml.gz'):
 
-        with open(os.path.join(self.path2database, file_name), "w") as outfile:
+        with gzip.open(os.path.join(self.path2database, file_name), "w") as outfile:
             outfile.write(requests.get(os.path.join(source_url, file_name)).content)
 
     def parse_affiliations(self, preprocess = False):
