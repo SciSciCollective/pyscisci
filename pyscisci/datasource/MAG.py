@@ -206,7 +206,7 @@ class MAG(BibDataBase):
                 os.mkdir(os.path.join(self.path2database, 'journal'))
 
         journal_info = []
-        with open(os.path.join(self.path2database, 'RawTXT/mag', 'Journals.txt'), 'r') as infile:
+        with open(os.path.join(self.path2database, 'mag', 'Journals.txt'), 'r') as infile:
             for line in infile:
                 sline = line.replace('\n', '').split('\t')
                 jline = [load_int(sline[0])] + [sline[i] for i in journal_str_col]
@@ -343,7 +343,7 @@ class MAG(BibDataBase):
         iref = 0
         ifile = 0
         pubauthaff_info = []
-        with open(os.path.join(self.path2database, 'RawTXT/mag', 'PaperAuthorAffiliations.txt'), 'r') as infile:
+        with open(os.path.join(self.path2database, 'mag', 'PaperAuthorAffiliations.txt'), 'r') as infile:
             for line in infile:
                 sline = line.replace('\n', '').split('\t')
                 pubauthaff_info.append([load_int(sline[ip]) for ip in pubauthaff_int_columns] + [sline[ip] if len(sline) > ip else '' for ip in pubauthaff_str_columns ])
@@ -389,7 +389,7 @@ class MAG(BibDataBase):
                 os.mkdir(os.path.join(self.path2database, 'fieldinfo'))
 
         fieldinfo = []
-        with open(os.path.join(self.path2database, 'RawTXT/advanced', 'FieldsOfStudy.txt'), 'r') as infile:
+        with open(os.path.join(self.path2database, 'advanced', 'FieldsOfStudy.txt'), 'r') as infile:
 
             for line in infile:
                 sline = line.split('\t')
@@ -412,7 +412,7 @@ class MAG(BibDataBase):
         ipaper = 0
         ifile = 0
         fieldinfo = []
-        with open(os.path.join(self.path2database, 'RawTXT/advanced', 'PaperFieldsOfStudy.txt'), 'r') as infile:
+        with open(os.path.join(self.path2database, 'advanced', 'PaperFieldsOfStudy.txt'), 'r') as infile:
 
             for line in infile:
                 sline = line.split('\t')
