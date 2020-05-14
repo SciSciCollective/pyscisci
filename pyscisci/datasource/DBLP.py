@@ -125,6 +125,7 @@ class DBLP(BibDataBase):
         if verbose:
             print("Xml tree parsed, iterating through elements.")
 
+        sdfasljgfasiogijasoigjdoisgjio
         for event, elem in xmltree:
             if elem.tag == 'title' or elem.tag == 'booktitle':
                 pub_record['Title'] = load_html_str(elem.text)
