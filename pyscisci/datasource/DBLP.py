@@ -224,7 +224,7 @@ class DBLP(BibDataBase):
             outfile.write(requests.get(os.path.join(source_url, xml_file_name)).content)
 
         with open(os.path.join(self.path2database, dtd_file_name), 'w') as outfile:
-            outfile.write(requests.get(os.path.join(source_url, dtd_file_name)).content)
+            outfile.write(requests.get(os.path.join(source_url, dtd_file_name)).content.decode('latin1'))
 
     def parse_affiliations(self, preprocess = False):
         raise NotImplementedError("DBLP is stored as a single xml file.  Run preprocess to parse the file.")
