@@ -50,7 +50,11 @@ class APS(BibDataBase):
 
 
     def download_from_source(self, citation_link=None, metadata_link = None):
+        with open(os.path.join(self.path2database, 'aps_citation.txt'), "w") as outfile:
+            outfile.write(requests.get(citation_link).content)
 
+        with open(os.path.join(self.path2database, 'aps_metadata.txt'), "w") as outfile:
+            outfile.write(requests.get(metadata_link).content)
         pass
 
     def parse_affiliations(self, preprocess = False):

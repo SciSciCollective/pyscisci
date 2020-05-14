@@ -50,11 +50,10 @@ class DBLP(BibDataBase):
         record['Number'] = ''
         record['Pages'] = ''
         record['JournalId'] = 0
-        record['Doi'] = ''
-        record['DOI'] = ''
+        record['EE'] = ''
         record['TeamSize'] = 0
         record['Month'] = 1
-
+        record['DocType'] = ''
         return record
 
     def _clear_element(element):
@@ -140,13 +139,14 @@ class DBLP(BibDataBase):
                 pub_record['URL'] = load_html_str(elem.text)
 
             elif elem.tag == 'ee':
-                pub_record['Doi'] = load_html_str(elem.text)
+                pub_record['EE'] = load_html_str(elem.text)
 
             elif elem.tag == 'author':
                 AuthorCount += 1
                 fullname = load_html_str(elem.text)
                 if aname2aid.get(fullname, None) is None:
                     if process_name:
+                        fullname = ''.join([i for i in fullname if not i.isdigit()]).strip()
                         hname = HumanName(fullname)
                         author_df.append([AuthorId, fullname, hname.last, hname.first, hname.middle])
                     else:
