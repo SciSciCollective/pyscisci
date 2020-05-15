@@ -923,7 +923,7 @@ class BibDataBase(object):
 
         """
         pub2authorseq_df = self.load_publicationauthoraffiliation(columns = ['PublicationId', 'AuthorId', 'AuthorSequence'],
-            drop_duplicates = ['PublicationId', 'AuthorId'], dropna = ['PublicationId', 'AuthorId'])
+            duplicate_subset = ['PublicationId', 'AuthorId'], dropna = ['PublicationId', 'AuthorId'])
         pub2teamsize = pub2authorseq_df.groupby('PublicationId', sort=False)['AuthorSequence'].max().astype(int).to_frame().reset_index().rename(columns={'AuthorSequence':'TeamSize'})
 
         if save2pubdf:
