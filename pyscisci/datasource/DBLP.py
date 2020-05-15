@@ -7,7 +7,7 @@ import numpy as np
 from nameparser import HumanName
 import requests
 from lxml import etree
-from io import StringIO
+from io import BytesIO
 
 from pyscisci.datasource.readwrite import load_preprocessed_data, load_int, load_float, load_html_str
 from pyscisci.database import BibDataBase
@@ -93,7 +93,7 @@ class DBLP(BibDataBase):
             os.mkdir(os.path.join(self.path2database, 'publicationauthor'))
 
         with gzip.open(os.path.join(self.path2database, xml_file_name), 'r') as infile:
-            xml_file = gzip.decompress(infile.read()).decode('ISO-8859-1')
+            xml_file = gzip.decompress(infile.read())
 
         with open(os.path.join(self.path2database, dtd_file_name), 'r') as infile:
             dtd = etree.DTD(infile)
@@ -121,7 +121,7 @@ class DBLP(BibDataBase):
             print("Starting to parse the xml tree.")
 
         # extract the desired fields from the XML tree  #
-        xmltree = etree.iterparse(StringIO(xml_file), dtd_validation=True, load_dtd=True,
+        xmltree = etree.iterparse(BytesIO(xml_file), dtd_validation=True, load_dtd=True,
             no_network=True, tag='schedule', events = ('end', ))
 
         if verbose:
