@@ -736,7 +736,7 @@ class BibDataBase(object):
 
         return compute_yearly_productivity_traj(df, colgroupby = colgroupby)
 
-    def author_hindex(self, df = None, colgroupby = 'AuthorId', colcountby = 'Ctotal'):
+    def author_hindex(self, df = None, colgroupby = 'AuthorId', colcountby = 'Ctotal', verbose=False):
         """
         Calculate the author yearly productivity trajectory.  See :cite:`hirsch2005index` for the derivation.
 
@@ -759,8 +759,12 @@ class BibDataBase(object):
             Trajectory DataFrame with 2 columns: 'AuthorId', 'Hindex'
 
         """
+        if verbose: print("Starting Author H-index. \nLoading Data.")
+
         if df is None:
             df = self.author2pub_df.merge(self.impact_df[['AuthorId', colcountby]], on='PublicationId', how='left')
+
+        if verbose: print("Computing H-index.")
         return compute_hindex(df, colgroupby = colgroupby, colcountby = colcountby)
 
 
@@ -907,7 +911,7 @@ class BibDataBase(object):
 
 
 
-    def compute_teamsize(self, save2pubdf = True):
+    def compute_teamsize(self, save2pubdf = True, verbose = False):
         """
         Calculate the teamsize of publications, defined as the total number of Authors on the publication.
 
@@ -922,12 +926,19 @@ class BibDataBase(object):
             TeamSize DataFrame with 2 columns: 'PublicationId', 'TeamSize'
 
         """
+        if verbose: print("Starting TeamSize computation. \nLoading Data.")
         pub2authorseq_df = self.load_publicationauthoraffiliation(columns = ['PublicationId', 'AuthorId', 'AuthorSequence'],
             duplicate_subset = ['PublicationId', 'AuthorId'], dropna = ['PublicationId', 'AuthorId'])
+
+        if verbose: print("Data Loaded.")
+
         pub2teamsize = pub2authorseq_df.groupby('PublicationId', sort=False)['AuthorSequence'].max().astype(int).to_frame().reset_index().rename(columns={'AuthorSequence':'TeamSize'})
 
         if save2pubdf:
+            if verbose: print("Saving Teamsize.")
             append_to_preprocessed_df(pub2teamsize, self.path2database, 'publication')
+
+        if verbose: print("Finished Teamsize computation.")
 
         return pub2teamsize
 
@@ -976,7 +987,7 @@ class BibDataBase(object):
         else:
             return citation_df
 
-    def filter_doctypes(self, doctypes = ['j', 'b', 'bc', 'c']):
+    def filter_doctypes(self, doctypes = ['j', 'b', 'bc', 'c'], verbose=False):
 
         """
         Filter all of the publication files keeping only the publications of specified doctype.
@@ -988,6 +999,8 @@ class BibDataBase(object):
 
         """
         doctypes = np.sort(doctypes)
+
+        if verbose: print("Starting DocType filter. \nFiltering Publications.")
 
         valid_pubids = []
         pub2year = {}
@@ -1014,6 +1027,8 @@ class BibDataBase(object):
 
         valid_pubids = np.sort(valid_pubids)
 
+        if verbose: print("Filtering References.")
+
         Nfiles = sum('pub2ref' in fname for fname in os.listdir(os.path.join(self.path2database, 'pub2ref')))
         for ifile in range(Nfiles):
             pub2refdf = pd.read_hdf(os.path.join(self.path2database, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)))
@@ -1022,6 +1037,8 @@ class BibDataBase(object):
             pub2refdf.to_hdf(os.path.join(self.path2database, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)),
                 key='pub2ref', mode='w')
 
+        if verbose: print("Filtering Publication and Author.")
+
         Nfiles = sum('publicationauthoraffiliation' in fname for fname in os.listdir(os.path.join(self.path2database, 'publicationauthoraffiliation')))
         for ifile in range(Nfiles):
             paa_df = pd.read_hdf(os.path.join(self.path2database, 'publicationauthoraffiliation', 'publicationauthoraffiliation{}.hdf'.format(ifile)))
@@ -1029,6 +1046,7 @@ class BibDataBase(object):
             paa_df.to_hdf(os.path.join(self.path2database, 'publicationauthoraffiliation', 'publicationauthoraffiliation{}.hdf'.format(ifile)),
                 key='paa', mode='w')
 
+        if verbose: print("Finished filtering DocType.")
 
 
 

@@ -142,7 +142,7 @@ def append_to_preprocessed_df(newdf, path2database, preprocessname):
 
     """
 
-    path2files = os.path.join(path2data, preprocessname)
+    path2files = os.path.join(path2database, preprocessname)
 
     Nfiles = sum(preprocessname in fname for fname in os.listdir(path2files))
 
