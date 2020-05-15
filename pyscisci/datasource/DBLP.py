@@ -121,8 +121,7 @@ class DBLP(BibDataBase):
             print("Starting to parse the xml tree.")
 
         # extract the desired fields from the XML tree  #
-        xmltree = etree.iterparse(BytesIO(xml_file), dtd_validation=True, load_dtd=True,
-            no_network=True, tag='schedule', events = ('end', ))
+        xmltree = etree.iterparse(BytesIO(xml_file), tag='schedule', events = ('end', ))
 
         if verbose:
             print("Xml tree parsed, iterating through elements.")
