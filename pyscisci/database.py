@@ -793,9 +793,9 @@ class BibDataBase(object):
 
         fullrefdf = []
         # loop through all pub2ref files
-        Nreffiles = sum('pub2ref' in fname for fname in os.listdir(os.path.join(path2mag, 'pub2ref')))
+        Nreffiles = sum('pub2ref' in fname for fname in os.listdir(os.path.join(self.path2database, 'pub2ref')))
         for ifile in range(Nreffiles):
-            refdf = pd.read_hdf(os.path.join(path2mag, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)))
+            refdf = pd.read_hdf(os.path.join(self.path2database, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)))
 
             # get citing cited pairs with no common authors
             noselfcite = np.array([len(pub2authors[citingpid] & pub2authors[citedpid]) == 0 for citingpid, citedpid in refdf.values])
@@ -804,7 +804,7 @@ class BibDataBase(object):
             refdf = refdf.loc[noselfcite]
 
             if preprocess:
-                refdf.to_hdf(os.path.join(path2mag, 'pub2refnoself', 'pub2refnoself{}.hdf'.format(ifile)), key = 'pub2ref')
+                refdf.to_hdf(os.path.join(self.path2database, 'pub2refnoself', 'pub2refnoself{}.hdf'.format(ifile)), key = 'pub2ref')
             else:
                 fullrefdf.append(refdf)
 
