@@ -922,8 +922,9 @@ class BibDataBase(object):
             TeamSize DataFrame with 2 columns: 'PublicationId', 'TeamSize'
 
         """
-
-        pub2teamsize = self.author2pub_df.groupby('PublicationId', sort=False)['AuthorSequence'].max().astype(int).to_frame().reset_index().rename(columns={'AuthorSequence':'TeamSize'})
+        pub2authorseq_df = self.load_publicationauthoraffiliation(columns = ['PublicationId', 'AuthorId', 'AuthorSequence'],
+            drop_duplicates = ['PublicationId', 'AuthorId'], dropna = ['PublicationId', 'AuthorId'])
+        pub2teamsize = pub2authorseq_df.groupby('PublicationId', sort=False)['AuthorSequence'].max().astype(int).to_frame().reset_index().rename(columns={'AuthorSequence':'TeamSize'})
 
         if save2pubdf:
             append_to_preprocessed_df(pub2teamsize, self.path2database, 'publication')
