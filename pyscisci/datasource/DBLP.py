@@ -7,6 +7,7 @@ import numpy as np
 from nameparser import HumanName
 import requests
 from lxml import etree
+from io import StringIO
 
 from pyscisci.datasource.readwrite import load_preprocessed_data, load_int, load_float, load_html_str
 from pyscisci.database import BibDataBase
