@@ -120,12 +120,11 @@ class DBLP(BibDataBase):
             print("Starting to parse the xml tree.")
 
         # extract the desired fields from the XML tree
-        xmltree = etree.iterparse(xml_file, dtd_validation=True, load_dtd=True, no_network=True)
+        xmltree = etree.iterparse(xml_file, dtd_validation=True, load_dtd=True, no_network=True, tag='schedule', events = ('end', ))
 
         if verbose:
             print("Xml tree parsed, iterating through elements.")
 
-        sdfasljgfasiogijasoigjdoisgjio
         for event, elem in xmltree:
             if elem.tag == 'title' or elem.tag == 'booktitle':
                 pub_record['Title'] = load_html_str(elem.text)
@@ -206,6 +205,14 @@ class DBLP(BibDataBase):
 
             elif elem.tag in SKIP_FIELDS:
                 pass
+
+            elem.clear()
+            # Also eliminate now-empty references from the root node to elem
+            for ancestor in elem.xpath('ancestor-or-self::*'):
+                while ancestor.getprevious() is not None:
+                    del ancestor.getparent()[0]
+
+        del xmltree
 
         publication_df = pd.DataFrame(publication_df)
         publication_df.drop_duplicates(keep='first', inplace=True)
