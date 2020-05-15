@@ -95,9 +95,6 @@ class DBLP(BibDataBase):
         with gzip.open(os.path.join(self.path2database, xml_file_name), 'r') as infile:
             xml_file = gzip.decompress(infile.read())
 
-        with open(os.path.join(self.path2database, dtd_file_name), 'r') as infile:
-            dtd = etree.DTD(infile)
-
         publication_df = []
         author_df = []
         paa_df = []
@@ -120,8 +117,11 @@ class DBLP(BibDataBase):
         if verbose:
             print("Starting to parse the xml tree.")
 
+        # read dtd
+        dtd = etree.DTD(file=os.path.join(self.path2database, dtd_file_name))
+
         # extract the desired fields from the XML tree  #
-        xmltree = etree.iterparse(BytesIO(xml_file), tag='schedule', events = ('end', ))
+        xmltree = etree.iterparse(BytesIO(xml_file), load_dtd=True, tag='schedule', events = ('end', ))
 
         if verbose:
             print("Xml tree parsed, iterating through elements.")
