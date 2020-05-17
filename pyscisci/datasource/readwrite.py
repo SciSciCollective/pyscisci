@@ -26,7 +26,7 @@ def load_html_str(s):
         return unidecode(HTMLParser().unescape(s))
 
 def load_preprocessed_data(dataname, path2database, columns = None, isindict = None, duplicate_subset = None,
-    duplicate_keep = 'last', dropna = None, keep_source_file = False, func2apply = None):
+    duplicate_keep = 'last', dropna = None, keep_source_file = False, prefunc2apply = None, postfunc2apply = None):
     """
         Load the preprocessed DataFrame from a preprocessed directory.
 
@@ -59,8 +59,11 @@ def load_preprocessed_data(dataname, path2database, columns = None, isindict = N
         :param keep_source_file : bool, default False
             Keep track of the source file the data was loaded from.
 
-        :param func2apply : callable, default None
-            A function to apply to each of the sub-DataFrames as they are loaded.
+        :param prefunc2apply : callable, default None
+            A function to apply to each of the sub-DataFrames as they are loaded before filtering.
+
+        :param postfunc2apply : callable, default None
+            A function to apply to each of the sub-DataFrames as they are loaded after filtering.
 
         Returns
         -------
@@ -97,6 +100,9 @@ def load_preprocessed_data(dataname, path2database, columns = None, isindict = N
         fname = os.path.join(path2files, dataname+"{}.hdf".format(ifile))
         subdf = pd.read_hdf(fname, mode = 'r')
 
+        if callable(prefunc2apply):
+            subdf = prefunc2apply(subdf)
+
         if isinstance(columns, list):
             subdf = subdf[columns]
 
@@ -113,8 +119,8 @@ def load_preprocessed_data(dataname, path2database, columns = None, isindict = N
         if keep_source_file:
             subdf['filetag'] = ifile
 
-        if callable(func2apply):
-            func2apply(subdf)
+        if callable(postfunc2apply):
+            postfunc2apply(subdf)
 
         data_df.append(subdf)
 

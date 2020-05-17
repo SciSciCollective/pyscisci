@@ -591,6 +591,58 @@ class BibDataBase(object):
         else:
             return self.parse_fields()
 
+    def load_impact(self, preprocess = True, include_yearnormed = True, columns = None, isindict = None, duplicate_subset = None,
+        duplicate_keep = 'last', dropna = None):
+        """
+        Load the precomputed impact DataFrame from a preprocessed directory.
+
+        Parameters
+        ----------
+        :param preprocess : bool, default True
+            Attempt to load from the preprocessed directory.
+
+        :param include_yearnormed: bool, default True
+            Normalize all columns by yearly average.
+
+        :param columns : list, default None
+            Load only this subset of columns
+
+        :param isindict : dict, default None, Optional
+            Dictionary of format {"ColumnName":"ListofValues"} where "ColumnName" is a data column
+            and "ListofValues" is a sorted list of valid values.  A DataFrame only containing rows that appear in
+            "ListofValues" will be returned.
+
+        :param duplicate_subset : list, default None, Optional
+            Drop any duplicate entries as specified by this subset of columns
+
+        :param duplicate_keep : str, default 'last', Optional
+            If duplicates are being dropped, keep the 'first' or 'last'
+            (see `pandas.DataFram.drop_duplicates <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop_duplicates.html>`_)
+
+        :param dropna : list, default None, Optional
+            Drop any NaN entries as specified by this subset of columns
+
+        Returns
+        -------
+        DataFrame
+            FieldInformation DataFrame.
+
+        """
+        if include_yearnormed:
+            def normfunc(impactdf):
+                impactcolumns = [c for c in list(impactdf) if not c in ['PublicationId', 'Year']]
+                for c in impactcolumns:
+                    impactdf[c+'_norm'] = impactdf[c]/impactdf[c].mean()
+                return impactdf
+        else:
+            def normfunc(impactdf):
+                return impactdf
+        if preprocess and os.path.exists(os.path.join(self.path2database, 'impact')):
+            return load_preprocessed_data('impact', self.path2database, columns, isindict, duplicate_subset,
+                duplicate_keep, dropna, prefunc2apply=normfunc)
+        else:
+            raise self.compute_impact()
+
     """
     To be rewritten for each specific data source (MAG, WOS, etc.)
     """
@@ -615,7 +667,6 @@ class BibDataBase(object):
 
     def parse_fields(self, preprocess = False, num_file_lines=10**7):
         raise NotImplementedError
-
 
 
     # Analysis
