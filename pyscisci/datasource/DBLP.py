@@ -119,13 +119,14 @@ class DBLP(BibDataBase):
 
         # read dtd
         #dtd = etree.DTD(file=os.path.join(self.path2database, dtd_file_name))
+        path2database = self.path2database
         class DTDResolver(etree.Resolver):
             def resolve(self, system_url, public_id, context):
-                return self.resolve_filename(os.path.join(self.path2database, system_url), context)
+                return self.resolve_filename(os.path.join(path2database, system_url), context)
 
         # extract the desired fields from the XML tree  #
         xmltree = etree.iterparse(BytesIO(xml_file), load_dtd=True, tag='schedule', events = ('end', ), resolve_entities=True)
-        xmltree.resolvers.add(DTDResolver(self.path2database))
+        xmltree.resolvers.add(DTDResolver())
 
         if verbose:
             print("Xml tree parsed, iterating through elements.")
