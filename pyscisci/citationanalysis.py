@@ -96,14 +96,21 @@ def compute_yearly_productivity_traj(df, colgroupby = 'AuthorId', colx='Year',co
     return df.groupby(colgroupby, sort=False).apply(_fit_piecewise_lineardf, args=(colx,coly) ).reset_index().rename(columns = newname_dict)
 
 ### Disruption
-def compute_disruption_index(pub2ref):
+def compute_disruption_index(pub2ref, verbose=True):
     """
-    Li, Wang, Evans (2019) *Nature*
+    Funk, Owen-Smith (2017) A Dynamic Network Measure of Technological Change *Management Science* **63**(3),791-817
+    Wu, Wang, Evans (2019) Large teams develop and small teams disrupt science and technology *Nature* **566**, 378–382
+
     """
+    if verbose:
+        print("Starting computation of disruption index.")
 
     reference_groups = pub2ref.groupby('CitingPublicationId', sort = False)['CitedPublicationId']
     citation_groups = pub2ref.groupby('CitedPublicationId', sort = False)['CitingPublicationId']
 
+    npubs = pub2ref['CitedPublicationId'].nunique()
+
+    ipub = 0
     def get_citation_groups(pid):
         try:
             return citation_groups.get_group(pid).values
@@ -119,11 +126,19 @@ def compute_disruption_index(pub2ref):
         except KeyError:
             return None
 
-        cite2ref = reduce(np.union1d, [get_citation_groups(refid) for refid in focusref.values])
+        #cite2ref = reduce(np.union1d, [get_citation_groups(refid) for refid in focusref])
+        #nj = np.intersect1d(cite2ref, citing_focus.values).shape[0]
+        #nk = cite2ref.shape[0] - nj
 
-        nj = np.intersect1d(cite2ref, citing_focus.values).shape[0]
+        cite2ref = {citeid:1 for refid in focusref for citeid in get_citation_groups(refid)}
+        nj = sum(cite2ref.get(pid, 0) for pid in citing_focus.values )
+        nk = len(cite2ref) - nj
+
         ni = citing_focus.shape[0] - nj
-        nk = cite2ref.shape[0] - nj
+
+        ipub += 1
+        if verbose and ipub % 10**6:
+            print("publication {0}, {1}".format(ipub, ipub/npubs))
         return (ni - nj)/(ni + nj + nk)
 
     newname_dict = {'CitingPublicationId':'DisruptionIndex'}

@@ -260,3 +260,60 @@ class DBLP(BibDataBase):
     def parse_fields(self, preprocess = False, num_file_lines=10**7):
         raise NotImplementedError("DBLP does not contain field information.")
 
+    @property
+    def author2pub_df(self):
+        """
+        The DataFrame keeping all publication, author relationships.  Columns may depend on the specific datasource.
+
+        Columns
+        -------
+        'PublicationId', 'AuthorId'
+
+        """
+        if self._author2pub_df is None:
+            if self.keep_in_memory:
+                self._author2pub_df = self.load_publicationauthor()
+            else:
+                return self.load_publicationauthor()
+
+        return self._author2pub_df
+
+    def load_publicationauthor(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
+        duplicate_keep = 'last', dropna = None):
+        """
+        Load the PublicationAuthor DataFrame from a preprocessed directory, or parse from the raw files.
+
+        Parameters
+        ----------
+        preprocess : bool, default True, Optional
+            Attempt to load from the preprocessed directory.
+
+        columns : list, default None, Optional
+            Load only this subset of columns
+
+        isindict : dict, default None, Optional
+            Dictionary of format {"ColumnName":"ListofValues"} where "ColumnName" is a data column
+            and "ListofValues" is a sorted list of valid values.  A DataFrame only containing rows that appear in
+            "ListofValues" will be returned.
+
+        duplicate_subset : list, default None, Optional
+            Drop any duplicate entries as specified by this subset of columns
+
+        duplicate_keep : str, default 'last', Optional
+            If duplicates are being dropped, keep the 'first' or 'last'
+            (see `pandas.DataFram.drop_duplicates <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop_duplicates.html>`_)
+
+        dropna : list, default None, Optional
+            Drop any NaN entries as specified by this subset of columns
+
+        Returns
+        -------
+        DataFrame
+            PublicationAuthorAffilation DataFrame.
+
+        """
+        if preprocess and os.path.exists(os.path.join(self.path2database, 'publicationauthor')):
+            return load_preprocessed_data('publicationauthor', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna)
+        else:
+            raise NotImplementedError("DBLP is stored as a single xml file.  Run preprocess to parse the file.")
+

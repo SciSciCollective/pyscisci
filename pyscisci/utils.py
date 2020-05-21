@@ -34,9 +34,9 @@ def groupby_count(df, colgroupby, colcountby, unique=True):
     """
     newname_dict = zip2dict([str(colcountby), '0'], [str(colcountby)+'Count']*2)
     if unique:
-        return df.groupby(colgroupby, sort=False, as_index=False)[colcountby].nunique().rename(columns=newname_dict)
+        return df.groupby(colgroupby, sort=False)[colcountby].nunique().to_frame().reset_index().rename(columns=newname_dict)
     else:
-        return df.groupby(colgroupby, sort=False, as_index=False)[colcountby].size().rename(columns=newname_dict)
+        return df.groupby(colgroupby, sort=False)[colcountby].size().to_frame().reset_index().rename(columns=newname_dict)
 
 def groupby_range(df, colgroupby, colrange):
     """
@@ -59,7 +59,7 @@ def groupby_range(df, colgroupby, colrange):
         DataFrame with two columns: colgroupby, colrange+`Range`
     """
     newname_dict = zip2dict([str(colrange), '0'], [str(colrange)+'Range']*2)
-    return df.groupby(colgroupby, sort=False, as_index=False)[colrange].apply(lambda x: x.max() - x.min()).rename(columns=newname_dict)
+    return df.groupby(colgroupby, sort=False)[colrange].apply(lambda x: x.max() - x.min()).to_frame().reset_index().rename(columns=newname_dict)
 
 def groupby_zero_col(df, colgroupby, colrange):
     """
@@ -104,7 +104,7 @@ def groupby_total(df, colgroupby, colcountby):
         DataFrame with two columns: colgroupby, colcountby+'Total'
     """
     newname_dict = zip2dict([str(colcountby), '0'], [str(colcountby)+'Total']*2)
-    return df.groupby(colgroupby, sort=False, as_index=False)[colrange].sum().rename(columns=newname_dict)
+    return df.groupby(colgroupby, sort=False)[colrange].sum().to_frame().reset_index().rename(columns=newname_dict)
 
 def isin_range(values2check, min_value, max_value):
     """
