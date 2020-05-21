@@ -50,18 +50,29 @@ class DBLP(BibDataBase):
         record['Volume'] = 0
         record['Number'] = ''
         record['Pages'] = ''
-        record['JournalId'] = 0
+        record['JournalId'] = ''
         record['EE'] = ''
         record['TeamSize'] = 0
         record['Month'] = 1
         record['DocType'] = ''
         return record
 
-    def _clear_element(element):
-        """Free up memory for temporary element tree after processing the element"""
-        element.clear()
-        while element.getprevious() is not None:
-            del element.getparent()[0]
+    def _save_dataframes(ifile, publication_df, author_df, author_columns, paa_df):
+
+        publication_df = pd.DataFrame(publication_df)
+        publication_df['PublicationId'] = publication_df['PublicationId'].astype(int)
+        publication_df['Year'] = publication_df['Year'].astype(int)
+        publication_df['Volume'] = pd.to_numeric(publication_df['Volume'])
+        publication_df['TeamSize'] = publication_df['TeamSize'].astype(int)
+        publication_df.to_hdf( os.path.join(path2database,'publication', 'publication{}.hdf'.format(ifile)), key = 'pub', mode='w')
+
+
+        author_df = pd.DataFrame(author_df, columns = author_columns)
+        author_df['AuthorId'] = author_df['AuthorId'].astype(int)
+        author_df.to_hdf( os.path.join(path2database,'author', 'author{}.hdf'.format(ifile)), key = 'author', mode='w')
+
+        paa_df = pd.DataFrame(paa_df, columns = ['PublicationId', 'AuthorId', 'AuthorOrder'], dtype=int)
+        paa_df.to_hdf( os.path.join(path2database,'publicationauthor', 'publicationauthor{}.hdf'.format(ifile)), key = 'pa', mode='w')
 
     def preprocess(self, xml_file_name = 'dblp.xml.gz', process_name = True, num_file_lines=10**6, verbose = True):
         """
@@ -194,14 +205,8 @@ class DBLP(BibDataBase):
                 if num_file_lines > 0 and (PublicationId % num_file_lines) == 0:
                     if verbose:
                         print("Saving file ", ifile)
-                    publication_df = pd.DataFrame(publication_df)
-                    publication_df.to_hdf( os.path.join(path2database,'publication', 'publication{}.hdf'.format(ifile)), key = 'pub', mode='w')
 
-                    author_df = pd.DataFrame(author_df, columns = author_columns)
-                    author_df.to_hdf( os.path.join(path2database,'author', 'author{}.hdf'.format(ifile)), key = 'author', mode='w')
-
-                    paa_df = pd.DataFrame(paa_df, columns = ['PublicationId', 'AuthorId', 'AuthorOrder'])
-                    paa_df.to_hdf( os.path.join(path2database,'publicationauthor', 'publicationauthor{}.hdf'.format(ifile)), key = 'pa', mode='w')
+                    self._save_dataframes(ifile, publication_df, author_df, author_columns, paa_df)
 
                     ifile += 1
 
@@ -220,17 +225,10 @@ class DBLP(BibDataBase):
 
         del xmltree
 
-        publication_df = pd.DataFrame(publication_df)
-        publication_df.drop_duplicates(keep='first', inplace=True)
-        publication_df.to_hdf( os.path.join(path2database,'publication', 'publication{}.hdf'.format(ifile)), key = 'pub', mode='w')
+        self._save_dataframes(ifile, publication_df, author_df, author_columns, paa_df)
 
-        author_df = pd.DataFrame(author_df, columns = author_columns)
-        author_df.drop_duplicates(keep='first', inplace=True)
-        author_df.to_hdf( os.path.join(path2database,'author', 'author{}.hdf'.format(ifile)), key = 'author', mode='w')
-
-        paa_df = pd.DataFrame(paa_df, columns = ['PublicationId', 'AuthorId', 'AuthorOrder'])
-        paa_df.drop_duplicates(keep='first', inplace=True)
-        paa_df.to_hdf( os.path.join(path2database,'publicationauthor', 'publicationauthor{}.hdf'.format(ifile)), key = 'pa', mode='w')
+        if verbose:
+            print("Preprocessing of DBLP xml complete.")
 
 
 
