@@ -63,8 +63,7 @@ class DBLP(BibDataBase):
         while element.getprevious() is not None:
             del element.getparent()[0]
 
-    def preprocess(self, xml_file_name = 'dblp.xml.gz', dtd_file_name = 'dblp.dtd',
-        process_name = True, num_file_lines=10**6, verbose = True):
+    def preprocess(self, xml_file_name = 'dblp.xml.gz', process_name = True, num_file_lines=10**6, verbose = True):
         """
         Bulk preprocess the DBLP raw data.
 
@@ -118,14 +117,14 @@ class DBLP(BibDataBase):
             print("Starting to parse the xml tree.")
 
         # read dtd
-        #dtd = etree.DTD(file=os.path.join(self.path2database, dtd_file_name))
+
         path2database = self.path2database
         class DTDResolver(etree.Resolver):
             def resolve(self, system_url, public_id, context):
                 return self.resolve_filename(os.path.join(path2database, system_url), context)
 
         # extract the desired fields from the XML tree  #
-        xmltree = etree.iterparse(BytesIO(xml_file), load_dtd=True, tag='schedule', events = ('end', ), resolve_entities=True)
+        xmltree = etree.iterparse(BytesIO(xml_file), load_dtd=True, tag='schedule', resolve_entities=True)
         xmltree.resolvers.add(DTDResolver())
 
         if verbose:
