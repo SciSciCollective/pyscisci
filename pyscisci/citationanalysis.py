@@ -6,6 +6,7 @@
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
  """
 import os
+import itertools
 from functools import reduce
 import pandas as pd
 import numpy as np
@@ -112,11 +113,11 @@ def compute_disruption_index(pub2ref):
     def disruption_index(citing_focus):
         focusid = citing_focus.name
 
-        # if the focus publication has no references, then it has a disruption of 1.0
+        # if the focus publication has no references, then it has a disruption of None
         try:
             focusref = reference_groups.get_group(focusid)
         except KeyError:
-            return 1.0
+            return None
 
         cite2ref = reduce(np.union1d, [get_citation_groups(refid) for refid in focusref.values])
 
@@ -165,6 +166,45 @@ def compute_cnorm(pub2ref, pub2year):
             if cnorm.get(citedpid, None) is None:
                 cnorm[citedpid] = {y:year_cites/np.mean()}
 
+###
+def RaoStriling(data_array, distance_matrix):
+    rs = 0.0
+    normed_data = data_array / data_array.sum()
+    for ip, jp in itertools.combinations(np.nonzero(data_array)[0], 2):
+        rs += distance_matrix[ip, jp] * normed_data[ip] * normed_data[jp]
+
+    return rs
+
+def Interdisciplinarity(pub2ref, pub2field, pub2year=None, temporal=True, citation_direction='ref'):
+    """
+    Calculate the h index for each group in the DataFrame.  See :cite:`hirsch2005index` for the definition
+    and :cite:`gates2019naturereach` for an application.
+
+    Parameters
+    ----------
+    :param pub2ref : DataFrame
+        A DataFrame with the citation information for each Author.
+
+    :param colgroupby : str
+        The DataFrame column with Author Ids.
+
+    :param colcountby : str
+        The DataFrame column with Citation counts for each publication.
+
+    Returns
+    -------
+    DataFrame
+        DataFrame with 2 columns: colgroupby, 'Hindex'
+
+    """
+
+    raise NotImplementedError
+
+    field2int = {fid:i for i, fid in enumerate(np.sort(pub2field.unique()))}
+
+    Nfields = len(field2int)
+
+    pass
 
 ### Novelty
 
@@ -204,6 +244,8 @@ def compute_novelty(pubdf, pub2ref, scratch_path = None, n_samples = 10):
            *in submission*.
            DOI: xxx
     """
+
+    raise NotImplementedError
 
     journalcitation_table, int2journal = create_journalcitation_table(pubdf, pub2ref)
 

@@ -29,7 +29,8 @@ setup(name=__package__,
             'python-igraph',
             'nameparser',
             'lxml',
-            'requests'
+            'requests',
+            'unidecode'
       ],
       include_package_data=True
       )

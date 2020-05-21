@@ -118,10 +118,12 @@ class DBLP(BibDataBase):
             print("Starting to parse the xml tree.")
 
         # read dtd
-        dtd = etree.DTD(file=os.path.join(self.path2database, dtd_file_name))
+        #dtd = etree.DTD(file=os.path.join(self.path2database, dtd_file_name))
+
 
         # extract the desired fields from the XML tree  #
-        xmltree = etree.iterparse(BytesIO(xml_file), load_dtd=True, tag='schedule', events = ('end', ))
+        xmltree = etree.iterparse(BytesIO(xml_file), load_dtd=True, tag='schedule', events = ('end', ), resolve_entities=True)
+        xmltree.resolvers.add(DTDResolver(self.path2database))
 
         if verbose:
             print("Xml tree parsed, iterating through elements.")
@@ -256,4 +258,11 @@ class DBLP(BibDataBase):
 
     def parse_fields(self, preprocess = False, num_file_lines=10**7):
         raise NotImplementedError("DBLP does not contain field information.")
+
+class DTDResolver(etree.Resolver):
+    def __init__(self, path2dtd):
+        self.path2dtd = ''
+
+    def resolve(self, system_url, public_id, context):
+        return self.resolve_filename(os.path.join(self.path2dtd, system_url), context)
 
