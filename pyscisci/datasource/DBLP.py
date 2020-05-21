@@ -57,7 +57,7 @@ class DBLP(BibDataBase):
         record['DocType'] = ''
         return record
 
-    def _save_dataframes(ifile, publication_df, author_df, author_columns, paa_df):
+    def _save_dataframes(self, ifile, publication_df, author_df, author_columns, paa_df):
 
         publication_df = pd.DataFrame(publication_df)
         publication_df['PublicationId'] = publication_df['PublicationId'].astype(int)
