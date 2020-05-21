@@ -57,22 +57,22 @@ class DBLP(BibDataBase):
         record['DocType'] = ''
         return record
 
-    def _save_dataframes(self, ifile, publication_df, author_df, author_columns, paa_df):
+    def _save_dataframes(self, ifile, publication_df, author_df, author_columns, author2pub_df):
 
         publication_df = pd.DataFrame(publication_df)
         publication_df['PublicationId'] = publication_df['PublicationId'].astype(int)
         publication_df['Year'] = publication_df['Year'].astype(int)
         publication_df['Volume'] = pd.to_numeric(publication_df['Volume'])
         publication_df['TeamSize'] = publication_df['TeamSize'].astype(int)
-        publication_df.to_hdf( os.path.join(path2database,'publication', 'publication{}.hdf'.format(ifile)), key = 'pub', mode='w')
+        publication_df.to_hdf( os.path.join(self.path2database,'publication', 'publication{}.hdf'.format(ifile)), key = 'pub', mode='w')
 
 
         author_df = pd.DataFrame(author_df, columns = author_columns)
         author_df['AuthorId'] = author_df['AuthorId'].astype(int)
-        author_df.to_hdf( os.path.join(path2database,'author', 'author{}.hdf'.format(ifile)), key = 'author', mode='w')
+        author_df.to_hdf( os.path.join(self.path2database,'author', 'author{}.hdf'.format(ifile)), key = 'author', mode='w')
 
-        paa_df = pd.DataFrame(paa_df, columns = ['PublicationId', 'AuthorId', 'AuthorOrder'], dtype=int)
-        paa_df.to_hdf( os.path.join(path2database,'publicationauthor', 'publicationauthor{}.hdf'.format(ifile)), key = 'pa', mode='w')
+        author2pub_df = pd.DataFrame(author2pub_df, columns = ['PublicationId', 'AuthorId', 'AuthorOrder'], dtype=int)
+        author2pub_df.to_hdf( os.path.join(self.path2database,'publicationauthor', 'publicationauthor{}.hdf'.format(ifile)), key = 'pa', mode='w')
 
     def preprocess(self, xml_file_name = 'dblp.xml.gz', process_name = True, num_file_lines=10**6, verbose = True):
         """
@@ -104,7 +104,7 @@ class DBLP(BibDataBase):
 
         publication_df = []
         author_df = []
-        paa_df = []
+        author2pub_df = []
         journal_df = []
 
         PublicationId = 1
@@ -196,7 +196,7 @@ class DBLP(BibDataBase):
                 pub_record['DocType'] = doctype[load_html_str(elem.tag)]
 
                 publication_df.append(pub_record)
-                paa_df.extend(pub_authors)
+                author2pub_df.extend(pub_authors)
                 PublicationId += 1
                 pub_record = self._blank_dblp_publication(PublicationId)
                 AuthorCount = 0
@@ -206,13 +206,13 @@ class DBLP(BibDataBase):
                     if verbose:
                         print("Saving file ", ifile)
 
-                    self._save_dataframes(ifile, publication_df, author_df, author_columns, paa_df)
+                    self._save_dataframes(ifile, publication_df, author_df, author_columns, author2pub_df)
 
                     ifile += 1
 
                     publication_df = []
                     author_df = []
-                    paa_df = []
+                    author2pub_df = []
 
             elif elem.tag in REJECT_DOCTYPES:
                 # the record was from a rejected category so reset record
@@ -225,7 +225,7 @@ class DBLP(BibDataBase):
 
         del xmltree
 
-        self._save_dataframes(ifile, publication_df, author_df, author_columns, paa_df)
+        self._save_dataframes(ifile, publication_df, author_df, author_columns, author2pub_df)
 
         if verbose:
             print("Preprocessing of DBLP xml complete.")
