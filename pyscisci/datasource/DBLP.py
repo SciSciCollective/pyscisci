@@ -75,7 +75,7 @@ class DBLP(BibDataBase):
         SKIP_FIELDS = ['note', 'cite', 'cdrom', 'crossref', 'editor',  'series', 'tt', 'school', 'chapter', 'address']
 
         doctype = {'article': 'j', 'book':'b', '':'', 'phdthesis':'phd', 'proceedings':'c', 'inproceedings':'c',
-        'mastersthesis':'ms'}
+        'mastersthesis':'ms', 'incollection':'c'}
 
         html_format_keys = ['<sub>', '</sub>', '<sup>', '</sup>', '<i>', '</i>']
 
