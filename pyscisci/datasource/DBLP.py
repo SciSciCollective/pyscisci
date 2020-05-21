@@ -70,7 +70,7 @@ class DBLP(BibDataBase):
         """
 
         ACCEPT_DOCTYPES = set(['article', 'inproceedings', 'proceedings', 'book', 'incollection', 'phdthesis', 'mastersthesis'])
-        REGJECT_DOCTYPES = set(['www'])
+        REJECT_DOCTYPES = set(['www'])
         DATA_ITEMS = ['title', 'booktitle', 'year', 'journal', 'ee',' url', 'month', 'mdate', 'isbn', 'publisher']
         SKIP_FIELDS = ['note', 'cite', 'cdrom', 'crossref', 'editor',  'series', 'tt', 'school', 'chapter', 'address']
 
@@ -91,9 +91,6 @@ class DBLP(BibDataBase):
         if not os.path.exists(os.path.join(self.path2database, 'publicationauthor')):
             os.mkdir(os.path.join(self.path2database, 'publicationauthor'))
 
-        with gzip.open(os.path.join(self.path2database, xml_file_name), 'r') as infile:
-            xml_file = gzip.decompress(infile.read())
-
         publication_df = []
         author_df = []
         paa_df = []
@@ -108,8 +105,10 @@ class DBLP(BibDataBase):
         JournalId = 1
         jname2jid = {}
 
+
         pub_record = self._blank_dblp_publication(PublicationId)
         pub_authors = []
+        AuthorCount = 0
 
         ifile = 0
 
@@ -118,13 +117,21 @@ class DBLP(BibDataBase):
 
         # read dtd
 
-        path2database = self.path2database
+        path2database = self.path2database # remove self to use inside of this class
         class DTDResolver(etree.Resolver):
             def resolve(self, system_url, public_id, context):
                 return self.resolve_filename(os.path.join(path2database, system_url), context)
 
+        if '.gz' in xml_file_name:
+            with gzip.open(os.path.join(self.path2database, xml_file_name), 'r') as infile:
+                xml_file = infile.read()
+
+        else:
+            with open(os.path.join(self.path2database, xml_file_name), 'r') as infile:
+                xml_file = infile.read().encode('latin1')
+
         # extract the desired fields from the XML tree  #
-        xmltree = etree.iterparse(BytesIO(xml_file), load_dtd=True, tag='schedule', resolve_entities=True)
+        xmltree = etree.iterparse(BytesIO(xml_file), load_dtd=True, resolve_entities=True)
         xmltree.resolvers.add(DTDResolver())
 
         if verbose:
@@ -211,12 +218,6 @@ class DBLP(BibDataBase):
             elif elem.tag in SKIP_FIELDS:
                 pass
 
-            elem.clear()
-            # Also eliminate now-empty references from the root node to elem
-            for ancestor in elem.xpath('ancestor-or-self::*'):
-                while ancestor.getprevious() is not None:
-                    del ancestor.getparent()[0]
-
         del xmltree
 
         publication_df = pd.DataFrame(publication_df)
@@ -237,7 +238,7 @@ class DBLP(BibDataBase):
     def download_from_source(self, source_url='https://dblp.uni-trier.de/xml/', xml_file_name = 'dblp.xml.gz',
         dtd_file_name = 'dblp.dtd'):
 
-        with gzip.open(os.path.join(self.path2database, xml_file_name), "w") as outfile:
+        with open(os.path.join(self.path2database, xml_file_name), "wb") as outfile:
             outfile.write(requests.get(os.path.join(source_url, xml_file_name)).content)
 
         with open(os.path.join(self.path2database, dtd_file_name), 'w') as outfile:
