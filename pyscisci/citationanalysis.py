@@ -10,7 +10,7 @@ import itertools
 from functools import reduce
 import pandas as pd
 import numpy as np
-
+from tqdm import tqdm
 
 from pyscisci.utils import isin_sorted, zip2dict, check4columns, fit_piecewise_linear, groupby_count, groupby_range
 
@@ -108,9 +108,6 @@ def compute_disruption_index(pub2ref, verbose=True):
     reference_groups = pub2ref.groupby('CitingPublicationId', sort = False)['CitedPublicationId']
     citation_groups = pub2ref.groupby('CitedPublicationId', sort = False)['CitingPublicationId']
 
-    npubs = pub2ref['CitedPublicationId'].nunique()
-
-    ipub = 0
     def get_citation_groups(pid):
         try:
             return citation_groups.get_group(pid).values
@@ -136,13 +133,13 @@ def compute_disruption_index(pub2ref, verbose=True):
 
         ni = citing_focus.shape[0] - nj
 
-        ipub += 1
-        if verbose and ipub % 10**6:
-            print("publication {0}, {1}".format(ipub, ipub/npubs))
         return (ni - nj)/(ni + nj + nk)
 
-    newname_dict = {'CitingPublicationId':'DisruptionIndex'}
-    return citation_groups.apply(disruption_index).to_frame().reset_index().rename(columns = newname_dict)
+    # registar our pandas apply with tqdm for a progress bar
+    tqdm.pandas()
+
+    newname_dict = {'CitingPublicationId':'DisruptionIndex', 'CitedPublicationId':'PublicationId'}
+    return citation_groups.progress_apply(disruption_index).to_frame().reset_index().rename(columns = newname_dict)
 
 
 ### Cnorm

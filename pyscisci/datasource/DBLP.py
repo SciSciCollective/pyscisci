@@ -267,7 +267,7 @@ class DBLP(BibDataBase):
 
         Columns
         -------
-        'PublicationId', 'AuthorId'
+        'PublicationId', 'AuthorId', 'AuthorOrder'
 
         """
         if self._author2pub_df is None:
@@ -281,7 +281,8 @@ class DBLP(BibDataBase):
     def load_publicationauthor(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
         duplicate_keep = 'last', dropna = None):
         """
-        Load the PublicationAuthor DataFrame from a preprocessed directory, or parse from the raw files.
+        Load the PublicationAuthor DataFrame from a preprocessed directory.  For DBLP, you must run preprocess before
+        the dataframe is available for use.
 
         Parameters
         ----------
@@ -309,7 +310,7 @@ class DBLP(BibDataBase):
         Returns
         -------
         DataFrame
-            PublicationAuthorAffilation DataFrame.
+            PublicationAuthor DataFrame.
 
         """
         if preprocess and os.path.exists(os.path.join(self.path2database, 'publicationauthor')):
