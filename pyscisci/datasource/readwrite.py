@@ -153,6 +153,6 @@ def append_to_preprocessed_df(newdf, path2database, preprocessname):
     Nfiles = sum(preprocessname in fname for fname in os.listdir(path2files))
 
     for ifile in range(Nfiles):
-        datadf = pd.read_hdf(os.path.join(path2files, preprocessname + '{}.hdf'.format(ifile)))
+        datadf = pd.read_hdf(os.path.join(path2files, preprocessname + '{}.hdf'.format(ifile+startcount)))
         datadf = datadf.merge(newdf, how = 'left')
-        datadf.to_hdf(os.path.join(path2files, preprocessname + '{}.hdf'.format(ifile)), key = preprocessname, mode = 'w')
+        datadf.to_hdf(os.path.join(path2files, preprocessname + '{}.hdf'.format(ifile+startcount)), key = preprocessname, mode = 'w')

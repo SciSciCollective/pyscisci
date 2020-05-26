@@ -7,7 +7,7 @@ import pandas as pd
 
 mymag = MAG(path2database='/home/ajgates42/MAG', keep_in_memory=False)
 
-mymag.preprocess(dflist = ['fields'])
+#mymag.preprocess(dflist = ['fields'])
 #mymag.preprocess(dflist = ['publication', 'reference', 'publicationauthoraffiliation'])
 #mymag.filter_doctypes(doctypes = ['j', 'b', 'bc', 'c'])
 #mymag.compute_teamsize(save2pubdf=True)
@@ -16,4 +16,13 @@ mymag.preprocess(dflist = ['fields'])
 #mymag.compute_yearly_citations(preprocess=True, verbose=True)
 
 disruption_df = compute_disruption_index(mymag.pub2refnoself_df)
-append_to_preprocessed_df(disruption_df, mymag.path2database, 'impact')
+
+print("DisruptionIndex complete, saving")
+
+Nfiles = sum('impact' in fname for fname in os.listdir(os.path.join(mymag.path2database, 'impact')))
+startcount = 1800
+for ifile in range(Nfiles):
+    datadf = pd.read_hdf(os.path.join(mymag.path2database, 'impact', 'impact{}.hdf'.format(ifile+startcount)))
+    datadf = datadf.merge(disruption_df, how = 'left', on='PublicationId')
+    datadf[['PublicationId', 'Year', 'DisruptionIndex']].to_hdf(os.path.join(mymag.path2database, 'advancedimpact',
+        'advancedimpact{}.hdf'.format(ifile+startcount)), key = 'advancedimpact', mode = 'w')
