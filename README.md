@@ -6,7 +6,7 @@ The Science of Science (SciSci) is based on a transdisciplinary approach that us
 
 Here, we offer a python package to unify access to several of the major Bibliometric DataBases, including:
 - [Microsoft Academic Graph](https://docs.microsoft.com/en-us/academic-services/graph/) (MAG)
-- Clarivate [Web of Science](https://clarivate.com/webofsciencegroup/solutions/web-of-science/) (WoS), note: ToDo
+- [Clarivate Web of Science](https://clarivate.com/webofsciencegroup/solutions/web-of-science/) (WoS), note: ToDo
 - [DBLP](https://dblp.uni-trier.de)
 - [American Physical Society](https://journals.aps.org/datasets) (APS), note: ToDo
 
