@@ -2,7 +2,7 @@
 
 Note: Package is currently under construction.
 
-The Science of Science (SciSci) is based on a transdisciplinary approach that uses large data sets to study the mechanisms underlying the doing of science—from the choice of a research problem to career trajectories and progress within a field[[1]](#1).
+"The Science of Science (SciSci) is based on a transdisciplinary approach that uses large data sets to study the mechanisms underlying the doing of science—from the choice of a research problem to career trajectories and progress within a field"[[1]](#1).
 
 Here, we offer a python package to unify access to several of the major Bibliometric DataBases, including:
 - [Microsoft Academic Graph](https://docs.microsoft.com/en-us/academic-services/graph/) (MAG)
