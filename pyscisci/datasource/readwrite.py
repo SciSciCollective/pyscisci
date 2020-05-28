@@ -1,9 +1,17 @@
 import os
+import sys
 import pandas as pd
 import numpy as np
 
 from unidecode import unidecode
 from html.parser import HTMLParser
+
+# determine if we are loading from a jupyter notebook (to make pretty progress bars)
+if 'ipykernel' in sys.modules:
+    from tqdm.notebook import tqdm
+else:
+    from tqdm import tqdm
+
 
 from pyscisci.utils import isin_sorted
 
@@ -25,8 +33,8 @@ def load_html_str(s):
     else:
         return unidecode(HTMLParser().unescape(s))
 
-def load_preprocessed_data(dataname, path2database, columns = None, isindict = None, duplicate_subset = None,
-    duplicate_keep = 'last', dropna = None, keep_source_file = False, prefunc2apply = None, postfunc2apply = None):
+def load_preprocessed_data(dataname, path2database, columns = None, isindict=None, duplicate_subset=None,
+    duplicate_keep='last', dropna=None, keep_source_file=False, prefunc2apply=None, postfunc2apply=None, show_progress=False):
     """
         Load the preprocessed DataFrame from a preprocessed directory.
 
@@ -72,12 +80,11 @@ def load_preprocessed_data(dataname, path2database, columns = None, isindict = N
 
     """
 
-    #TODO: Add progress bar
-
     path2files = os.path.join(path2database, dataname)
     if not os.path.exists(path2files):
         # TODO: make a real warning
         print("First preprocess the raw data.")
+        raise NotImplementedError
         return []
 
     if isinstance(columns, str):
@@ -95,8 +102,12 @@ def load_preprocessed_data(dataname, path2database, columns = None, isindict = N
 
     Nfiles = sum(dataname in fname for fname in os.listdir(path2files))
 
+    desc=''
+    if isinstance(show_progress, str):
+        desc = show_progress
+
     data_df = []
-    for ifile in range(Nfiles):
+    for ifile in tqdm(range(Nfiles), desc=desc, disable=not show_progress):
         fname = os.path.join(path2files, dataname+"{}.hdf".format(ifile))
         subdf = pd.read_hdf(fname, mode = 'r')
 
@@ -131,7 +142,7 @@ def load_preprocessed_data(dataname, path2database, columns = None, isindict = N
 
     return data_df
 
-def append_to_preprocessed_df(newdf, path2database, preprocessname):
+def append_to_preprocessed_df(newdf, path2database, preprocessname, startcount=0):
     """
         Append the newdf to the preprocessed DataFrames from a preprocessed directory.
 

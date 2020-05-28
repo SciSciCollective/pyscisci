@@ -261,7 +261,7 @@ class BibDataBase(object):
     ## Basic Functions for loading data from either preprocessed sources or the raw database files
 
     def load_affiliations(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
-        duplicate_keep = 'last', dropna = None):
+        duplicate_keep = 'last', dropna = None, show_progress=False):
         """
         Load the Affiliation DataFrame from a preprocessed directory, or parse from the raw files.
 
@@ -294,8 +294,11 @@ class BibDataBase(object):
             Affililation DataFrame.
 
         """
+        if show_progress:
+            show_progress='Loading Affiliations'
+
         if preprocess and os.path.exists(os.path.join(self.path2database, 'affiliation')):
-            return load_preprocessed_data('affiliation', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna)
+            return load_preprocessed_data('affiliation', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna, show_progress)
         else:
             return self.parse_affiliations()
 
@@ -337,13 +340,16 @@ class BibDataBase(object):
             Author DataFrame.
 
         """
+        if show_progress:
+            show_progress='Loading Authors'
+
         if preprocess and os.path.exists(os.path.join(self.path2database, 'author')):
-            return load_preprocessed_data('author', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna)
+            return load_preprocessed_data('author', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna, show_progress)
         else:
             return self.parse_authors(process_name=process_name)
 
     def load_publications(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
-        duplicate_keep = 'last', dropna = None):
+        duplicate_keep = 'last', dropna = None, show_progress=False):
         """
         Load the Publication DataFrame from a preprocessed directory, or parse from the raw files.
 
@@ -376,8 +382,11 @@ class BibDataBase(object):
             Publication DataFrame.
 
         """
+        if show_progress:
+            show_progress='Loading Publications'
+
         if preprocess and os.path.exists(os.path.join(self.path2database, 'publication')):
-            return load_preprocessed_data('publication', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna)
+            return load_preprocessed_data('publication', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna, show_progress)
         else:
             return self.parse_publications()
 
@@ -389,7 +398,7 @@ class BibDataBase(object):
             return {self.PublicationIdType(k):int(y) for k,y in pub2year.items() if not y is None}
 
     def load_journals(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
-        duplicate_keep = 'last', dropna = None):
+        duplicate_keep = 'last', dropna = None, show_progress=False):
         """
         Load the Journal DataFrame from a preprocessed directory, or parse from the raw files.
 
@@ -422,13 +431,16 @@ class BibDataBase(object):
             Journal DataFrame.
 
         """
+        if show_progress:
+            show_progress='Loading Journals'
+
         if preprocess and os.path.exists(os.path.join(self.path2database, 'journal')):
-            return load_preprocessed_data('journal', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna)
+            return load_preprocessed_data('journal', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna, show_progress)
         else:
             return self.parse_publications()
 
     def load_references(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
-        duplicate_keep = 'last', noselfcite = False, dropna = None):
+        duplicate_keep = 'last', noselfcite = False, dropna = None, show_progress=False):
         """
         Load the Pub2Ref DataFrame from a preprocessed directory, or parse from the raw files.
 
@@ -469,13 +481,16 @@ class BibDataBase(object):
         else:
             fileprefix = 'pub2ref'
 
+        if show_progress:
+            show_progress='Loading {}'.format(fileprefix)
+
         if preprocess and os.path.exists(os.path.join(self.path2database, fileprefix)):
-            return load_preprocessed_data(fileprefix, self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna)
+            return load_preprocessed_data(fileprefix, self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna, show_progress)
         else:
             return self.parse_references()
 
     def load_publicationauthoraffiliation(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
-        duplicate_keep = 'last', dropna = None):
+        duplicate_keep = 'last', dropna = None, show_progress=False):
         """
         Load the PublicationAuthorAffilation DataFrame from a preprocessed directory, or parse from the raw files.
 
@@ -508,13 +523,16 @@ class BibDataBase(object):
             PublicationAuthorAffilation DataFrame.
 
         """
+        if show_progress:
+            show_progress='Loading Publication Author Affiliation'
+
         if preprocess and os.path.exists(os.path.join(self.path2database, 'publicationauthoraffiliation')):
-            return load_preprocessed_data('publicationauthoraffiliation', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna)
+            return load_preprocessed_data('publicationauthoraffiliation', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna, show_progress)
         else:
             return self.parse_publicationauthoraffiliation()
 
     def load_pub2field(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
-        duplicate_keep = 'last', dropna = None):
+        duplicate_keep = 'last', dropna = None, show_progress=False):
         """
         Load the Pub2Field DataFrame from a preprocessed directory, or parse from the raw files.
 
@@ -547,15 +565,18 @@ class BibDataBase(object):
             Pub2Field DataFrame.
 
         """
+        if show_progress:
+            show_progress='Loading Fields'
+
         if preprocess and os.path.exists(os.path.join(self.path2database, 'pub2field')):
-            return load_preprocessed_data('pub2field', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna)
+            return load_preprocessed_data('pub2field', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna, show_progress)
         else:
             return self.parse_fields()
 
-    def load_fieldinfo(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
-        duplicate_keep = 'last', dropna = None):
+    def load_fields(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
+        duplicate_keep = 'last', dropna = None, show_progress=False):
         """
-        Load the FieldInformation DataFrame from a preprocessed directory, or parse from the raw files.
+        Load the Field Information DataFrame from a preprocessed directory, or parse from the raw files.
 
         Parameters
         ----------
@@ -586,13 +607,15 @@ class BibDataBase(object):
             FieldInformation DataFrame.
 
         """
+        if show_progress:
+            show_progress='Loading Field Info'
         if preprocess and os.path.exists(os.path.join(self.path2database, 'fieldinfo')):
-            return load_preprocessed_data('fieldinfo', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna)
+            return load_preprocessed_data('fieldinfo', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna, show_progress)
         else:
             return self.parse_fields()
 
     def load_impact(self, preprocess = True, include_yearnormed = True, columns = None, isindict = None, duplicate_subset = None,
-        duplicate_keep = 'last', dropna = None):
+        duplicate_keep = 'last', dropna = None, show_progress=False):
         """
         Load the precomputed impact DataFrame from a preprocessed directory.
 
@@ -628,6 +651,9 @@ class BibDataBase(object):
             FieldInformation DataFrame.
 
         """
+        if show_progress:
+            show_progress='Loading Impact'
+
         if include_yearnormed:
             def normfunc(impactdf):
                 impactcolumns = [c for c in list(impactdf) if not c in ['PublicationId', 'Year']]
@@ -639,7 +665,7 @@ class BibDataBase(object):
                 return impactdf
         if preprocess and os.path.exists(os.path.join(self.path2database, 'impact')):
             return load_preprocessed_data('impact', self.path2database, columns, isindict, duplicate_subset,
-                duplicate_keep, dropna, prefunc2apply=normfunc)
+                duplicate_keep, dropna, prefunc2apply=normfunc, show_progress=show_progress)
         else:
             raise self.compute_impact()
 
@@ -671,7 +697,7 @@ class BibDataBase(object):
 
     # Analysis
 
-    def author_productivity(self, df=None, colgroupby = 'AuthorId', colcountby = 'PublicationId'):
+    def author_productivity(self, df=None, colgroupby = 'AuthorId', colcountby = 'PublicationId', show_progress=False):
         """
         Calculate the total number of publications for each author.
 
@@ -696,9 +722,9 @@ class BibDataBase(object):
             df = self.author2pub_df
 
         newname_dict = zip2dict([str(colcountby)+'Count', '0'], ['Productivity']*2)
-        return groupby_count(df, colgroupby, colcountby, unique=True).rename(columns=newname_dict)
+        return groupby_count(df, colgroupby, colcountby, count_unique=True, show_progress=show_progress).rename(columns=newname_dict)
 
-    def author_yearly_productivity(self, df=None, colgroupby = 'AuthorId', datecol = 'Year', colcountby = 'PublicationId'):
+    def author_yearly_productivity(self, df=None, colgroupby = 'AuthorId', datecol = 'Year', colcountby = 'PublicationId', show_progress=False):
         """
         Calculate the number of publications for each author in each year.
 
@@ -726,9 +752,9 @@ class BibDataBase(object):
             df = self.author2pub_df
 
         newname_dict = zip2dict([str(colcountby)+'Count', '0'], ['YearlyProductivity']*2)
-        return groupby_count(df, [colgroupby, datecol], colcountby, unique=True).rename(columns=newname_dict)
+        return groupby_count(df, [colgroupby, datecol], colcountby, count_unique=True, show_progress=show_progress).rename(columns=newname_dict)
 
-    def author_career_length(self, df = None, colgroupby = 'AuthorId', colrange = 'Year'):
+    def author_career_length(self, df = None, colgroupby = 'AuthorId', colrange = 'Year', show_progress=False):
         """
         Calculate the career length for each author.  The career length is the length of time from the first
         publication to the last publication.
@@ -754,7 +780,7 @@ class BibDataBase(object):
             df = self.author2pub_df
 
         newname_dict = zip2dict([str(colrange)+'Range', '0'], ['CareerLength']*2)
-        return groupby_range(df, colgroupby, colrange).rename(columns=newname_dict)
+        return groupby_range(df, colgroupby, colrange, show_progress).rename(columns=newname_dict)
 
     def author_productivity_trajectory(self, df =None, colgroupby = 'AuthorId', datecol = 'Year', colcountby = 'PublicationId'):
         """
@@ -787,7 +813,7 @@ class BibDataBase(object):
 
         return compute_yearly_productivity_traj(df, colgroupby = colgroupby)
 
-    def author_hindex(self, df = None, colgroupby = 'AuthorId', colcountby = 'Ctotal', verbose=False):
+    def author_hindex(self, df = None, colgroupby = 'AuthorId', colcountby = 'Ctotal', show_progress=False):
         """
         Calculate the author yearly productivity trajectory.  See :cite:`hirsch2005index` for the derivation.
 
@@ -810,16 +836,16 @@ class BibDataBase(object):
             Trajectory DataFrame with 2 columns: 'AuthorId', 'Hindex'
 
         """
-        if verbose: print("Starting Author H-index. \nLoading Data.")
+        if show_progress: print("Starting Author H-index. \nLoading Data.")
 
         if df is None:
             df = self.author2pub_df.merge(self.impact_df[['AuthorId', colcountby]], on='PublicationId', how='left')
 
-        if verbose: print("Computing H-index.")
-        return compute_hindex(df, colgroupby = colgroupby, colcountby = colcountby)
+        if show_progress: print("Computing H-index.")
+        return compute_hindex(df, colgroupby = colgroupby, colcountby = colcountby, show_progress=show_progress)
 
 
-    def remove_selfcitations(self, preprocess = True):
+    def remove_selfcitations(self, preprocess=True, show_progress=False):
         """
         Prcoess the pub2ref DataFrame and remove all citation relationships that share an Author.
 
@@ -845,7 +871,7 @@ class BibDataBase(object):
         fullrefdf = []
         # loop through all pub2ref files
         Nreffiles = sum('pub2ref' in fname for fname in os.listdir(os.path.join(self.path2database, 'pub2ref')))
-        for ifile in range(Nreffiles):
+        for ifile in tqdm(range(Nreffiles), desc='Removing Self-citations', disable= not show_progress):
             refdf = pd.read_hdf(os.path.join(self.path2database, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)))
 
             # get citing cited pairs with no common authors
@@ -962,7 +988,7 @@ class BibDataBase(object):
 
 
 
-    def compute_teamsize(self, save2pubdf = True, verbose = False):
+    def compute_teamsize(self, save2pubdf = True, show_progress=False):
         """
         Calculate the teamsize of publications, defined as the total number of Authors on the publication.
 
@@ -971,32 +997,34 @@ class BibDataBase(object):
         :param save2pubdf : bool, default True, Optional
             If True the results are appended to the preprocessed publication DataFrames.
 
+        :param show_progress: bool, default False
+            If True, display a progress bar for the count.
+
         Returns
         -------
         DataFrame
             TeamSize DataFrame with 2 columns: 'PublicationId', 'TeamSize'
 
         """
-        if verbose: print("Starting TeamSize computation. \nLoading Data.")
+        if show_progress: print("Starting TeamSize computation. \nLoading Data.")
         pub2authorseq_df = self.load_publicationauthoraffiliation(columns = ['PublicationId', 'AuthorId', 'AuthorSequence'],
             duplicate_subset = ['PublicationId', 'AuthorId'], dropna = ['PublicationId', 'AuthorId'])
 
-        if verbose: print("Data Loaded.")
+        # registar our pandas apply with tqdm for a progress bar
+        tqdm.pandas(desc='TeamSize', disable= not show_progress)
 
-        pub2teamsize = pub2authorseq_df.groupby('PublicationId', sort=False)['AuthorSequence'].max().astype(int).to_frame().reset_index().rename(columns={'AuthorSequence':'TeamSize'})
+        pub2teamsize = pub2authorseq_df.groupby('PublicationId', sort=False)['AuthorSequence'].progress_apply(lambda x: x.max()).astype(int).to_frame().reset_index().rename(columns={'AuthorSequence':'TeamSize'})
 
         if save2pubdf:
-            if verbose: print("Saving Teamsize.")
+            if show_progress: print("Saving Teamsize.")
             append_to_preprocessed_df(pub2teamsize, self.path2database, 'publication')
-
-        if verbose: print("Finished Teamsize computation.")
 
         return pub2teamsize
 
 
-    def compute_yearly_citations(self, preprocess = True, verbose = False):
+    def compute_yearly_citations(self, preprocess = True, show_progress=False):
 
-        if verbose:
+        if show_progress:
             print("Starting Computation of Yearly Citations")
 
         # first load the publication year information
@@ -1010,7 +1038,7 @@ class BibDataBase(object):
         # drop all citations that happend before the publication year
         pub2ref = pub2ref.loc[[citingyear >= pub2year.get(citedpid, 0) for citingyear, citedpid in pub2ref[['CitingYear', 'CitedPublicationId']].values]]
 
-        if verbose:
+        if show_progress:
             print("Yearly Citation Data Prepared")
 
         # calcuate the total citations
@@ -1022,7 +1050,7 @@ class BibDataBase(object):
 
         citation_df.sort_values(by=['CitedYear', 'CitedPublicationId', 'CitingYear'], inplace=True)
 
-        if verbose:
+        if show_progress:
             print("Yearly Citations Found")
 
         if preprocess:
@@ -1032,13 +1060,13 @@ class BibDataBase(object):
             for y, cdf in citation_df.groupby('CitedYear', sort=True):
                 cdf.to_hdf(os.path.join(self.path2database, 'temporalimpact', 'temporalimpact{}.hdf'.format(y)), mode='w', key ='temporalimpact')
 
-            if verbose:
+            if show_progress:
                 print("Yearly Citations Saved")
 
         else:
             return citation_df
 
-    def filter_doctypes(self, doctypes = ['j', 'b', 'bc', 'c'], verbose=False):
+    def filter_doctypes(self, doctypes = ['j', 'b', 'bc', 'c'], show_progress=False):
 
         """
         Filter all of the publication files keeping only the publications of specified doctype.
@@ -1051,7 +1079,8 @@ class BibDataBase(object):
         """
         doctypes = np.sort(doctypes)
 
-        if verbose: print("Starting DocType filter. \nFiltering Publications.")
+        if show_progress: print("Starting DocType filter. \nFiltering Publications.")
+
 
         valid_pubids = []
         pub2year = {}
@@ -1078,7 +1107,7 @@ class BibDataBase(object):
 
         valid_pubids = np.sort(valid_pubids)
 
-        if verbose: print("Filtering References.")
+        if show_progress: print("Filtering References.")
 
         Nfiles = sum('pub2ref' in fname for fname in os.listdir(os.path.join(self.path2database, 'pub2ref')))
         for ifile in range(Nfiles):
@@ -1088,7 +1117,7 @@ class BibDataBase(object):
             pub2refdf.to_hdf(os.path.join(self.path2database, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)),
                 key='pub2ref', mode='w')
 
-        if verbose: print("Filtering Publication and Author.")
+        if show_progress: print("Filtering Publication and Author.")
 
         Nfiles = sum('publicationauthoraffiliation' in fname for fname in os.listdir(os.path.join(self.path2database, 'publicationauthoraffiliation')))
         for ifile in range(Nfiles):
@@ -1097,7 +1126,7 @@ class BibDataBase(object):
             paa_df.to_hdf(os.path.join(self.path2database, 'publicationauthoraffiliation', 'publicationauthoraffiliation{}.hdf'.format(ifile)),
                 key='paa', mode='w')
 
-        if verbose: print("Finished filtering DocType.")
+        if show_progress: print("Finished filtering DocType.")
 
 
 

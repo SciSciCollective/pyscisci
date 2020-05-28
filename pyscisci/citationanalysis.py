@@ -6,16 +6,22 @@
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
  """
 import os
+import sys
 import itertools
 from functools import reduce
 import pandas as pd
 import numpy as np
-from tqdm import tqdm
+
+# determine if we are loading from a jupyter notebook (to make pretty progress bars)
+if 'ipykernel' in sys.modules:
+    from tqdm.notebook import tqdm
+else:
+    from tqdm import tqdm
 
 from pyscisci.utils import isin_sorted, zip2dict, check4columns, fit_piecewise_linear, groupby_count, groupby_range
 
 ## Q-factor
-def qfactor():
+def qfactor(show_progress=False):
     """
     This function calculates the Q-factor for an author.  See [q] for details.
 
@@ -24,6 +30,9 @@ def qfactor():
     .. [q] Sinatra (2016): "title", *Science*.
            DOI: xxx
     """
+
+    # registar our pandas apply with tqdm for a progress bar
+    tqdm.pandas(desc='Q-factor', disable= not show_progress)
 
     # TODO: implement
     return False
@@ -49,7 +58,7 @@ def author_hindex(a):
     d = np.sort(a)[::-1] - np.arange(a.shape[0])
     return (d>0).sum()
 
-def compute_hindex(df, colgroupby, colcountby):
+def compute_hindex(df, colgroupby, colcountby, show_progress=False):
     """
     Calculate the h index for each group in the DataFrame.  See :cite:`hirsch2005index` for the definition.
 
@@ -72,8 +81,11 @@ def compute_hindex(df, colgroupby, colcountby):
         DataFrame with 2 columns: colgroupby, 'Hindex'
 
         """
+    # registar our pandas apply with tqdm for a progress bar
+    tqdm.pandas(desc='H-index', disable= not show_progress)
+
     newname_dict = zip2dict([str(colcountby), '0'], [str(colgroupby)+'Hindex']*2)
-    return df.groupby(colgroupby, sort=False)[colcountby].apply(author_hindex).to_frame().reset_index().rename(columns=newname_dict)
+    return df.groupby(colgroupby, sort=False)[colcountby].progress_apply(author_hindex).to_frame().reset_index().rename(columns=newname_dict)
 
 
 
@@ -96,13 +108,13 @@ def compute_yearly_productivity_traj(df, colgroupby = 'AuthorId', colx='Year',co
     return df.groupby(colgroupby, sort=False).apply(_fit_piecewise_lineardf, args=(colx,coly) ).reset_index().rename(columns = newname_dict)
 
 ### Disruption
-def compute_disruption_index(pub2ref, verbose=True):
+def compute_disruption_index(pub2ref, show_progress=False):
     """
     Funk, Owen-Smith (2017) A Dynamic Network Measure of Technological Change *Management Science* **63**(3),791-817
     Wu, Wang, Evans (2019) Large teams develop and small teams disrupt science and technology *Nature* **566**, 378–382
 
     """
-    if verbose:
+    if show_progress:
         print("Starting computation of disruption index.")
 
     reference_groups = pub2ref.groupby('CitingPublicationId', sort = False)['CitedPublicationId']
@@ -123,10 +135,12 @@ def compute_disruption_index(pub2ref, verbose=True):
         except KeyError:
             return None
 
+        # implementation 1: keep it numpy
         #cite2ref = reduce(np.union1d, [get_citation_groups(refid) for refid in focusref])
         #nj = np.intersect1d(cite2ref, citing_focus.values).shape[0]
         #nk = cite2ref.shape[0] - nj
 
+        # implementation 2: but dicts are faster...
         cite2ref = {citeid:1 for refid in focusref for citeid in get_citation_groups(refid)}
         nj = sum(cite2ref.get(pid, 0) for pid in citing_focus.values )
         nk = len(cite2ref) - nj
@@ -136,7 +150,7 @@ def compute_disruption_index(pub2ref, verbose=True):
         return (ni - nj)/(ni + nj + nk)
 
     # registar our pandas apply with tqdm for a progress bar
-    tqdm.pandas()
+    tqdm.pandas(desc='Disruption Index', disable= not show_progress)
 
     newname_dict = {'CitingPublicationId':'DisruptionIndex', 'CitedPublicationId':'PublicationId'}
     return citation_groups.progress_apply(disruption_index).to_frame().reset_index().rename(columns = newname_dict)
@@ -153,6 +167,8 @@ def compute_cnorm(pub2ref, pub2year):
            *in submission*.
            DOI: xxx
     """
+     raise NotImplementedError
+
     required_pub2ref_columns = ['CitingPublicationId', 'CitedPublicationId']
     check4columns(pub2ref, required_pub_columns)
     pub2ref = pub2ref[required_pub2ref_columns]

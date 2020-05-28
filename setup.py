@@ -23,14 +23,17 @@ setup(name=__package__,
       license="MIT",
       packages = find_packages(),
       install_requires=[
+            'pandas',
             'numpy',
             'scipy',
-            'networkx',
-            'python-igraph',
+            #'networkx',
+            #'python-igraph',
+            'pytables',
             'nameparser',
             'lxml',
             'requests',
-            'unidecode'
+            'unidecode',
+            'tqdm'
       ],
       include_package_data=True
       )

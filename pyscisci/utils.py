@@ -5,11 +5,18 @@
 
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
  """
+import sys
 import pandas as pd
 import numpy as np
 from scipy import optimize
 
-def groupby_count(df, colgroupby, colcountby, unique=True):
+# determine if we are loading from a jupyter notebook (to make pretty progress bars)
+if 'ipykernel' in sys.modules:
+    from tqdm.notebook import tqdm
+else:
+    from tqdm import tqdm
+
+def groupby_count(df, colgroupby, colcountby, count_unique=True, show_progress=False):
     """
     Group the DataFrame and count the number for each group.
 
@@ -24,21 +31,33 @@ def groupby_count(df, colgroupby, colcountby, unique=True):
     :param colcountby: str
         The column to count.
 
-    :param unique: bool, default True
+    :param count_unique: bool, default True
         If True, count unique items in the rows.  If False, just return the number of rows.
+
+    :param show_progress: bool or str, default False
+        If True, display a progress bar for the count.  If str, the name of the progress bar to display.
 
     Returns
     ----------
     DataFrame
         DataFrame with two columns: colgroupby, colcountby+`Count`
     """
-    newname_dict = zip2dict([str(colcountby), '0'], [str(colcountby)+'Count']*2)
-    if unique:
-        return df.groupby(colgroupby, sort=False)[colcountby].nunique().to_frame().reset_index().rename(columns=newname_dict)
-    else:
-        return df.groupby(colgroupby, sort=False)[colcountby].size().to_frame().reset_index().rename(columns=newname_dict)
 
-def groupby_range(df, colgroupby, colrange):
+    desc = ''
+    if isinstance(show_progress, str):
+        desc = show_progress
+    # registar our pandas apply with tqdm for a progress bar
+    tqdm.pandas(desc=desc, disable= not show_progress)
+
+    newname_dict = zip2dict([str(colcountby), '0'], [str(colcountby)+'Count']*2)
+    if count_unique:
+        count_df = df.groupby(colgroupby, sort=False)[colcountby].progress_apply(lambda x: x.nunique())
+    else:
+        count_df = df.groupby(colgroupby, sort=False)[colcountby].progress_apply(lambda x: x.shape[0])
+
+    return count_df.to_frame().reset_index().rename(columns=newname_dict)
+
+def groupby_range(df, colgroupby, colrange, show_progress=False):
     """
    Group the DataFrame and find the range between the smallest and largest value for each group.
 
@@ -53,15 +72,24 @@ def groupby_range(df, colgroupby, colrange):
     :param colrange: str
         The column to find the range of values.
 
+    :param show_progress: bool or str, default False
+        If True, display a progress bar for the range.  If str, the name of the progress bar to display.
+
     Returns
     ----------
     DataFrame
         DataFrame with two columns: colgroupby, colrange+`Range`
     """
-    newname_dict = zip2dict([str(colrange), '0'], [str(colrange)+'Range']*2)
-    return df.groupby(colgroupby, sort=False)[colrange].apply(lambda x: x.max() - x.min()).to_frame().reset_index().rename(columns=newname_dict)
+    desc = ''
+    if isinstance(show_progress, str):
+        desc = show_progress
+    # registar our pandas apply with tqdm for a progress bar
+    tqdm.pandas(desc=desc, disable= not show_progress)
 
-def groupby_zero_col(df, colgroupby, colrange):
+    newname_dict = zip2dict([str(colrange), '0'], [str(colrange)+'Range']*2)
+    return df.groupby(colgroupby, sort=False)[colrange].progress_apply(lambda x: x.max() - x.min()).to_frame().reset_index().rename(columns=newname_dict)
+
+def groupby_zero_col(df, colgroupby, colrange, show_progress=False):
     """
     Group the DataFrame and shift the column so the minimum value is 0.
 
@@ -76,14 +104,23 @@ def groupby_zero_col(df, colgroupby, colrange):
     :param colrange: str
         The column to find the range of values.
 
+    :param show_progress: bool or str, default False
+        If True, display a progress bar.  If str, the name of the progress bar to display.
+
     Returns
     ----------
     DataFrame
         DataFrame with two columns: colgroupby, colrange
     """
-    return df.groupby(colgroupby, sort=False)[colrange].transform(lambda x: x - x.min())
+    desc = ''
+    if isinstance(show_progress, str):
+        desc = show_progress
+    # registar our pandas apply with tqdm for a progress bar
+    tqdm.pandas(desc=desc, disable= not show_progress)
 
-def groupby_total(df, colgroupby, colcountby):
+    return df.groupby(colgroupby, sort=False)[colrange].progress_transform(lambda x: x - x.min())
+
+def groupby_total(df, colgroupby, colcountby, show_progress=False):
     """
     Group the DataFrame and find the total of the column.
 
@@ -98,13 +135,22 @@ def groupby_total(df, colgroupby, colcountby):
     :param colcountby: str
         The column to find the total of values.
 
+    :param show_progress: bool or str, default False
+        If True, display a progress bar for the summation.  If str, the name of the progress bar to display.
+
     Returns
     ----------
     DataFrame
         DataFrame with two columns: colgroupby, colcountby+'Total'
     """
+    desc = ''
+    if isinstance(show_progress, str):
+        desc = show_progress
+    # registar our pandas apply with tqdm for a progress bar
+    tqdm.pandas(desc=desc, disable= not show_progress)
+
     newname_dict = zip2dict([str(colcountby), '0'], [str(colcountby)+'Total']*2)
-    return df.groupby(colgroupby, sort=False)[colrange].sum().to_frame().reset_index().rename(columns=newname_dict)
+    return df.groupby(colgroupby, sort=False)[colrange].progress_apply(lambda x: x.sum()).to_frame().reset_index().rename(columns=newname_dict)
 
 def isin_range(values2check, min_value, max_value):
     """
@@ -120,6 +166,9 @@ def isin_range(values2check, min_value, max_value):
 
     :param max_value: float
         The highest value of the range.
+
+    :param show_progress: bool or str, default False
+        If True, display a progress bar for the count.  If str, the name of the progress bar to display.
 
     Returns
     ----------
