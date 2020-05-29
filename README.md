@@ -26,7 +26,7 @@ The ``PySciSci`` also provides efficient implemntations of recent metrics and an
 Pull and install in the current directory:
 
 ```
-  pip3 install --e git+git://github.com/ajgates42/pyscisci
+  pip install --e git+git://github.com/SciSciCollective/pyscisci
 ```
 
 ### Latest PyPI stable release
@@ -50,13 +50,13 @@ Science, 359(6379), eaao0185.
 
 ## Credits
 
-``PySciSci`` was originally written by [Alexander Gates](http://alexandergates.net/), and has been developed
+``PySciSci`` was originally written by Alexander Gates, and has been developed
 with the help of many others. Thanks to everyone who has improved ``PySciSci`` by contributing code, bug reports (and fixes), documentation, and input on design, and features.
 
 
 **Original Author**
 
-- Alexander J. Gates, GitHub: [ajgates42](https://github.com/ajgates42)
+- [Alexander Gates](http://alexandergates.net/), GitHub: [ajgates42](https://github.com/ajgates42)
 
 
 **Contributors**
