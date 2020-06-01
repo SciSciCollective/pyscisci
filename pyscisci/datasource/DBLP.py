@@ -77,10 +77,10 @@ class DBLP(BibDataBase):
         author_df['AuthorId'] = author_df['AuthorId'].astype(int)
         author_df.to_hdf( os.path.join(self.path2database,'author', 'author{}.hdf'.format(ifile)), key = 'author', mode='w')
 
-        author2pub_df = pd.DataFrame(author2pub_df, columns = ['PublicationId', 'AuthorId', 'AuthorOrder'], dtype=int)
+        author2pub_df = pd.DataFrame(author2pub_df, columns = ['PublicationId', 'AuthorId', 'AuthorSequence'], dtype=int)
         author2pub_df.to_hdf( os.path.join(self.path2database,'publicationauthor', 'publicationauthor{}.hdf'.format(ifile)), key = 'pa', mode='w')
 
-    def preprocess(self, xml_file_name = 'dblp.xml.gz', process_name=True, num_file_lines=10**6, show_progress = True):
+    def preprocess(self, xml_file_name = 'dblp.xml.gz', process_name=True, num_file_lines=10**6, show_progress=True):
         """
         Bulk preprocess of the DBLP raw data.
 

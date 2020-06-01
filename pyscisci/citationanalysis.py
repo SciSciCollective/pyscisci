@@ -167,7 +167,7 @@ def compute_cnorm(pub2ref, pub2year):
            *in submission*.
            DOI: xxx
     """
-     raise NotImplementedError
+    raise NotImplementedError
 
     required_pub2ref_columns = ['CitingPublicationId', 'CitedPublicationId']
     check4columns(pub2ref, required_pub_columns)

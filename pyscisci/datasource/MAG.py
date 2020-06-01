@@ -471,7 +471,7 @@ class MAG(BibDataBase):
 
         field_df = pd.DataFrame(fieldinfo, columns = fieldnames)
         if preprocess:
-            field_df.to_hdf(os.path.join(self.path2database, 'fieldinfo', 'fieldinfo.hdf'), key = 'field', mode = 'w')
+            field_df.to_hdf(os.path.join(self.path2database, 'fieldinfo', 'fieldinfo0.hdf'), key = 'field', mode = 'w')
 
 
         # and now do pub2field
