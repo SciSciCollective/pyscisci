@@ -8,7 +8,7 @@ The ``pySciSci`` package offers a unified interface to analyze several of the mo
 - [Microsoft Academic Graph](https://docs.microsoft.com/en-us/academic-services/graph/) (MAG)
 - [Clarivate Web of Science](https://clarivate.com/webofsciencegroup/solutions/web-of-science/) (WoS), ToDo
 - [DBLP](https://dblp.uni-trier.de)
-- [American Physical Society](https://journals.aps.org/datasets) (APS), ToDo
+- [American Physical Society](https://journals.aps.org/datasets) (APS)
 
 The ``pySciSci`` also provides efficient implemntations of recent metrics and analysis tools developed in the study of scientific publications and patents, including:
 - Hindex
@@ -35,16 +35,16 @@ ToDo
 
 ## Computational Requirnments
 
-Currently, the ``pySciSci`` is built ontop of pandas, and keeps entire dataframes in working memory.  We have found that most large-scale analyzes require more computational power and RAM than available on a typical personal computer.   Consider running on a cloud computing platform (Google Cloud, Microsoft Azure, Amazon Web Services, etc).  
+Currently, the ``pySciSci`` is built ontop of pandas, and keeps entire dataframes in working memory.  We have found that most large-scale analyzes require more computational power and RAM than available on a typical personal computer.   Consider running on a cloud computing platform (Google Cloud, Microsoft Azure, Amazon Web Services, etc).
 
 ToDo: explore Dask and pySpark implemenations for multiprocessing.
 
 
 ## References
 
-<a id="1">[1]</a> 
-Fortunato, Santo et al. (2018). 
-Science of Science. 
+<a id="1">[1]</a>
+Fortunato, Santo et al. (2018).
+Science of Science.
 Science, 359(6379), eaao0185.
 
 
