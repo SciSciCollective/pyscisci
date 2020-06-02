@@ -19,6 +19,8 @@ disruption_df = compute_disruption_index(mymag.pub2refnoself_df)
 
 print("DisruptionIndex complete, saving")
 
+disruption_df.to_hdf(os.path.join(mymag.path2database, 'advancedimpact', 'disruption.hdf'), key = 'advancedimpact', mode = 'w')
+
 Nfiles = sum('impact' in fname for fname in os.listdir(os.path.join(mymag.path2database, 'impact')))
 startcount = 1800
 for ifile in range(Nfiles):
