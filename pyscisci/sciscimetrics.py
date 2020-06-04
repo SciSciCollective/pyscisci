@@ -18,7 +18,45 @@ if 'ipykernel' in sys.modules:
 else:
     from tqdm import tqdm
 
-from pyscisci.utils import isin_sorted, zip2dict, check4columns, fit_piecewise_linear, groupby_count, groupby_range
+from pyscisci.utils import isin_sorted, zip2dict, check4columns, fit_piecewise_linear, groupby_count, groupby_range, rank_array
+
+def compute_citation_rank(df, colgroupby='Year', colrankby='C10', ascending=True, normed=False, show_progress=False):
+    """
+    Rank elements in the array from 0 (smallest) to N -1 (largest)
+
+    Parameters
+    ----------
+    :param df : DataFrame
+        A DataFrame with the citation information for each Publication.
+
+    :param colgroupby : str, list
+        The DataFrame column(s) to subset by.
+
+    :param colrankby : str
+        The DataFrame column to rank by.
+
+    :param ascending : bool, default True
+        Sort ascending vs. descending.
+
+    :param normed : bool, default False
+        False : rank is from 0 to N -1
+        True : rank is from 0 to 1
+
+    :param show_progress : bool, default False
+        If True, show a progress bar tracking the calculation.
+
+    Returns
+    -------
+    DataFrame
+        The original dataframe with a new column for rank: colrankby+"Rank"
+
+    """
+    # registar our pandas apply with tqdm for a progress bar
+    tqdm.pandas(desc='Citation Rank', disable= not show_progress)
+
+    impact_df[str(colrankby)+"Rank"] = mpact_df.groupby(colgroupby)[colrankby].progress_transform(lambda x: rank_array(x, ascending, normed))
+    return impact_df
+
 
 ## Q-factor
 def qfactor(show_progress=False):
@@ -82,7 +120,7 @@ def compute_hindex(df, colgroupby, colcountby, show_progress=False):
 
         """
     # registar our pandas apply with tqdm for a progress bar
-    tqdm.pandas(desc='H-index', disable= not show_progress)
+    tqdm.pandas(desc='Hindex', disable= not show_progress)
 
     newname_dict = zip2dict([str(colcountby), '0'], [str(colgroupby)+'Hindex']*2)
     return df.groupby(colgroupby, sort=False)[colcountby].progress_apply(author_hindex).to_frame().reset_index().rename(columns=newname_dict)

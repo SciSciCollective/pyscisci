@@ -275,3 +275,36 @@ def jenson_shannon(p,q):
     """
     m = 0.5 * (p+q)
     return 0.5 * (kl(p,m) + kl(q,m))
+
+def rank_array(a, ascending=True, normed=False):
+    """
+    Rank elements in the array.
+
+    Parameters
+    ----------
+    :param a : numpy array or list
+        Object to rank
+
+    :param ascending : bool, default True
+        Sort ascending vs. descending.
+
+    :param normed : bool, default False
+        False : rank is from 0 to N -1
+        True : rank is from 0 to 1
+
+    Returns
+    ----------
+    Ranked array.
+
+    """
+    idx = np.argsort(a)
+    ranks = np.empty_like(idx)
+
+    if ascending:
+        ranks[idx] = np.arange(idx.shape[0])
+    else:
+        ranks[idx] = np.arange(idx.shape[0])[::-1]
+
+    if normed:
+        ranks = ranks/(ranks.shape[0]-1)
+    return ranks

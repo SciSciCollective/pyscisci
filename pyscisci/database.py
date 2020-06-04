@@ -15,7 +15,7 @@ import numpy as np
 from nameparser import HumanName
 
 from pyscisci.utils import isin_sorted, zip2dict, load_int, load_float, groupby_count
-from pyscisci.citationanalysis import *
+from pyscisci.sciscimetrics import *
 from pyscisci.datasource.readwrite import load_preprocessed_data, append_to_preprocessed_df
 
 
@@ -712,6 +712,7 @@ class BibDataBase(object):
         :param colcountby : str, default 'PublicationId', Optional
             The DataFrame column with Publication Ids.  If None then the database 'PublicationId' is used.
 
+
         Returns
         -------
         DataFrame
@@ -720,6 +721,10 @@ class BibDataBase(object):
         """
         if df is None:
             df = self.author2pub_df
+
+        # we can use show_progress to pass a label for the progress bar
+        if show_progress:
+            show_progress='Author Productivity'
 
         newname_dict = zip2dict([str(colcountby)+'Count', '0'], ['Productivity']*2)
         return groupby_count(df, colgroupby, colcountby, count_unique=True, show_progress=show_progress).rename(columns=newname_dict)
@@ -751,6 +756,10 @@ class BibDataBase(object):
         if df is None:
             df = self.author2pub_df
 
+        # we can use show_progress to pass a label for the progress bar
+        if show_progress:
+            show_progress='Yearly Productivity'
+
         newname_dict = zip2dict([str(colcountby)+'Count', '0'], ['YearlyProductivity']*2)
         return groupby_count(df, [colgroupby, datecol], colcountby, count_unique=True, show_progress=show_progress).rename(columns=newname_dict)
 
@@ -779,10 +788,14 @@ class BibDataBase(object):
         if df is None:
             df = self.author2pub_df
 
-        newname_dict = zip2dict([str(colrange)+'Range', '0'], ['CareerLength']*2)
-        return groupby_range(df, colgroupby, colrange, show_progress).rename(columns=newname_dict)
+        # we can use show_progress to pass a label for the progress bar
+        if show_progress:
+            show_progress='Career Length'
 
-    def author_productivity_trajectory(self, df =None, colgroupby = 'AuthorId', datecol = 'Year', colcountby = 'PublicationId'):
+        newname_dict = zip2dict([str(colrange)+'Range', '0'], ['CareerLength']*2)
+        return groupby_range(df, colgroupby, colrange, show_progress=show_progress).rename(columns=newname_dict)
+
+    def author_productivity_trajectory(self, df =None, colgroupby = 'AuthorId', datecol = 'Year', colcountby = 'PublicationId', show_progress=False):
         """
         Calculate the author yearly productivity trajectory.  See :cite:`way2017misleading`
 
@@ -790,16 +803,16 @@ class BibDataBase(object):
 
         Parameters
         ----------
-        :param df : DataFrame, default None, Optional
+        :param df : DataFrame, default None
             A DataFrame with the author2publication information.  If None then the database 'author2pub_df' is used.
 
-        :param colgroupby : str, default 'AuthorId', Optional
+        :param colgroupby : str, default 'AuthorId'
             The DataFrame column with Author Ids.  If None then the database 'AuthorId' is used.
 
-        :param datecol : str, default 'Year', Optional
+        :param datecol : str, default 'Year'
             The DataFrame column with Date information.  If None then the database 'Year' is used.
 
-        :param colcountby : str, default 'PublicationId', Optional
+        :param colcountby : str, default 'PublicationId'
             The DataFrame column with Publication Ids.  If None then the database 'PublicationId' is used.
 
         Returns
