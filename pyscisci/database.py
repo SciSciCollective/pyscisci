@@ -15,7 +15,7 @@ import numpy as np
 from nameparser import HumanName
 
 from pyscisci.utils import isin_sorted, zip2dict, load_int, load_float, groupby_count
-from pyscisci.sciscimetrics import *
+from pyscisci.metrics import *
 from pyscisci.datasource.readwrite import load_preprocessed_data, append_to_preprocessed_df
 
 
