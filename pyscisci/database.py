@@ -49,6 +49,7 @@ class BibDataBase(object):
 
         self._affiliation_df = None
         self._pub_df = None
+        self._journal_df = None
         self._author_df = None
         self._pub2year = None
         self._pub2ref_df = None
@@ -298,7 +299,9 @@ class BibDataBase(object):
             show_progress='Loading Affiliations'
 
         if preprocess and os.path.exists(os.path.join(self.path2database, 'affiliation')):
-            return load_preprocessed_data('affiliation', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna, show_progress)
+            return load_preprocessed_data('affiliation', path2database=self.path2database, columns=columns,
+                isindict=isindict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
+                show_progress=show_progress)
         else:
             return self.parse_affiliations()
 
@@ -344,7 +347,9 @@ class BibDataBase(object):
             show_progress='Loading Authors'
 
         if preprocess and os.path.exists(os.path.join(self.path2database, 'author')):
-            return load_preprocessed_data('author', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna, show_progress)
+            return load_preprocessed_data('author', path2database=self.path2database, columns=columns,
+                isindict=isindict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
+                show_progress=show_progress)
         else:
             return self.parse_authors(process_name=process_name)
 
@@ -386,7 +391,9 @@ class BibDataBase(object):
             show_progress='Loading Publications'
 
         if preprocess and os.path.exists(os.path.join(self.path2database, 'publication')):
-            return load_preprocessed_data('publication', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna, show_progress)
+            return load_preprocessed_data(dataname='publication', path2database=self.path2database, columns=columns,
+                isindict=isindict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
+                show_progress=show_progress)
         else:
             return self.parse_publications()
 
@@ -435,7 +442,9 @@ class BibDataBase(object):
             show_progress='Loading Journals'
 
         if preprocess and os.path.exists(os.path.join(self.path2database, 'journal')):
-            return load_preprocessed_data('journal', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna, show_progress)
+            return load_preprocessed_data('journal', path2database=self.path2database, columns=columns,
+                isindict=isindict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
+                show_progress=show_progress)
         else:
             return self.parse_publications()
 
@@ -485,7 +494,9 @@ class BibDataBase(object):
             show_progress='Loading {}'.format(fileprefix)
 
         if preprocess and os.path.exists(os.path.join(self.path2database, fileprefix)):
-            return load_preprocessed_data(fileprefix, self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna, show_progress)
+            return load_preprocessed_data(fileprefix, path2database=self.path2database, columns=columns,
+                isindict=isindict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
+                show_progress=show_progress)
         else:
             return self.parse_references()
 
@@ -527,7 +538,9 @@ class BibDataBase(object):
             show_progress='Loading Publication Author Affiliation'
 
         if preprocess and os.path.exists(os.path.join(self.path2database, 'publicationauthoraffiliation')):
-            return load_preprocessed_data('publicationauthoraffiliation', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna, show_progress)
+            return load_preprocessed_data('publicationauthoraffiliation', path2database=self.path2database, columns=columns,
+                isindict=isindict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
+                show_progress=show_progress)
         else:
             return self.parse_publicationauthoraffiliation()
 
@@ -569,7 +582,9 @@ class BibDataBase(object):
             show_progress='Loading Fields'
 
         if preprocess and os.path.exists(os.path.join(self.path2database, 'pub2field')):
-            return load_preprocessed_data('pub2field', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna, show_progress)
+            return load_preprocessed_data('pub2field', path2database=self.path2database, columns=columns,
+                isindict=isindict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
+                show_progress=show_progress)
         else:
             return self.parse_fields()
 
@@ -610,7 +625,9 @@ class BibDataBase(object):
         if show_progress:
             show_progress='Loading Field Info'
         if preprocess and os.path.exists(os.path.join(self.path2database, 'fieldinfo')):
-            return load_preprocessed_data('fieldinfo', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna, show_progress)
+            return load_preprocessed_data('fieldinfo', path2database=self.path2database, columns=columns,
+                isindict=isindict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
+                show_progress=show_progress)
         else:
             return self.parse_fields()
 
@@ -664,8 +681,9 @@ class BibDataBase(object):
             def normfunc(impactdf):
                 return impactdf
         if preprocess and os.path.exists(os.path.join(self.path2database, 'impact')):
-            return load_preprocessed_data('impact', self.path2database, columns, isindict, duplicate_subset,
-                duplicate_keep, dropna, prefunc2apply=normfunc, show_progress=show_progress)
+            return load_preprocessed_data('impact', path2database=self.path2database, columns=columns,
+                isindict=isindict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
+                prefunc2apply=normfunc, show_progress=show_progress)
         else:
             raise self.compute_impact()
 

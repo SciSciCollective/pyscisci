@@ -36,6 +36,7 @@ class MAG(BibDataBase):
 
         self._affiliation_df = None
         self._pub_df = None
+        self._journal_df = None
         self._author_df = None
         self._pub2year = None
         self._pub2ref_df = None
