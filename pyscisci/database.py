@@ -301,12 +301,12 @@ class BibDataBase(object):
         if preprocess and os.path.exists(os.path.join(self.path2database, 'affiliation')):
             return load_preprocessed_data('affiliation', path2database=self.path2database, columns=columns,
                 isindict=isindict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
-                show_progress=show_progress)
+                prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
         else:
             return self.parse_affiliations()
 
     def load_authors(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
-        duplicate_keep = 'last', dropna = None, process_name = True):
+        duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, process_name = True):
         """
         Load the Author DataFrame from a preprocessed directory, or parse from the raw files.
 
@@ -349,12 +349,12 @@ class BibDataBase(object):
         if preprocess and os.path.exists(os.path.join(self.path2database, 'author')):
             return load_preprocessed_data('author', path2database=self.path2database, columns=columns,
                 isindict=isindict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
-                show_progress=show_progress)
+                prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
         else:
             return self.parse_authors(process_name=process_name)
 
     def load_publications(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
-        duplicate_keep = 'last', dropna = None, show_progress=False):
+        duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
         """
         Load the Publication DataFrame from a preprocessed directory, or parse from the raw files.
 
@@ -393,7 +393,7 @@ class BibDataBase(object):
         if preprocess and os.path.exists(os.path.join(self.path2database, 'publication')):
             return load_preprocessed_data(dataname='publication', path2database=self.path2database, columns=columns,
                 isindict=isindict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
-                show_progress=show_progress)
+                prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
         else:
             return self.parse_publications()
 
@@ -405,7 +405,7 @@ class BibDataBase(object):
             return {self.PublicationIdType(k):int(y) for k,y in pub2year.items() if not y is None}
 
     def load_journals(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
-        duplicate_keep = 'last', dropna = None, show_progress=False):
+        duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
         """
         Load the Journal DataFrame from a preprocessed directory, or parse from the raw files.
 
@@ -444,12 +444,12 @@ class BibDataBase(object):
         if preprocess and os.path.exists(os.path.join(self.path2database, 'journal')):
             return load_preprocessed_data('journal', path2database=self.path2database, columns=columns,
                 isindict=isindict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
-                show_progress=show_progress)
+                prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
         else:
             return self.parse_publications()
 
     def load_references(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
-        duplicate_keep = 'last', noselfcite = False, dropna = None, show_progress=False):
+        duplicate_keep = 'last', noselfcite = False, dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
         """
         Load the Pub2Ref DataFrame from a preprocessed directory, or parse from the raw files.
 
@@ -496,12 +496,12 @@ class BibDataBase(object):
         if preprocess and os.path.exists(os.path.join(self.path2database, fileprefix)):
             return load_preprocessed_data(fileprefix, path2database=self.path2database, columns=columns,
                 isindict=isindict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
-                show_progress=show_progress)
+                prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
         else:
             return self.parse_references()
 
     def load_publicationauthoraffiliation(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
-        duplicate_keep = 'last', dropna = None, show_progress=False):
+        duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
         """
         Load the PublicationAuthorAffilation DataFrame from a preprocessed directory, or parse from the raw files.
 
@@ -540,12 +540,12 @@ class BibDataBase(object):
         if preprocess and os.path.exists(os.path.join(self.path2database, 'publicationauthoraffiliation')):
             return load_preprocessed_data('publicationauthoraffiliation', path2database=self.path2database, columns=columns,
                 isindict=isindict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
-                show_progress=show_progress)
+                prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
         else:
             return self.parse_publicationauthoraffiliation()
 
     def load_pub2field(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
-        duplicate_keep = 'last', dropna = None, show_progress=False):
+        duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
         """
         Load the Pub2Field DataFrame from a preprocessed directory, or parse from the raw files.
 
@@ -584,12 +584,12 @@ class BibDataBase(object):
         if preprocess and os.path.exists(os.path.join(self.path2database, 'pub2field')):
             return load_preprocessed_data('pub2field', path2database=self.path2database, columns=columns,
                 isindict=isindict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
-                show_progress=show_progress)
+                prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
         else:
             return self.parse_fields()
 
     def load_fields(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
-        duplicate_keep = 'last', dropna = None, show_progress=False):
+        duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
         """
         Load the Field Information DataFrame from a preprocessed directory, or parse from the raw files.
 
@@ -627,12 +627,12 @@ class BibDataBase(object):
         if preprocess and os.path.exists(os.path.join(self.path2database, 'fieldinfo')):
             return load_preprocessed_data('fieldinfo', path2database=self.path2database, columns=columns,
                 isindict=isindict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
-                show_progress=show_progress)
+                prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
         else:
             return self.parse_fields()
 
     def load_impact(self, preprocess = True, include_yearnormed = True, columns = None, isindict = None, duplicate_subset = None,
-        duplicate_keep = 'last', dropna = None, show_progress=False):
+        duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
         """
         Load the precomputed impact DataFrame from a preprocessed directory.
 
