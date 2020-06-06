@@ -56,6 +56,9 @@ class BibDataBase(object):
         self._author2pub_df = None
         self._paa_df = None
         self._pub2refnoself_df = None
+        self._pub2field_df=None
+        self._fieldinfo_df = None
+
 
     @property
     def affiliation_df(self):
@@ -588,8 +591,7 @@ class BibDataBase(object):
         else:
             return self.parse_fields()
 
-    def load_fields(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
-        duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
+    def load_fieldinfo(self, preprocess = True, columns = None, isindict = None, show_progress=False):
         """
         Load the Field Information DataFrame from a preprocessed directory, or parse from the raw files.
 
@@ -625,9 +627,7 @@ class BibDataBase(object):
         if show_progress:
             show_progress='Loading Field Info'
         if preprocess and os.path.exists(os.path.join(self.path2database, 'fieldinfo')):
-            return load_preprocessed_data('fieldinfo', path2database=self.path2database, columns=columns,
-                isindict=isindict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
-                prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
+            return pd.read_hdf(os.path.join(self.path2database, 'fieldinfo', 'fieldnames.hdf'))
         else:
             return self.parse_fields()
 
@@ -680,6 +680,7 @@ class BibDataBase(object):
         else:
             def normfunc(impactdf):
                 return impactdf
+
         if preprocess and os.path.exists(os.path.join(self.path2database, 'impact')):
             return load_preprocessed_data('impact', path2database=self.path2database, columns=columns,
                 isindict=isindict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,

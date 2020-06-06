@@ -99,14 +99,14 @@ def load_preprocessed_data(dataname, path2database, columns = None, isindict=Non
         isindict = {isinkey:np.sort(isinlist) for isinkey, isinlist in isindict.items()}
 
 
-    Nfiles = sum(dataname in fname for fname in os.listdir(path2files))
+    FileNumbers = sorted([int(fname.replace(dataname, '').split('.')[0]) for fname in os.listdir(path2files) if dataname in fname])
 
     desc=''
     if isinstance(show_progress, str):
         desc = show_progress
 
     data_df = []
-    for ifile in tqdm(range(Nfiles), desc=desc, disable=not show_progress):
+    for ifile in tqdm(FileNumbers, desc=desc, disable=not show_progress):
         fname = os.path.join(path2files, dataname+"{}.hdf".format(ifile))
         subdf = pd.read_hdf(fname, mode = 'r')
 

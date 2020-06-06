@@ -44,6 +44,8 @@ class DBLP(BibDataBase):
         self._pub2refnoself_df = None
         self._author2pub_df = None
         self._paa_df = None
+        self._pub2field_df=None
+        self._fieldinfo_df = None
 
         self.PublicationIdType = int
         self.AffiliationIdType = int
