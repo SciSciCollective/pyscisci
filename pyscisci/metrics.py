@@ -54,8 +54,8 @@ def compute_citation_rank(df, colgroupby='Year', colrankby='C10', ascending=True
     # registar our pandas apply with tqdm for a progress bar
     tqdm.pandas(desc='Citation Rank', disable= not show_progress)
 
-    impact_df[str(colrankby)+"Rank"] = impact_df.groupby(colgroupby)[colrankby].progress_transform(lambda x: rank_array(x, ascending, normed))
-    return impact_df
+    df[str(colrankby)+"Rank"] = df.groupby(colgroupby)[colrankby].progress_transform(lambda x: rank_array(x, ascending, normed))
+    return df
 
 
 ## Q-factor

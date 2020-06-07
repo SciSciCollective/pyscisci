@@ -1,4 +1,6 @@
 
+import os
+
 from pyscisci.datasource.MAG import MAG
 from pyscisci.citationanalysis import compute_disruption_index
 from pyscisci.datasource.readwrite import append_to_preprocessed_df
