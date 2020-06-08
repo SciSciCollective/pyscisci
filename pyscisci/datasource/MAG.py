@@ -284,7 +284,7 @@ class MAG(BibDataBase):
 
         pub2year = {}
         pub2doctype = {}
-        with tqdm(total=os.path.getsize(file_name), unit='iB', unit_scale=True, desc='Pubplications', leave=True, disable=not show_progress) as pbar:
+        with tqdm(total=os.path.getsize(file_name), unit='iB', unit_scale=True, desc='Publications', leave=True, disable=not show_progress) as pbar:
             with open(file_name, 'r') as infile:
                 for line in infile:
                     # split the line and keep only the relevant columns
@@ -352,7 +352,7 @@ class MAG(BibDataBase):
         iref = 0
         ifile = 0
         pub2ref_info = []
-        with tqdm(total=os.path.getsize(file_name), unit='iB', unit_scale=True, unit_divisor=1024, desc='PaperReferences.txt', leave=True, disable=not show_progress) as pbar:
+        with tqdm(total=os.path.getsize(file_name), unit='iB', unit_scale=True, unit_divisor=1024, desc='References', leave=True, disable=not show_progress) as pbar:
             with open(file_name, 'r') as infile:
                 for line in infile:
                     # split the line and keep only the relevant columns
@@ -412,7 +412,7 @@ class MAG(BibDataBase):
         iref = 0
         ifile = 0
         pubauthaff_info = []
-        with tqdm(total=os.path.getsize(file_name), unit='iB', unit_scale=True, desc='PaperAuthorAffiliations.txt', leave=True, disable=not show_progress) as pbar:
+        with tqdm(total=os.path.getsize(file_name), unit='iB', unit_scale=True, desc='PaperAuthorAffiliations', leave=True, disable=not show_progress) as pbar:
             with open(file_name, 'r') as infile:
                 for line in infile:
                     sline = line.replace('\n', '').split('\t')
@@ -490,7 +490,7 @@ class MAG(BibDataBase):
         ipaper = 0
         ifile = 0
         fieldinfo = []
-        with tqdm(total=os.path.getsize(file_name), unit='iB', unit_scale=True, desc='PaperFieldsOfStudy.txt', leave=True, disable=not show_progress) as pbar:
+        with tqdm(total=os.path.getsize(file_name), unit='iB', unit_scale=True, desc='PaperFieldsOfStudy', leave=True, disable=not show_progress) as pbar:
             with open(file_name, 'r') as infile:
 
                 for line in infile:

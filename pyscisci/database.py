@@ -265,7 +265,7 @@ class BibDataBase(object):
     ## Basic Functions for loading data from either preprocessed sources or the raw database files
 
     def load_affiliations(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
-        duplicate_keep = 'last', dropna = None, show_progress=False):
+        duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
         """
         Load the Affiliation DataFrame from a preprocessed directory, or parse from the raw files.
 
