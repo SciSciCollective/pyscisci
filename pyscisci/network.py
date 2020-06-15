@@ -82,7 +82,7 @@ def coauthorship_network(paa_df, focus_author_ids=None, focus_constraint='author
             paa_df = paa_df.loc[isin_sorted(paa_df['AuthorId'].values, focus_author_ids)]
 
     #  map authors to the row/column of the adj mat
-    author2int = {aid:i for i, aid in np.sort(paa_df['AuthorId'].unique())}
+    author2int = {aid:i for i, aid in enumerate(np.sort(paa_df['AuthorId'].unique()))}
     Nauthors = paa_df['AuthorId'].nunique()
 
     adj_mat = sparse.coo_matrix((Nauthors, Nauthors), dtype=int)
