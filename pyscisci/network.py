@@ -5,6 +5,7 @@
 
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
  """
+import sys
 from collections import defaultdict
 from itertools import combinations
 import numpy as np
@@ -85,7 +86,7 @@ def coauthorship_network(paa_df, focus_author_ids=None, focus_constraint='author
     author2int = {aid:i for i, aid in enumerate(np.sort(paa_df['AuthorId'].unique()))}
     Nauthors = paa_df['AuthorId'].nunique()
 
-    adj_mat = sparse.coo_matrix((Nauthors, Nauthors), dtype=int)
+    adj_mat = sparse.dok_matrix((Nauthors, Nauthors), dtype=int)
     
     def coauthor_cluster(author_list):
         if author_list.shape[0] >= 2:
@@ -93,13 +94,12 @@ def coauthorship_network(paa_df, focus_author_ids=None, focus_constraint='author
                 adj_mat[author2int[ia], author2int[ja]] += 1
 
     # register our pandas apply with tqdm for a progress bar
-    tqdm.pandas(desc='CoAuthorship Relations', disable= not show_progress)
+    tqdm.pandas(desc='CoAuthorship Relations', leave=True, disable= not show_progress)
 
     # go through all publications and apply the coauthorship edge generator
     paa_df.groupby('PublicationId')['AuthorId'].progress_apply(coauthor_cluster)
 
     adj_mat = adj_mat + adj_mat.transpose()
-    adj_mat.sum_duplicates()
 
     return adj_mat, author2int
 

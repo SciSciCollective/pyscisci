@@ -42,10 +42,11 @@ class BibDataBase(object):
         Flag to keep database files in memory once loaded
     """
 
-    def __init__(self, path2database = '', keep_in_memory = False):
+    def __init__(self, path2database = '', keep_in_memory = False, show_progress=True):
 
         self.path2database = path2database
         self.keep_in_memory = keep_in_memory
+        self.show_progress = show_progress
 
         self._affiliation_df = None
         self._pub_df = None
@@ -72,9 +73,9 @@ class BibDataBase(object):
         """
         if self._affiliation_df is None:
             if self.keep_in_memory:
-                self._affiliation_df = self.load_affiliations()
+                self._affiliation_df = self.load_affiliations(show_progress=self.show_progress)
             else:
-                return self.load_affiliations()
+                return self.load_affiliations(show_progress=self.show_progress)
 
         return self._affiliation_df
 
@@ -91,9 +92,9 @@ class BibDataBase(object):
         """
         if self._author_df is None:
             if self.keep_in_memory:
-                self._author_df = self.load_authors()
+                self._author_df = self.load_authors(show_progress=self.show_progress)
             else:
-                return self.load_authors()
+                return self.load_authors(show_progress=self.show_progress)
 
         return self._author_df
 
@@ -109,9 +110,9 @@ class BibDataBase(object):
         """
         if self._pub_df is None:
             if self.keep_in_memory:
-                self._pub_df = self.load_publications()
+                self._pub_df = self.load_publications(show_progress=self.show_progress)
             else:
-                return self.load_publications()
+                return self.load_publications(show_progress=self.show_progress)
 
         return self._pub_df
 
@@ -145,9 +146,9 @@ class BibDataBase(object):
         """
         if self._journal_df is None:
             if self.keep_in_memory:
-                self._journal_df = self.load_journals()
+                self._journal_df = self.load_journals(show_progress=self.show_progress)
             else:
-                return self.load_journals()
+                return self.load_journals(show_progress=self.show_progress)
 
         return self._journal_df
 
@@ -163,9 +164,9 @@ class BibDataBase(object):
         """
         if self._pub2ref_df is None:
             if self.keep_in_memory:
-                self._pub2ref_df = self.load_references()
+                self._pub2ref_df = self.load_references(show_progress=self.show_progress)
             else:
-                return self.load_references()
+                return self.load_references(show_progress=self.show_progress)
 
         return self._pub2ref_df
 
@@ -181,9 +182,9 @@ class BibDataBase(object):
         """
         if self._pub2refnoself_df is None:
             if self.keep_in_memory:
-                self._pub2refnoself_df = self.load_references(noselfcite=True)
+                self._pub2refnoself_df = self.load_references(noselfcite=True, show_progress=self.show_progress)
             else:
-                return self.load_references(noselfcite=True)
+                return self.load_references(noselfcite=True, show_progress=self.show_progress)
 
         return self._pub2refnoself_df
 
@@ -199,9 +200,9 @@ class BibDataBase(object):
         """
         if self._paa_df is None:
             if self.keep_in_memory:
-                self._paa_df = self.load_publicationauthoraffiliation()
+                self._paa_df = self.load_publicationauthoraffiliation(show_progress=self.show_progress)
             else:
-                return self.load_publicationauthoraffiliation()
+                return self.load_publicationauthoraffiliation(show_progress=self.show_progress)
 
         return self._paa_df
 
@@ -218,10 +219,10 @@ class BibDataBase(object):
         if self._paa_df is None:
             if self.keep_in_memory:
                 self._paa_df = self.load_publicationauthoraffiliation(columns = ['AuthorId', 'PublicationId'],
-                    duplicate_subset = ['AuthorId', 'PublicationId'], dropna = ['AuthorId', 'PublicationId'])
+                    duplicate_subset = ['AuthorId', 'PublicationId'], dropna = ['AuthorId', 'PublicationId'], show_progress=self.show_progress)
             else:
                 return self.load_publicationauthoraffiliation(columns = ['AuthorId', 'PublicationId'],
-                    duplicate_subset = ['AuthorId', 'PublicationId'], dropna = ['AuthorId', 'PublicationId'])
+                    duplicate_subset = ['AuthorId', 'PublicationId'], dropna = ['AuthorId', 'PublicationId'], show_progress=self.show_progress)
 
         return self._paa_df
 
@@ -238,9 +239,9 @@ class BibDataBase(object):
 
         if self._pub2field_df is None:
             if self.keep_in_memory:
-                self._pub2field_df = self.load_pub2field()
+                self._pub2field_df = self.load_pub2field(show_progress=self.show_progress)
             else:
-                return self.load_pub2field()
+                return self.load_pub2field(show_progress=self.show_progress)
 
         return self._pub2field_df
 
@@ -256,9 +257,9 @@ class BibDataBase(object):
         """
         if self._fieldinfo_df is None:
             if self.keep_in_memory:
-                self._fieldinfo_df = self.load_fieldinfo()
+                self._fieldinfo_df = self.load_fieldinfo(show_progress=self.show_progress)
             else:
-                return self.load_fieldinfo()
+                return self.load_fieldinfo(show_progress=self.show_progress)
 
         return self._fieldinfo_df
 
@@ -309,7 +310,7 @@ class BibDataBase(object):
             return self.parse_affiliations()
 
     def load_authors(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
-        duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, process_name = True):
+        duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, process_name = True, show_progress=True):
         """
         Load the Author DataFrame from a preprocessed directory, or parse from the raw files.
 
