@@ -136,7 +136,7 @@ def align_publications(df1, df2=None, columns2match_exact=['Year'], column2match
                         if lev_dist >= lev_lower_bound:
                             matches[subdf.index.values[row]] = df2groups.indices[subdf.name][rowcol[argmatch]]
 
-            # registar our pandas apply with tqdm for a progress bar
+            # register our pandas apply with tqdm for a progress bar
             tqdm.pandas(desc='Publication Matches', disable= not show_progress)
 
             df1.groupby(columns2match_exact, group_keys=True).progress_apply(subgroup_match)

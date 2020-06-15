@@ -51,7 +51,7 @@ def compute_citation_rank(df, colgroupby='Year', colrankby='C10', ascending=True
         The original dataframe with a new column for rank: colrankby+"Rank"
 
     """
-    # registar our pandas apply with tqdm for a progress bar
+    # register our pandas apply with tqdm for a progress bar
     tqdm.pandas(desc='Citation Rank', disable= not show_progress)
 
     df[str(colrankby)+"Rank"] = df.groupby(colgroupby)[colrankby].progress_transform(lambda x: rank_array(x, ascending, normed))
@@ -69,7 +69,7 @@ def qfactor(show_progress=False):
            DOI: xxx
     """
 
-    # registar our pandas apply with tqdm for a progress bar
+    # register our pandas apply with tqdm for a progress bar
     tqdm.pandas(desc='Q-factor', disable= not show_progress)
 
     # TODO: implement
@@ -119,7 +119,7 @@ def compute_hindex(df, colgroupby, colcountby, show_progress=False):
         DataFrame with 2 columns: colgroupby, 'Hindex'
 
         """
-    # registar our pandas apply with tqdm for a progress bar
+    # register our pandas apply with tqdm for a progress bar
     tqdm.pandas(desc='Hindex', disable= not show_progress)
 
     newname_dict = zip2dict([str(colcountby), '0'], [str(colgroupby)+'Hindex']*2)
@@ -187,7 +187,7 @@ def compute_disruption_index(pub2ref, show_progress=False):
 
         return (ni - nj)/(ni + nj + nk)
 
-    # registar our pandas apply with tqdm for a progress bar
+    # register our pandas apply with tqdm for a progress bar
     tqdm.pandas(desc='Disruption Index', disable= not show_progress)
 
     newname_dict = {'CitingPublicationId':'DisruptionIndex', 'CitedPublicationId':'PublicationId'}

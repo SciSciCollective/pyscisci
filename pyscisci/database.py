@@ -1042,7 +1042,7 @@ class BibDataBase(object):
         pub2authorseq_df = self.load_publicationauthoraffiliation(columns = ['PublicationId', 'AuthorId', 'AuthorSequence'],
             duplicate_subset = ['PublicationId', 'AuthorId'], dropna = ['PublicationId', 'AuthorId'])
 
-        # registar our pandas apply with tqdm for a progress bar
+        # register our pandas apply with tqdm for a progress bar
         tqdm.pandas(desc='TeamSize', disable= not show_progress)
 
         pub2teamsize = pub2authorseq_df.groupby('PublicationId', sort=False)['AuthorSequence'].progress_apply(lambda x: x.max()).astype(int).to_frame().reset_index().rename(columns={'AuthorSequence':'TeamSize'})

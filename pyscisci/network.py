@@ -9,8 +9,100 @@ from collections import defaultdict
 from itertools import combinations
 import numpy as np
 import pandas as pd
-#import igraph
+
 import scipy.sparse as sparse
+
+from pyscisci.utils import isin_sorted, zip2dict, check4columns
+
+# determine if we are loading from a jupyter notebook (to make pretty progress bars)
+if 'ipykernel' in sys.modules:
+    from tqdm.notebook import tqdm
+else:
+    from tqdm import tqdm
+
+
+def coauthorship_network(paa_df, focus_author_ids=None, focus_constraint='authors', show_progress=False):
+    """
+    Create the co-authorship network.
+
+    Parameters
+    ----------
+    :param paa_df : DataFrame
+        A DataFrame with the links between authors and publications.
+
+    :param focus_author_ids : numpy array or list, default None
+        A list of the AuthorIds to seed the coauthorship-network.
+
+    :param focus_constraint : str, default `authors`
+        If focus_author_ids is not None:
+            `authors` : the `focus_author_ids' defines the node set, giving only the co-authorships between authors in the set.
+            `publications` : the publication history of `focus_author_ids' defines the edge set, giving the co-authorhips where at least 
+                                one author from `focus_author_ids' was involved.
+            'ego' : the `focus_author_ids' defines a seed set, such that all authors must have co-authored at least one publication with 
+                                an author from `focus_author_ids', but co-authorships are also found between the second-order author sets. 
+
+    :param show_progress : bool, default False
+        If True, show a progress bar tracking the calculation.
+
+    Returns
+    -------
+    coo_matrix
+        The adjacency matrix for the co-authorship network
+
+    author2int, dict
+        A mapping of AuthorIds to the row/column of the adjacency matrix.
+
+    """
+    required_columns = ['AuthorId', 'PublicationId']
+    check4columns(paa_df, required_columns)
+    paa_df = paa_df[required_columns].dropna()
+
+    if not focus_author_ids is None:
+        focus_author_ids = np.sort(focus_author_ids)
+        
+        # identify the subset of the publications we need to form the network
+        if focus_constraint == 'authors':
+            # take only the publication-author links that have an author from the `focus_author_ids'
+            paa_df = paa_df.loc[isin_sorted(paa_df['AuthorId'].values, focus_author_ids)]
+        
+        elif focus_constraint == 'publications':
+            # take all publications authored by an author from the `focus_author_ids'
+            focus_pubs = np.sort(paa_df.loc[isin_sorted(paa_df['AuthorId'].values, focus_author_ids)]['PublicationId'].unique())
+            # then take only the subset of publication-author links inducded by these publications
+            paa_df = paa_df.loc[isin_sorted(paa_df['PublicationId'].values, focus_pubs)]
+            del focus_pubs
+
+        elif focus_constraint == 'ego':
+            # take all publications authored by an author from the `focus_author_ids'
+            focus_pubs = np.sort(paa_df.loc[isin_sorted(paa_df['AuthorId'].values, focus_author_ids)]['PublicationId'].unique())
+            # then take all authors who contribute to this subset of publications
+            focus_author_ids = np.sort(paa_df.loc[isin_sorted(paa_df['PublicationId'].values, focus_pubs)]['AuthorId'].unique())
+            del focus_pubs
+            # finally take the publication-author links that have an author from the above ego subset
+            paa_df = paa_df.loc[isin_sorted(paa_df['AuthorId'].values, focus_author_ids)]
+
+    #  map authors to the row/column of the adj mat
+    author2int = {aid:i for i, aid in np.sort(paa_df['AuthorId'].unique())}
+    Nauthors = paa_df['AuthorId'].nunique()
+
+    adj_mat = sparse.coo_matrix((Nauthors, Nauthors), dtype=int)
+    
+    def coauthor_cluster(author_list):
+        if author_list.shape[0] >= 2:
+            for ia, ja in combinations(author_list, 2):
+                adj_mat[author2int[ia], author2int[ja]] += 1
+
+    # register our pandas apply with tqdm for a progress bar
+    tqdm.pandas(desc='CoAuthorship Relations', disable= not show_progress)
+
+    # go through all publications and apply the coauthorship edge generator
+    paa_df.groupby('PublicationId')['AuthorId'].progress_apply(coauthor_cluster)
+
+    adj_mat = adj_mat + adj_mat.transpose()
+    adj_mat.sum_duplicates()
+
+    return adj_mat, author2int
+
 
 
 def cocited_edgedict(refdf):
@@ -27,7 +119,7 @@ def cocited_edgedict(refdf):
 def temporal_cocited_edgedict(pub2ref, pub2year):
 
     required_pub2ref_columns = ['CitingPublicationId', 'CitedPublicationId']
-    check4columns(pub2ref, required_pub_columns)
+    check4columns(pub2ref, required_pub2ref_columns)
     pub2ref = pub2ref[required_pub2ref_columns]
 
     year_values = sorted(list(set(pub2year.values())))
