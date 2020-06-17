@@ -11,7 +11,7 @@ from itertools import combinations
 import numpy as np
 import pandas as pd
 
-import scipy.sparse as sparse
+import scipy.sparse as spsparse
 
 from pyscisci.utils import isin_sorted, zip2dict, check4columns
 
@@ -44,6 +44,7 @@ def coauthorship_network(paa_df, focus_author_ids=None, focus_constraint='author
 
     :param show_progress : bool, default False
         If True, show a progress bar tracking the calculation.
+
 
     Returns
     -------
@@ -82,25 +83,32 @@ def coauthorship_network(paa_df, focus_author_ids=None, focus_constraint='author
             # finally take the publication-author links that have an author from the above ego subset
             paa_df = paa_df.loc[isin_sorted(paa_df['AuthorId'].values, focus_author_ids)]
 
-    #  map authors to the row/column of the adj mat
+    #  map authors to the rows of the bipartite adj mat
     author2int = {aid:i for i, aid in enumerate(np.sort(paa_df['AuthorId'].unique()))}
     Nauthors = paa_df['AuthorId'].nunique()
 
-    adj_mat = sparse.dok_matrix((Nauthors, Nauthors), dtype=int)
+    paa_df['AuthorId'] = [author2int[aid] for aid in paa_df['AuthorId'].values]
+
+    #  map publications to the columns of the bipartite adj mat
+    pub2int = {pid:i for i, pid in enumerate(np.sort(paa_df['PublicationId'].unique()))}
+    Npubs = paa_df['PublicationId'].nunique()
+
+    paa_df['PublicationId'] = [pub2int[pid] for pid in paa_df['PublicationId'].values]
     
-    def coauthor_cluster(author_list):
-        if author_list.shape[0] >= 2:
-            for ia, ja in combinations(author_list, 2):
-                adj_mat[author2int[ia], author2int[ja]] += 1
+    # create a bipartite adj matrix connecting authors to their publications
+    bipartite_adj = spsparse.coo_matrix( ( np.ones(paa_df.shape[0], dtype=int), 
+                                        (paa_df['AuthorId'].values, paa_df['PublicationId'].values) ),
+                                        shape=(Nauthors, Npubs), dtype=int)
 
-    # register our pandas apply with tqdm for a progress bar
-    tqdm.pandas(desc='CoAuthorship Relations', leave=True, disable= not show_progress)
+    bipartite_adj.sum_duplicates()
 
-    # go through all publications and apply the coauthorship edge generator
-    paa_df.groupby('PublicationId')['AuthorId'].progress_apply(coauthor_cluster)
+    # now project the bipartite adj matrix onto the authors 
+    adj_mat = bipartite_adj.dot(bipartite_adj.T).tocoo()
 
-    adj_mat = adj_mat + adj_mat.transpose()
-
+    # remove diagonal entries
+    adj_mat.setdiag(0)
+    adj_mat.eliminate_zeros()
+    
     return adj_mat, author2int
 
 

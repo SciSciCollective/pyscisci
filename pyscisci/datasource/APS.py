@@ -29,10 +29,11 @@ class APS(BibDataBase):
 
     """
 
-    def __init__(self, path2database = '', keep_in_memory = False):
+    def __init__(self, path2database = '', keep_in_memory = False, show_progress=True):
 
         self.path2database = path2database
         self.keep_in_memory = keep_in_memory
+        self.show_progress = show_progress
 
         self._affiliation_df = None
         self._pub_df = None
