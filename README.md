@@ -26,7 +26,7 @@ The ``pySciSci`` also provides efficient implemntations of recent metrics and an
 Pull and install in the current directory:
 
 ```
-  pip install --e git+git://github.com/SciSciCollective/pyscisci
+  pip install git+git://github.com/SciSciCollective/pyscisci
 ```
 
 ### Latest PyPI stable release
