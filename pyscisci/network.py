@@ -22,7 +22,7 @@ else:
     from tqdm import tqdm
 
 
-def coauthorship_network(paa_df, focus_author_ids=None, focus_constraint='authors', show_progress=False):
+def coauthorship_network(paa_df, focus_author_ids=None, focus_constraint='authors', temporal=False, show_progress=False):
     """
     Create the co-authorship network.
 
@@ -41,6 +41,9 @@ def coauthorship_network(paa_df, focus_author_ids=None, focus_constraint='author
                                 one author from `focus_author_ids' was involved.
             'ego' : the `focus_author_ids' defines a seed set, such that all authors must have co-authored at least one publication with 
                                 an author from `focus_author_ids', but co-authorships are also found between the second-order author sets. 
+    
+    :param temporal : bool, default False
+        If True, compute the adjacency matrix using only publications for each year.
 
     :param show_progress : bool, default False
         If True, show a progress bar tracking the calculation.
@@ -48,14 +51,20 @@ def coauthorship_network(paa_df, focus_author_ids=None, focus_constraint='author
 
     Returns
     -------
-    coo_matrix
-        The adjacency matrix for the co-authorship network
+    coo_matrix or dict of coo_matrix
+        If temporal == False:
+            The adjacency matrix for the co-authorship network
+
+        If temporal == True:
+            A dictionary with key for each year, and value of the adjacency matrix for the co-authorship network induced by publications in that year.
 
     author2int, dict
         A mapping of AuthorIds to the row/column of the adjacency matrix.
 
     """
     required_columns = ['AuthorId', 'PublicationId']
+    if temporal:
+        required_columns.append('Year')
     check4columns(paa_df, required_columns)
     paa_df = paa_df[required_columns].dropna()
 
@@ -83,6 +92,8 @@ def coauthorship_network(paa_df, focus_author_ids=None, focus_constraint='author
             # finally take the publication-author links that have an author from the above ego subset
             paa_df = paa_df.loc[isin_sorted(paa_df['AuthorId'].values, focus_author_ids)]
 
+    paa_df.drop_duplicates(subset=['AuthorId', 'PublicationId'], inplace=True)
+
     #  map authors to the rows of the bipartite adj mat
     author2int = {aid:i for i, aid in enumerate(np.sort(paa_df['AuthorId'].unique()))}
     Nauthors = paa_df['AuthorId'].nunique()
@@ -94,23 +105,78 @@ def coauthorship_network(paa_df, focus_author_ids=None, focus_constraint='author
     Npubs = paa_df['PublicationId'].nunique()
 
     paa_df['PublicationId'] = [pub2int[pid] for pid in paa_df['PublicationId'].values]
+
+    if temporal:
+        years = np.sort(paa_df['Year'].unique())
+
+        temporal_adj = {}
+        for y in years:
+            bipartite_adj = dataframe2bipartite(paa_df.loc[paa_df['Year'] == y], 'AuthorId', 'PublicationId', (Nauthors, Npubs) )
+            
+            adj_mat = project_bipartite_mat(bipartite_adj, project_to = 'row')
+
+            # remove diagonal entries
+            adj_mat.setdiag(0)
+            adj_mat.eliminate_zeros()
+
+            temporal_adj[y] = adj_mat 
+
+        return temporal_adj, author2int
+
+    else:
+        bipartite_adj = dataframe2bipartite(paa_df, 'AuthorId', 'PublicationId', (Nauthors, Npubs) )
+            
+        adj_mat = project_bipartite_mat(bipartite_adj, project_to = 'row')
+
+        # remove diagonal entries
+        adj_mat.setdiag(0)
+        adj_mat.eliminate_zeros()
     
+        return adj_mat, author2int
+    
+
+def cogroupby(df, N):
+    adj_mat = spsparse.dok_matrix( (N,N), dtype=int)
+    def inducedcombos(authorlist):
+        if authorlist.shape[0] >= 2:
+            for i,j in combinations(authorlist, 2):
+                adj_mat[i,j] += 1
+
+    tqdm.pandas(desc='CoAuthorship')
+    df.groupby('PublicationId')['AuthorId'].progress_apply(inducedcombos)
+
+    adj_mat = adj_mat + adj_mat.T
+
+    return adj_mat
+
+
+def dataframe2bipartite(df, rowname, colname, shape=None, weightname=None):
+    
+    if shape is None:
+        shape = (int(df[rowname].max()+1), int(df[colname].max()+1) )
+
+    if weightname is None:
+        weights = np.ones(df.shape[0], dtype=int)
+    else:
+        weights = df['weightname'].values
+
     # create a bipartite adj matrix connecting authors to their publications
-    bipartite_adj = spsparse.coo_matrix( ( np.ones(paa_df.shape[0], dtype=int), 
-                                        (paa_df['AuthorId'].values, paa_df['PublicationId'].values) ),
-                                        shape=(Nauthors, Npubs), dtype=int)
+    bipartite_adj = spsparse.coo_matrix( ( weights, 
+                                        (df[rowname].values, df[colname].values) ),
+                                        shape=shape, dtype=weights.dtype)
 
     bipartite_adj.sum_duplicates()
 
-    # now project the bipartite adj matrix onto the authors 
-    adj_mat = bipartite_adj.dot(bipartite_adj.T).tocoo()
+    return bipartite_adj
 
-    # remove diagonal entries
-    adj_mat.setdiag(0)
-    adj_mat.eliminate_zeros()
-    
-    return adj_mat, author2int
+def project_bipartite_mat(bipartite_adj, project_to = 'row'):
 
+    if project_to == 'row':
+        adj_mat = bipartite_adj.dot(bipartite_adj.T).tocoo()
+    elif project_to == 'col':
+        adj_mat = bipartite_adj.T.dot(bipartite_adj).tocoo()
+
+    return adj_mat
 
 
 def cocited_edgedict(refdf):
