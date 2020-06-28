@@ -30,7 +30,8 @@ class DBLP(BibDataBase):
 
     """
 
-    def __init__(self, path2database='', keep_in_memory=False, show_progress=False):
+
+    def __init__(self, path2database='', keep_in_memory=False, show_progress=True):
 
         self.path2database = path2database
         self.keep_in_memory = keep_in_memory

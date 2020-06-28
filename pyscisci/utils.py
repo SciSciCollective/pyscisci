@@ -46,7 +46,7 @@ def groupby_count(df, colgroupby, colcountby, count_unique=True, show_progress=F
     desc = ''
     if isinstance(show_progress, str):
         desc = show_progress
-    # registar our pandas apply with tqdm for a progress bar
+    # register our pandas apply with tqdm for a progress bar
     tqdm.pandas(desc=desc, disable= not show_progress)
 
     newname_dict = zip2dict([str(colcountby), '0'], [str(colcountby)+'Count']*2)
@@ -83,7 +83,7 @@ def groupby_range(df, colgroupby, colrange, show_progress=False):
     desc = ''
     if isinstance(show_progress, str):
         desc = show_progress
-    # registar our pandas apply with tqdm for a progress bar
+    # register our pandas apply with tqdm for a progress bar
     tqdm.pandas(desc=desc, disable= not show_progress)
 
     newname_dict = zip2dict([str(colrange), '0'], [str(colrange)+'Range']*2)
@@ -115,7 +115,7 @@ def groupby_zero_col(df, colgroupby, colrange, show_progress=False):
     desc = ''
     if isinstance(show_progress, str):
         desc = show_progress
-    # registar our pandas apply with tqdm for a progress bar
+    # register our pandas apply with tqdm for a progress bar
     tqdm.pandas(desc=desc, disable= not show_progress)
 
     return df.groupby(colgroupby, sort=False)[colrange].progress_transform(lambda x: x - x.min())
@@ -146,7 +146,7 @@ def groupby_total(df, colgroupby, colcountby, show_progress=False):
     desc = ''
     if isinstance(show_progress, str):
         desc = show_progress
-    # registar our pandas apply with tqdm for a progress bar
+    # register our pandas apply with tqdm for a progress bar
     tqdm.pandas(desc=desc, disable= not show_progress)
 
     newname_dict = zip2dict([str(colcountby), '0'], [str(colcountby)+'Total']*2)
