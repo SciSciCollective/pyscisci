@@ -37,11 +37,11 @@ def coauthorship_network(paa_df, focus_author_ids=None, focus_constraint='author
     :param focus_constraint : str, default `authors`
         If focus_author_ids is not None:
             `authors` : the `focus_author_ids' defines the node set, giving only the co-authorships between authors in the set.
-            `publications` : the publication history of `focus_author_ids' defines the edge set, giving the co-authorhips where at least 
+            `publications` : the publication history of `focus_author_ids' defines the edge set, giving the co-authorhips where at least
                                 one author from `focus_author_ids' was involved.
-            'ego' : the `focus_author_ids' defines a seed set, such that all authors must have co-authored at least one publication with 
-                                an author from `focus_author_ids', but co-authorships are also found between the second-order author sets. 
-    
+            'ego' : the `focus_author_ids' defines a seed set, such that all authors must have co-authored at least one publication with
+                                an author from `focus_author_ids', but co-authorships are also found between the second-order author sets.
+
     :param temporal : bool, default False
         If True, compute the adjacency matrix using only publications for each year.
 
@@ -70,12 +70,12 @@ def coauthorship_network(paa_df, focus_author_ids=None, focus_constraint='author
 
     if not focus_author_ids is None:
         focus_author_ids = np.sort(focus_author_ids)
-        
+
         # identify the subset of the publications we need to form the network
         if focus_constraint == 'authors':
             # take only the publication-author links that have an author from the `focus_author_ids'
             paa_df = paa_df.loc[isin_sorted(paa_df['AuthorId'].values, focus_author_ids)]
-        
+
         elif focus_constraint == 'publications':
             # take all publications authored by an author from the `focus_author_ids'
             focus_pubs = np.sort(paa_df.loc[isin_sorted(paa_df['AuthorId'].values, focus_author_ids)]['PublicationId'].unique())
@@ -112,28 +112,28 @@ def coauthorship_network(paa_df, focus_author_ids=None, focus_constraint='author
         temporal_adj = {}
         for y in years:
             bipartite_adj = dataframe2bipartite(paa_df.loc[paa_df['Year'] == y], 'AuthorId', 'PublicationId', (Nauthors, Npubs) )
-            
+
             adj_mat = project_bipartite_mat(bipartite_adj, project_to = 'row')
 
             # remove diagonal entries
             adj_mat.setdiag(0)
             adj_mat.eliminate_zeros()
 
-            temporal_adj[y] = adj_mat 
+            temporal_adj[y] = adj_mat
 
         return temporal_adj, author2int
 
     else:
         bipartite_adj = dataframe2bipartite(paa_df, 'AuthorId', 'PublicationId', (Nauthors, Npubs) )
-            
+
         adj_mat = project_bipartite_mat(bipartite_adj, project_to = 'row')
 
         # remove diagonal entries
         adj_mat.setdiag(0)
         adj_mat.eliminate_zeros()
-    
+
         return adj_mat, author2int
-    
+
 
 def cogroupby(df, N):
     adj_mat = spsparse.dok_matrix( (N,N), dtype=int)
@@ -151,7 +151,7 @@ def cogroupby(df, N):
 
 
 def dataframe2bipartite(df, rowname, colname, shape=None, weightname=None):
-    
+
     if shape is None:
         shape = (int(df[rowname].max()+1), int(df[colname].max()+1) )
 
@@ -161,7 +161,7 @@ def dataframe2bipartite(df, rowname, colname, shape=None, weightname=None):
         weights = df['weightname'].values
 
     # create a bipartite adj matrix connecting authors to their publications
-    bipartite_adj = spsparse.coo_matrix( ( weights, 
+    bipartite_adj = spsparse.coo_matrix( ( weights,
                                         (df[rowname].values, df[colname].values) ),
                                         shape=shape, dtype=weights.dtype)
 
@@ -178,6 +178,114 @@ def project_bipartite_mat(bipartite_adj, project_to = 'row'):
 
     return adj_mat
 
+
+def cocitation_network(pub2ref_df, focus_pub_ids=None, focus_cited=None, focus_constraint='citing', temporal=False, show_progress=False):
+    """
+    Create the co-citation network.
+
+    Parameters
+    ----------
+    :param pub2ref_df : DataFrame
+        A DataFrame with the links between authors and publications.
+
+    :param focus_pub_ids : numpy array or list, default None
+        A list of the PublicationIds to seed the cocitation-network.
+
+    :param focus_constraint : str, default `citing`
+        If focus_author_ids is not None:
+            `citing` : the `focus_pub_ids' defines the citation set, giving only the co-citations between the references
+                of the publications from this set.
+            `cited` : the `focus_pub_ids' defines the cocitation node set.
+            'egocited' : the `focus_pub_ids' defines a seed set, such that all other publications must have been co-citeed with
+                at least one publication from this set.
+
+    :param temporal : bool, default False
+        If True, compute the adjacency matrix using only publications for each year.
+
+    :param show_progress : bool, default False
+        If True, show a progress bar tracking the calculation.
+
+
+    Returns
+    -------
+    coo_matrix or dict of coo_matrix
+        If temporal == False:
+            The adjacency matrix for the co-citation network
+
+        If temporal == True:
+            A dictionary with key for each year, and value of the adjacency matrix for the cocitation network induced
+            by citing publications in that year.
+
+    pub2int, dict
+        A mapping of PublicationIds to the row/column of the adjacency matrix.
+
+    """
+    required_columns = ['CitedPublicationId', 'CitingPublicationId']
+    if temporal:
+        required_columns.append('CitingYear')
+    check4columns(pub2ref_df, required_columns)
+    pub2ref_df = pub2ref_df[required_columns].dropna()
+
+    if not focus_pub_ids is None:
+        focus_pub_ids = np.sort(focus_pub_ids)
+
+        # identify the subset of the publications we need to form the network
+        if focus_constraint == 'citing':
+            # take only the links that have a citing publication from the `focus_pub_ids'
+            pub2ref_df = pub2ref_df.loc[isin_sorted(pub2ref_df['CitingPublicationId'].values, focus_pub_ids)]
+
+        elif focus_constraint == 'cited':
+            # take only the links that have a cited publication from the `focus_pub_ids'
+            pub2ref_df = pub2ref_df.loc[isin_sorted(pub2ref_df['CitedPublicationId'].values, focus_pub_ids)]
+
+        elif focus_constraint == 'egocited':
+            # take all publications that cite one of the publications in `focus_pub_ids'
+            focus_citing_pubs = np.sort(pub2ref_df.loc[isin_sorted(pub2ref_df['CitedPublicationId'].values, focus_pub_ids)]['CitingPublicationId'].unique())
+            # then take all the links that have a citing publication from the `focus_citing_pubs'
+            pub2ref_df = pub2ref_df.loc[isin_sorted(pub2ref_df['CitingPublicationId'].values, focus_citing_pubs)]
+            del focus_citing_pubs
+
+    pub2ref_df.drop_duplicates(subset=['CitingPublicationId', 'CitedPublicationId'], inplace=True)
+
+    #  map cited publications to the rows of the bipartite adj mat
+    cited2int = {pid:i for i, pid in enumerate(np.sort(pub2ref_df['CitedPublicationId'].unique()))}
+    Ncited = pub2ref_df['CitedPublicationId'].nunique()
+
+    pub2ref_df['CitedPublicationId'] = [cited2int[aid] for pid in pub2ref_df['CitedPublicationId'].values]
+
+    #  map citing publications to the columns of the bipartite adj mat
+    citing2int = {pid:i for i, pid in enumerate(np.sort(pub2ref_df['CitingPublicationId'].unique()))}
+    Nciting = pub2ref_df['CitingPublicationId'].nunique()
+
+    pub2ref_df['CitingPublicationId'] = [citing2int[pid] for pid in paa_df['CitingPublicationId'].values]
+
+    if temporal:
+        years = np.sort(pub2ref_df['CitingYear'].unique())
+
+        temporal_adj = {}
+        for y in years:
+            bipartite_adj = dataframe2bipartite(pub2ref_df.loc[pub2ref_df['CitingYear'] == y], 'CitedPublicationId', 'CitingPublicationId', (Ncited, Nciting) )
+
+            adj_mat = project_bipartite_mat(bipartite_adj, project_to = 'row')
+
+            # remove diagonal entries
+            adj_mat.setdiag(0)
+            adj_mat.eliminate_zeros()
+
+            temporal_adj[y] = adj_mat
+
+        return temporal_adj, cited2int
+
+    else:
+        bipartite_adj = dataframe2bipartite(pub2ref_df, 'CitedPublicationId', 'CitingPublicationId', (Ncited, Nciting) )
+
+        adj_mat = project_bipartite_mat(bipartite_adj, project_to = 'row')
+
+        # remove diagonal entries
+        adj_mat.setdiag(0)
+        adj_mat.eliminate_zeros()
+
+        return adj_mat, cited2int
 
 def cocited_edgedict(refdf):
 
