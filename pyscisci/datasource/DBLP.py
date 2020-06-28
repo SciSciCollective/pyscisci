@@ -30,10 +30,11 @@ class DBLP(BibDataBase):
 
     """
 
-    def __init__(self, path2database='', keep_in_memory=False):
+    def __init__(self, path2database='', keep_in_memory=False, show_progress=False):
 
         self.path2database = path2database
         self.keep_in_memory = keep_in_memory
+        self.show_progress = show_progress
 
         self._affiliation_df = None
         self._pub_df = None
@@ -328,9 +329,9 @@ class DBLP(BibDataBase):
         """
         if self._author2pub_df is None:
             if self.keep_in_memory:
-                self._author2pub_df = self.load_publicationauthor()
+                self._author2pub_df = self.load_publicationauthor(show_progress=self.show_progress)
             else:
-                return self.load_publicationauthor()
+                return self.load_publicationauthor(show_progress=self.show_progress)
 
         return self._author2pub_df
 
@@ -372,7 +373,9 @@ class DBLP(BibDataBase):
         if show_progress:
             show_progress='Loading PublicationAuthor'
         if preprocess and os.path.exists(os.path.join(self.path2database, 'publicationauthor')):
-            return load_preprocessed_data('publicationauthor', self.path2database, columns, isindict, duplicate_subset, duplicate_keep, dropna, show_progress)
+            return load_preprocessed_data('publicationauthor', path2database=self.path2database, columns=columns,
+                isindict=isindict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
+                show_progress=show_progress)
         else:
             raise NotImplementedError("DBLP is stored as a single xml file.  Run preprocess to parse the file.")
 

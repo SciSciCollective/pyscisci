@@ -106,7 +106,7 @@ def load_preprocessed_data(dataname, path2database, columns = None, isindict=Non
         desc = show_progress
 
     data_df = []
-    for ifile in tqdm(FileNumbers, desc=desc, disable=not show_progress):
+    for ifile in tqdm(FileNumbers, desc=desc, leave=True, disable=not show_progress):
         fname = os.path.join(path2files, dataname+"{}.hdf".format(ifile))
         subdf = pd.read_hdf(fname, mode = 'r')
 

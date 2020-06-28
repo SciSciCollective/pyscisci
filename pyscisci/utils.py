@@ -267,7 +267,7 @@ def kl(p,q):
     """
     Kullback–Leibler divergence (KL-divergence)
     """
-    return np.nansum(p*np.log2(p/q))
+    return -np.nansum(p[p>0]*np.log2(p[p>0]/q[p>0]))
 
 def jenson_shannon(p,q):
     """

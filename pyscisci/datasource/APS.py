@@ -29,10 +29,11 @@ class APS(BibDataBase):
 
     """
 
-    def __init__(self, path2database = '', keep_in_memory = False):
+    def __init__(self, path2database = '', keep_in_memory = False, show_progress=True):
 
         self.path2database = path2database
         self.keep_in_memory = keep_in_memory
+        self.show_progress = True
 
         self._affiliation_df = None
         self._pub_df = None
@@ -74,13 +75,13 @@ class APS(BibDataBase):
         import webbrowser
         webbrowser.open("https://journals.aps.org/datasets")
 
-        raise NotImplementedError("APS is shared by request from the American Physical Society.")
+        raise NotImplementedError("APS is shared by request from the American Physical Society.  Contact APS to download the source files.")
 
 
-    def parse_affiliations(self, preprocess = False):
+    def parse_affiliations(self, preprocess = False, show_progress=False):
         raise NotImplementedError("APS is stored as a json archive.  Run preprocess to parse the archive.")
 
-    def parse_authors(self, preprocess = False, process_name = True, num_file_lines = 5*10**6):
+    def parse_authors(self, preprocess = False, process_name = True, num_file_lines = 5*10**6, show_progress=False):
         raise NotImplementedError("APS does not contain disambiguated author information.")
 
     def parse_publications(self, preprocess=False, preprocess_dicts=True, pubid2int=False,
@@ -305,9 +306,9 @@ class APS(BibDataBase):
         else:
             raise FileNotFoundError('The archive {0} does not contain a citation file: {1}.'.format(archive_name, 'aps-dataset-citations'))
 
-    def parse_publicationauthoraffiliation(self, preprocess = False, num_file_lines=10**7):
+    def parse_publicationauthoraffiliation(self, preprocess = False, num_file_lines=10**7, show_progress=False):
         raise NotImplementedError("APS is stored as a json archive.  Run preprocess to parse the archive.")
 
-    def parse_fields(self, preprocess = False, num_file_lines=10**7):
+    def parse_fields(self, preprocess = False, num_file_lines=10**7, show_progress=False):
         raise NotImplementedError("APS is stored as a json archive.  Run preprocess to parse the archive.")
 
