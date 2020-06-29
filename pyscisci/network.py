@@ -257,7 +257,7 @@ def cocitation_network(pub2ref_df, focus_pub_ids=None, focus_cited=None, focus_c
     citing2int = {pid:i for i, pid in enumerate(np.sort(pub2ref_df['CitingPublicationId'].unique()))}
     Nciting = pub2ref_df['CitingPublicationId'].nunique()
 
-    pub2ref_df['CitingPublicationId'] = [citing2int[pid] for pid in paa_df['CitingPublicationId'].values]
+    pub2ref_df['CitingPublicationId'] = [citing2int[pid] for pid in pub2ref_df['CitingPublicationId'].values]
 
     if temporal:
         years = np.sort(pub2ref_df['CitingYear'].unique())
