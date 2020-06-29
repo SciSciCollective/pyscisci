@@ -251,7 +251,7 @@ def cocitation_network(pub2ref_df, focus_pub_ids=None, focus_cited=None, focus_c
     cited2int = {pid:i for i, pid in enumerate(np.sort(pub2ref_df['CitedPublicationId'].unique()))}
     Ncited = pub2ref_df['CitedPublicationId'].nunique()
 
-    pub2ref_df['CitedPublicationId'] = [cited2int[aid] for pid in pub2ref_df['CitedPublicationId'].values]
+    pub2ref_df['CitedPublicationId'] = [cited2int[pid] for pid in pub2ref_df['CitedPublicationId'].values]
 
     #  map citing publications to the columns of the bipartite adj mat
     citing2int = {pid:i for i, pid in enumerate(np.sort(pub2ref_df['CitingPublicationId'].unique()))}
