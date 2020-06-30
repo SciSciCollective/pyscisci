@@ -11,8 +11,9 @@ The ``pySciSci`` package offers a unified interface to analyze several of the mo
 - [American Physical Society](https://journals.aps.org/datasets) (APS)
 
 The ``pySciSci`` also provides efficient implemntations of recent metrics and analysis tools developed in the study of scientific publications and patents, including:
-- Hindex
+- H-index
 - Disruption Index
+- Collective credit allocation
 - Novelty & Conventionality, ToDo
 - Q-factor, ToDo
 ...
@@ -43,8 +44,8 @@ ToDo: explore Dask and pySpark implemenations for multiprocessing.
 ## References
 
 <a id="1">[1]</a>
-Fortunato, Santo et al. (2018).
-Science of Science.
+Fortunato et al. (2018).
+[Science of Science](https://science.sciencemag.org/content/359/6379/eaao0185).
 Science, 359(6379), eaao0185.
 
 

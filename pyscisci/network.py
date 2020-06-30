@@ -179,7 +179,7 @@ def project_bipartite_mat(bipartite_adj, project_to = 'row'):
     return adj_mat
 
 
-def cocitation_network(pub2ref_df, focus_pub_ids=None, focus_cited=None, focus_constraint='citing', temporal=False, show_progress=False):
+def cocitation_network(pub2ref_df, focus_pub_ids=None, focus_constraint='citing', temporal=False, show_progress=False):
     """
     Create the co-citation network.
 
