@@ -158,7 +158,7 @@ def dataframe2bipartite(df, rowname, colname, shape=None, weightname=None):
     if weightname is None:
         weights = np.ones(df.shape[0], dtype=int)
     else:
-        weights = df['weightname'].values
+        weights = df[weightname].values
 
     # create a bipartite adj matrix connecting authors to their publications
     bipartite_adj = spsparse.coo_matrix( ( weights,

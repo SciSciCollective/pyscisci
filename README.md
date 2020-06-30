@@ -10,14 +10,23 @@ The ``pySciSci`` package offers a unified interface to analyze several of the mo
 - [DBLP](https://dblp.uni-trier.de)
 - [American Physical Society](https://journals.aps.org/datasets) (APS)
 
-The ``pySciSci`` also provides efficient implemntations of recent metrics and analysis tools developed in the study of scientific publications and patents, including:
+The ``pySciSci`` also provides efficient implemntations of recent metrics developed to study scientific publications and authors, including:
 - H-index
 - Disruption Index
 - Collective credit allocation
+- Interdisciplinarity (RoaStirling)
+- Annual productivity trajectories
 - Novelty & Conventionality, ToDo
 - Q-factor, ToDo
 ...
 
+Advanced tools for constructing and analyzing network objects (both static and temporal):
+- Citation network
+- Co-citation network
+- Co-authorship network
+
+Natural Language Processing
+- Author matching
 
 
 ## Installation

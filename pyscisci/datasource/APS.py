@@ -205,7 +205,7 @@ class APS(BibDataBase):
 
 
                 # now do the subject classifications
-                for subjectdict in pubjson.get('classificationSchemes', {}).get('subjectAreas', []):
+                for subjectdict in pubjson.get('classificationSchemes', {}).get('pysh', {}).get('disciplines', []):
                     pub2field_df.append([pubid, subjectdict.get('id', None)])
 
                     if field_dict.get(subjectdict.get('id', None), None) is None:
