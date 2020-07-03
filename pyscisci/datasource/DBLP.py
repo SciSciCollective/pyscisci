@@ -30,6 +30,7 @@ class DBLP(BibDataBase):
 
     """
 
+
     def __init__(self, path2database='', keep_in_memory=False, show_progress=True):
 
         self.path2database = path2database
@@ -373,8 +374,9 @@ class DBLP(BibDataBase):
         if show_progress:
             show_progress='Loading PublicationAuthor'
         if preprocess and os.path.exists(os.path.join(self.path2database, 'publicationauthor')):
-            return load_preprocessed_data('publicationauthor', path2database=self.path2database, columns=columns, isindict=isindict, 
-                duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna, show_progress=show_progress)
+            return load_preprocessed_data('publicationauthor', path2database=self.path2database, columns=columns,
+                isindict=isindict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
+                show_progress=show_progress)
         else:
             raise NotImplementedError("DBLP is stored as a single xml file.  Run preprocess to parse the file.")
 
