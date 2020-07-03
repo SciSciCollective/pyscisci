@@ -19,6 +19,7 @@ else:
     from tqdm import tqdm
 
 from pyscisci.utils import isin_sorted, zip2dict, check4columns, fit_piecewise_linear, groupby_count, groupby_range, rank_array
+from pyscisci.network import dataframe2bipartite, project_bipartite_mat
 
 def compute_citation_rank(df, colgroupby='Year', colrankby='C10', ascending=True, normed=False, show_progress=False):
     """
@@ -274,6 +275,73 @@ def Interdisciplinarity(pub2ref, pub2field, pub2year=None, temporal=True, citati
 
 ### Novelty
 
+def compute_novelty(pubdf, pub2ref_df, focuspubids=None, n_samples = 10, path2randomizednetworks=None, show_progress=False):
+    
+    """
+    This function calculates the novelty and conventionality for publications.
+    References
+    ----------
+    .. [u] Uzzi, B., Mukherjee, S., Stringer, M. and Jones, B. (2013): "Atypical Combinations and Scientific Impact",
+           *Science*. Vol. 342, Issue 6157, pp. 468-472
+           DOI: 10.1126/science.1240474
+
+    Parameters
+    ----------
+    :param pubdf : DataFrame
+        A DataFrame with Year and Journal information for each Publication.
+
+    :param pub2ref_df : DataFrame
+        A DataFrame with the reference information for each Publication.
+
+    :param focuspubids : list or numpy array, default None
+        A list of PublicationIds for which to compute the novelty score.
+
+    :param n_samples : int, default 10
+        The number of randomized networks in the ensemble.
+
+    :param path2randomizednetworks : str, default None
+        The Novelty calculation requires an ensemble of randomized networks.  If a path is specified by path2randomizednetworks, this
+        will first check if any randomized networks exists.  Alternatively, if the directory specified by path2randomizednetworks is empty,
+        then any randomized networks will be saved here.
+
+    :param normed : bool, default False
+        False : rank is from 0 to N -1
+        True : rank is from 0 to 1
+
+    :param show_progress : bool, default False
+        If True, show a progress bar tracking the calculation.
+
+    Returns
+    -------
+    DataFrame
+        The original dataframe with a new column for rank: colrankby+"Rank"
+
+    """
+
+    raise NotImplementedError
+
+    journalcitation_table, int2journal = create_journalcitation_table(pubdf, pub2ref)
+
+    years = np.sort(paa_df['Year'].unique())
+
+    temporal_adj = {}
+    for y in years:
+        bipartite_adj = dataframe2bipartite(journalcitation_table.loc[journalcitation_table['CitingYear'] == y], 'AuthorId', 'PublicationId', (Nauthors, Npubs) )
+        
+        adj_mat = project_bipartite_mat(bipartite_adj, project_to = 'row')
+
+        # remove diagonal entries
+        adj_mat.setdiag(0)
+        adj_mat.eliminate_zeros()
+
+        temporal_adj[y] = adj_mat 
+
+
+    observed_journal_bipartite = dataframe2bipartite(journalcitation_table, rowname='CitedJournalId', colname='', shape=None, weightname=None)
+
+    for isample in range(n_samples):
+        database_table = database_table.groupby(['CitingYear', 'CitedYear'], sort=False)['CitedJournalInt'].transform(np.random.permutation)
+
 def create_journalcitation_table(pubdf, pub2ref):
     required_pub_columns = ['PublicationId', 'JournalId', 'Year']
     check4columns(pubdf, required_pub_columns)
@@ -299,22 +367,3 @@ def create_journalcitation_table(pubdf, pub2ref):
 
 
     return jctable, {i:j for j,i in journal2int.items()}
-
-def compute_novelty(pubdf, pub2ref, scratch_path = None, n_samples = 10):
-    """
-    This function calculates the novelty and conventionality for publications.
-
-    References
-    ----------
-    .. [h] Uzzi, B. (2013): "title",
-           *in submission*.
-           DOI: xxx
-    """
-
-    raise NotImplementedError
-
-    journalcitation_table, int2journal = create_journalcitation_table(pubdf, pub2ref)
-
-    for isample in range(n_samples):
-        database_table = database_table.groupby(['CitingYear', 'CitedYear'], sort=False)['CitedJournalInt'].transform(np.random.permutation)
-
