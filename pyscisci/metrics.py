@@ -553,7 +553,7 @@ def compute_novelty(pubdf, pub2ref_df, focuspubids=None, n_samples = 10, path2ra
     for y in years:
         yjournal_cite = journalcitation_table.loc[journalcitation_table['CitingYear'] == y]
         yNpubs = yjournal_cite['PublicationId']
-        bipartite_adj = dataframe2bipartite(, 'CitedJournalInt', 'CitingPublicationId', (Njournals, Njournals) )
+        bipartite_adj = dataframe2bipartite(journalcitation_table, 'CitedJournalInt', 'CitingPublicationId', (Njournals, Njournals) )
         
         adj_mat = project_bipartite_mat(bipartite_adj, project_to = 'row')
 
@@ -564,7 +564,7 @@ def compute_novelty(pubdf, pub2ref_df, focuspubids=None, n_samples = 10, path2ra
         temporal_adj[y] = adj_mat 
 
 
-    observed_journal_bipartite = dataframe2bipartite(journalcitation_table, rowname='CitedJournalId', colname='', shape=None, weightname=None)
+    #observed_journal_bipartite = dataframe2bipartite(journalcitation_table, rowname='CitedJournalId', colname='', shape=None, weightname=None)
 
     for isample in range(n_samples):
         database_table = database_table.groupby(['CitingYear', 'CitedYear'], sort=False)['CitedJournalInt'].transform(np.random.permutation)
