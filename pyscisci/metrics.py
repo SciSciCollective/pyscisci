@@ -187,54 +187,57 @@ def pub_credit_share(focus_pid, pub2ref_df, pub2author_df, temporal=False, norme
     focus_authors = np.sort(pa_df.loc[pa_df['PublicationId']==focus_pid]['AuthorId'].unique())
     author2int = {aid:i for i, aid in enumerate(focus_authors)}
 
-    # the credit allocation matrix has a row for each focus author, and a column for each cocited publication (including the focus pub)
-    credit_allocation_mat = np.zeros((focus_authors.shape[0], cocited_pubs.shape[0]), dtype = float)
+    if cocited_pubs.shape[0] > 0 and focus_authors.shape[0] > 0:
+        # the credit allocation matrix has a row for each focus author, and a column for each cocited publication (including the focus pub)
+        credit_allocation_mat = np.zeros((focus_authors.shape[0], cocited_pubs.shape[0]), dtype = float)
 
-    # for each cocited publication, we count the number of authors
-    # and assign to each focus author, their fractional share of the credit (1 divided by the number of authors)
-    for cocitedid, adf in pa_df.groupby('PublicationId'):
-        author2row = [author2int[aid] for aid in adf['AuthorId'].unique() if not author2int.get(aid, None) is None]
-        if len(author2row) > 0:
-            credit_allocation_mat[author2row, cited2int[cocitedid]] = 1.0/adf['AuthorId'].nunique()
+        # for each cocited publication, we count the number of authors
+        # and assign to each focus author, their fractional share of the credit (1 divided by the number of authors)
+        for cocitedid, adf in pa_df.groupby('PublicationId'):
+            author2row = [author2int[aid] for aid in adf['AuthorId'].unique() if not author2int.get(aid, None) is None]
+            if len(author2row) > 0:
+                credit_allocation_mat[author2row, cited2int[cocitedid]] = 1.0/adf['AuthorId'].nunique()
 
-    if temporal:
-        # temporal credit allocation - broken down by year
+        if temporal:
+            # temporal credit allocation - broken down by year
 
-        # we need the temporal citations to the focus article
-        focus_citations = groupby_count(pub2ref_df.loc[isin_sorted(pub2ref_df['CitedPublicationId'].values, np.sort([focus_pid]))],
-            colgroupby='CitingYear', colcountby='CitingPublicationId', count_unique=True, show_progress=False)
-        focus_citations={y:c for y,c in focus_citations[['CitingYear', 'CitingPublicationIdCount']].values}
+            # we need the temporal citations to the focus article
+            focus_citations = groupby_count(pub2ref_df.loc[isin_sorted(pub2ref_df['CitedPublicationId'].values, np.sort([focus_pid]))],
+                colgroupby='CitingYear', colcountby='CitingPublicationId', count_unique=True, show_progress=False)
+            focus_citations={y:c for y,c in focus_citations[['CitingYear', 'CitingPublicationIdCount']].values}
 
-        # when temporal is True, a temporal adj mat is returned where each key is the year
-        years = np.sort(list(adj_mat.keys()))
+            # when temporal is True, a temporal adj mat is returned where each key is the year
+            years = np.sort(list(adj_mat.keys()))
 
-        cocite_counts = np.zeros((years.shape[0], cocited_pubs.shape[0]), dtype=float)
+            cocite_counts = np.zeros((years.shape[0], cocited_pubs.shape[0]), dtype=float)
 
-        for iy, y in enumerate(years):
-            cocite_counts[iy] = adj_mat[y].tocsr()[cited2int[focus_pid]].todense()
-            cocite_counts[iy, cited2int[focus_pid]] = focus_citations[y]
+            for iy, y in enumerate(years):
+                cocite_counts[iy] = adj_mat[y].tocsr()[cited2int[focus_pid]].todense()
+                cocite_counts[iy, cited2int[focus_pid]] = focus_citations[y]
 
-        cocite_counts = cocite_counts.cumsum(axis=0)
+            cocite_counts = cocite_counts.cumsum(axis=0)
 
+        else:
+            # just do credit allocation with the full cocitation matrix
+            cocite_counts = adj_mat.tocsr()[cited2int[focus_pid]].todense()
+
+            # the co-citation matrix misses the number of citations to the focus publication
+            # so explicitly calculate the number of citations to the focus publication
+            cocite_counts[0,cited2int[focus_pid]] = pub2ref_df.loc[isin_sorted(pub2ref_df['CitedPublicationId'].values, np.sort([focus_pid]))]['CitingPublicationId'].nunique()
+
+        # credit share is the matrix product of the credit_allocation_mat with cocite_counts
+        credit_share = np.squeeze(np.asarray(credit_allocation_mat.dot(cocite_counts.T)))
+
+        # normalize the credit share vector to sum to 1
+        if normed:
+            credit_share = credit_share/credit_share.sum(axis=0)
+
+        if temporal:
+            return credit_share, author2int, years
+        else:
+            return credit_share, author2int
     else:
-        # just do credit allocation with the full cocitation matrix
-        cocite_counts = adj_mat.tocsr()[cited2int[focus_pid]].todense()
-
-        # the co-citation matrix misses the number of citations to the focus publication
-        # so explicitly calculate the number of citations to the focus publication
-        cocite_counts[0,cited2int[focus_pid]] = pub2ref_df.loc[isin_sorted(pub2ref_df['CitedPublicationId'].values, np.sort([focus_pid]))]['CitingPublicationId'].nunique()
-
-    # credit share is the matrix product of the credit_allocation_mat with cocite_counts
-    credit_share = np.squeeze(np.asarray(credit_allocation_mat.dot(cocite_counts.T)))
-
-    # normalize the credit share vector to sum to 1
-    if normed:
-        credit_share = credit_share/credit_share.sum(axis=0)
-
-    if temporal:
-        return credit_share, author2int, years
-    else:
-        return credit_share, author2int
+        return None
 
 ### Productivity Trajectory
 
@@ -302,44 +305,6 @@ def compute_disruption_index(pub2ref, show_progress=False):
     newname_dict = {'CitingPublicationId':'DisruptionIndex', 'CitedPublicationId':'PublicationId'}
     return citation_groups.progress_apply(disruption_index).to_frame().reset_index().rename(columns = newname_dict)
 
-
-### Cnorm
-def compute_cnorm(pub2ref, pub2year):
-    """
-    This function calculates the cnorm for publications.
-
-    References
-    ----------
-    .. [h] Ke, Q., Gates, A. J., Barabasi, A.-L. (2020): "title",
-           *in submission*.
-           DOI: xxx
-    """
-    raise NotImplementedError
-
-    required_pub2ref_columns = ['CitingPublicationId', 'CitedPublicationId']
-    check4columns(pub2ref, required_pub_columns)
-    pub2ref = pub2ref[required_pub2ref_columns]
-
-    # we need the citation counts and cocitation network
-    temporal_cocitation_dict = {y:defaultdict(set) for y in set(pub2year.values())}
-    temporal_citation_dict = {y:defaultdict(int) for y in temporal_cocitation_dict.keys()}
-
-    def count_cocite(cited_df):
-        y = pub2year[cited_df.name]
-
-        for citedpid in cited_df['CitedPublicationId'].values:
-            temporal_citation_dict[y][citedpid] += 1
-        for icitedpid, jcitedpid in combinations(cited_df['CitedPublicationId'].values, 2):
-            temporal_cocitation_dict[y][icitedpid].add(jcitedpid)
-            temporal_cocitation_dict[y][jcitedpid].add(icitedpid)
-
-    pub2ref.groupby('CitingPublicationId', sort=False).apply(count_cocite)
-
-    cnorm = {}
-    for y in temporal_citation_dict.keys():
-        for citedpid, year_cites in temporal_citation_dict[y].items():
-            if cnorm.get(citedpid, None) is None:
-                cnorm[citedpid] = {y:year_cites/np.mean()}
 
 def compute_raostriling_interdisciplinarity(pub2ref_df, pub2field_df, focus_pub_ids=None, pub2field_norm=True, temporal=False,
     citation_direction='references', field_distance_metric='cosine', distance_matrix=None, show_progress=False):
@@ -581,11 +546,14 @@ def compute_novelty(pubdf, pub2ref_df, focuspubids=None, n_samples = 10, path2ra
 
     journalcitation_table, int2journal = create_journalcitation_table(pubdf, pub2ref)
 
-    years = np.sort(paa_df['Year'].unique())
+    Njournals = len(int2journal)
+    years = np.sort(pubdf['Year'].unique())
 
     temporal_adj = {}
     for y in years:
-        bipartite_adj = dataframe2bipartite(journalcitation_table.loc[journalcitation_table['CitingYear'] == y], 'AuthorId', 'PublicationId', (Nauthors, Npubs) )
+        yjournal_cite = journalcitation_table.loc[journalcitation_table['CitingYear'] == y]
+        yNpubs = yjournal_cite['PublicationId']
+        bipartite_adj = dataframe2bipartite(, 'CitedJournalInt', 'CitingPublicationId', (Njournals, Njournals) )
         
         adj_mat = project_bipartite_mat(bipartite_adj, project_to = 'row')
 

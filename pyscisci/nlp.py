@@ -10,13 +10,9 @@ import os
 import sys
 import pandas as pd
 import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
 # For now, I dont think we need to make the full pySciSci package dependent on these packages
-try:
-    from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-except ImportError:
-    raise ImportError('Please install sklearn to take full advantage of the NLP tools. \n pip install sklearn')
-
 try:
     from Levenshtein import ratio
 except ImportError:
