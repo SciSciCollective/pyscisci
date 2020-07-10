@@ -247,24 +247,38 @@ def cocitation_network(pub2ref_df, focus_pub_ids=None, focus_constraint='citing'
 
     pub2ref_df.drop_duplicates(subset=['CitingPublicationId', 'CitedPublicationId'], inplace=True)
 
-    #  map cited publications to the rows of the bipartite adj mat
-    cited2int = {pid:i for i, pid in enumerate(np.sort(pub2ref_df['CitedPublicationId'].unique()))}
-    Ncited = pub2ref_df['CitedPublicationId'].nunique()
+    if pub2ref_df.shape[0] > 0:
+        #  map cited publications to the rows of the bipartite adj mat
+        cited2int = {pid:i for i, pid in enumerate(np.sort(pub2ref_df['CitedPublicationId'].unique()))}
+        Ncited = pub2ref_df['CitedPublicationId'].nunique()
 
-    pub2ref_df['CitedPublicationId'] = [cited2int[pid] for pid in pub2ref_df['CitedPublicationId'].values]
+        pub2ref_df['CitedPublicationId'] = [cited2int[pid] for pid in pub2ref_df['CitedPublicationId'].values]
 
-    #  map citing publications to the columns of the bipartite adj mat
-    citing2int = {pid:i for i, pid in enumerate(np.sort(pub2ref_df['CitingPublicationId'].unique()))}
-    Nciting = pub2ref_df['CitingPublicationId'].nunique()
+        #  map citing publications to the columns of the bipartite adj mat
+        citing2int = {pid:i for i, pid in enumerate(np.sort(pub2ref_df['CitingPublicationId'].unique()))}
+        Nciting = pub2ref_df['CitingPublicationId'].nunique()
 
-    pub2ref_df['CitingPublicationId'] = [citing2int[pid] for pid in pub2ref_df['CitingPublicationId'].values]
+        pub2ref_df['CitingPublicationId'] = [citing2int[pid] for pid in pub2ref_df['CitingPublicationId'].values]
 
-    if temporal:
-        years = np.sort(pub2ref_df['CitingYear'].unique())
+        if temporal:
+            years = np.sort(pub2ref_df['CitingYear'].unique())
 
-        temporal_adj = {}
-        for y in years:
-            bipartite_adj = dataframe2bipartite(pub2ref_df.loc[pub2ref_df['CitingYear'] == y], 'CitedPublicationId', 'CitingPublicationId', (Ncited, Nciting) )
+            temporal_adj = {}
+            for y in years:
+                bipartite_adj = dataframe2bipartite(pub2ref_df.loc[pub2ref_df['CitingYear'] == y], 'CitedPublicationId', 'CitingPublicationId', (Ncited, Nciting) )
+
+                adj_mat = project_bipartite_mat(bipartite_adj, project_to = 'row')
+
+                # remove diagonal entries
+                adj_mat.setdiag(0)
+                adj_mat.eliminate_zeros()
+
+                temporal_adj[y] = adj_mat
+
+            return temporal_adj, cited2int
+
+        else:
+            bipartite_adj = dataframe2bipartite(pub2ref_df, 'CitedPublicationId', 'CitingPublicationId', (Ncited, Nciting) )
 
             adj_mat = project_bipartite_mat(bipartite_adj, project_to = 'row')
 
@@ -272,20 +286,10 @@ def cocitation_network(pub2ref_df, focus_pub_ids=None, focus_constraint='citing'
             adj_mat.setdiag(0)
             adj_mat.eliminate_zeros()
 
-            temporal_adj[y] = adj_mat
-
-        return temporal_adj, cited2int
+            return adj_mat, cited2int
 
     else:
-        bipartite_adj = dataframe2bipartite(pub2ref_df, 'CitedPublicationId', 'CitingPublicationId', (Ncited, Nciting) )
-
-        adj_mat = project_bipartite_mat(bipartite_adj, project_to = 'row')
-
-        # remove diagonal entries
-        adj_mat.setdiag(0)
-        adj_mat.eliminate_zeros()
-
-        return adj_mat, cited2int
+        return spsparse.coo_matrix(), {}
 
 def cocited_edgedict(refdf):
 

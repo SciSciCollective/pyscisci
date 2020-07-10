@@ -237,7 +237,7 @@ def pub_credit_share(focus_pid, pub2ref_df, pub2author_df, temporal=False, norme
         else:
             return credit_share, author2int
     else:
-        return None
+        return np.array(), {}
 
 ### Productivity Trajectory
 
