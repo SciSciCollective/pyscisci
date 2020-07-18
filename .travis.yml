@@ -1,0 +1,12 @@
+language: python
+
+python:
+    - 3.7
+    - 3.8
+
+install: 
+    - pip install pytest
+    - pip install .
+
+script: 
+    - py.test 
