@@ -1002,7 +1002,7 @@ class BibDataBase(object):
 
                 citation_noself_df = citation_noself_df.merge(k_citation_df, how='left', on='PublicationId')
 
-        citation_df = citation_df.merge(citation_noself_df, how='left', on='PublicationId')
+            citation_df = citation_df.merge(citation_noself_df, how='left', on='PublicationId')
 
         # set all nan to 0
         citation_df.fillna(0, inplace=True)
