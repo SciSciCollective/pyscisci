@@ -178,6 +178,49 @@ def project_bipartite_mat(bipartite_adj, project_to = 'row'):
 
     return adj_mat
 
+def extract_multiscale_backbone(Xs, alpha):
+    """
+    A sparse matrix implemntation of the multiscale backbone.
+
+    References
+    ----------
+    Serrano et al. (2009) Extracting the multiscale backbone of complex weighted networks.  PNAS.
+
+    Parameters
+    ----------
+    :param Xs : numpy.array or sp.sparse matrix
+        The adjacency matrix for the network.
+
+    :param alpha : float
+        The significance value.
+
+
+    Returns
+    -------
+    coo_matrix
+        The directed, weighted multiscale backbone
+
+    """
+    
+    X = spsparse.coo_matrix(Xs)
+    X.eliminate_zeros()
+    
+    #normalize
+    row_sums = X.sum(axis = 1)
+    degrees = X.getnnz(axis = 1)
+    
+    
+    pijs = np.multiply(X.data, 1.0/np.array(row_sums[X.row]).squeeze())
+    powers = degrees[X.row.squeeze()] - 1
+
+    # equation 2 => where 1 - (k - 1) * integrate.quad(lambda x: (1 - x) ** (k - 2)) = (1-x)**(k - 1) if k  > 1
+    significance = np.logical_and(pijs < 1, np.power(1.0 - pijs, powers) < alpha)
+    
+    keep_graph = spsparse.coo_matrix((X.data[significance], (X.row[significance], X.col[significance])), shape = X.shape)
+    keep_graph.eliminate_zeros()
+    
+    return keep_graph
+
 
 def cocitation_network(pub2ref_df, focus_pub_ids=None, focus_constraint='citing', temporal=False, show_progress=False):
     """

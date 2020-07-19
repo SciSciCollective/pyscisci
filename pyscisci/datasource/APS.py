@@ -47,9 +47,9 @@ class APS(BibDataBase):
         self._pub2field_df=None
         self._fieldinfo_df=None
 
-        self.PublicationIdType = int
-        self.AffiliationIdType = int
-        self.AuthorIdType = str
+        self.PublicationIdType = str
+        self.AffiliationIdType = str
+        self.AuthorIdType = None
 
 
     def preprocess(self, archive_year=2019, pubid2int=False, metadata_archive=None, citation_archive=None, show_progress=True):
@@ -125,6 +125,7 @@ class APS(BibDataBase):
             ipub = 0
             if pubid2int:
                 pubintcol = ['PublicationId']
+                self.PublicationIdType=int
             else:
                 pubintcol = []
 
