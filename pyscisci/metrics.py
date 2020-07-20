@@ -176,7 +176,7 @@ def pub_credit_share(focus_pid, pub2ref_df, pub2author_df, temporal=False, norme
     """
 
     # the focus publication's authors
-    focus_authors = np.sort(pa_df.loc[pa_df['PublicationId']==focus_pid]['AuthorId'].unique())
+    focus_authors = np.sort(pub2author_df.loc[pub2author_df['PublicationId']==focus_pid]['AuthorId'].unique())
     author2int = {aid:i for i, aid in enumerate(focus_authors)}
 
     if focus_authors.shape[0] > 1:
