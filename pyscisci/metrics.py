@@ -175,69 +175,72 @@ def pub_credit_share(focus_pid, pub2ref_df, pub2author_df, temporal=False, norme
 
     """
 
-    # start by getting the co-citation network around the focus publication
-    adj_mat, cited2int = cocitation_network(pub2ref_df, focus_pub_ids=np.sort([focus_pid]), focus_constraint='egocited',
-            temporal=temporal, show_progress=show_progress)
-
-    # get the authorships for the publications in the cocitation network
-    cocited_pubs = np.sort(list(cited2int.keys()))
-    pa_df = pub2author_df.loc[isin_sorted(pub2author_df['PublicationId'].values, cocited_pubs)]
-
     # the focus publication's authors
     focus_authors = np.sort(pa_df.loc[pa_df['PublicationId']==focus_pid]['AuthorId'].unique())
     author2int = {aid:i for i, aid in enumerate(focus_authors)}
 
-    if cocited_pubs.shape[0] > 0 and focus_authors.shape[0] > 0:
-        # the credit allocation matrix has a row for each focus author, and a column for each cocited publication (including the focus pub)
-        credit_allocation_mat = np.zeros((focus_authors.shape[0], cocited_pubs.shape[0]), dtype = float)
+    if focus_authors.shape[0] > 1:
+        # start by getting the co-citation network around the focus publication
+        adj_mat, cited2int = cocitation_network(pub2ref_df, focus_pub_ids=np.sort([focus_pid]), focus_constraint='egocited',
+                temporal=temporal, show_progress=show_progress)
 
-        # for each cocited publication, we count the number of authors
-        # and assign to each focus author, their fractional share of the credit (1 divided by the number of authors)
-        for cocitedid, adf in pa_df.groupby('PublicationId'):
-            author2row = [author2int[aid] for aid in adf['AuthorId'].unique() if not author2int.get(aid, None) is None]
-            if len(author2row) > 0:
-                credit_allocation_mat[author2row, cited2int[cocitedid]] = 1.0/adf['AuthorId'].nunique()
+        # get the authorships for the publications in the cocitation network
+        cocited_pubs = np.sort(list(cited2int.keys()))
+        pa_df = pub2author_df.loc[isin_sorted(pub2author_df['PublicationId'].values, cocited_pubs)]
 
-        if temporal:
-            # temporal credit allocation - broken down by year
+        if cocited_pubs.shape[0] > 0:
+            # the credit allocation matrix has a row for each focus author, and a column for each cocited publication (including the focus pub)
+            credit_allocation_mat = np.zeros((focus_authors.shape[0], cocited_pubs.shape[0]), dtype = float)
 
-            # we need the temporal citations to the focus article
-            focus_citations = groupby_count(pub2ref_df.loc[isin_sorted(pub2ref_df['CitedPublicationId'].values, np.sort([focus_pid]))],
-                colgroupby='CitingYear', colcountby='CitingPublicationId', count_unique=True, show_progress=False)
-            focus_citations={y:c for y,c in focus_citations[['CitingYear', 'CitingPublicationIdCount']].values}
+            # for each cocited publication, we count the number of authors
+            # and assign to each focus author, their fractional share of the credit (1 divided by the number of authors)
+            for cocitedid, adf in pa_df.groupby('PublicationId'):
+                author2row = [author2int[aid] for aid in adf['AuthorId'].unique() if not author2int.get(aid, None) is None]
+                if len(author2row) > 0:
+                    credit_allocation_mat[author2row, cited2int[cocitedid]] = 1.0/adf['AuthorId'].nunique()
 
-            # when temporal is True, a temporal adj mat is returned where each key is the year
-            years = np.sort(list(adj_mat.keys()))
+            if temporal:
+                # temporal credit allocation - broken down by year
 
-            cocite_counts = np.zeros((years.shape[0], cocited_pubs.shape[0]), dtype=float)
+                # we need the temporal citations to the focus article
+                focus_citations = groupby_count(pub2ref_df.loc[isin_sorted(pub2ref_df['CitedPublicationId'].values, np.sort([focus_pid]))],
+                    colgroupby='CitingYear', colcountby='CitingPublicationId', count_unique=True, show_progress=False)
+                focus_citations={y:c for y,c in focus_citations[['CitingYear', 'CitingPublicationIdCount']].values}
 
-            for iy, y in enumerate(years):
-                cocite_counts[iy] = adj_mat[y].tocsr()[cited2int[focus_pid]].todense()
-                cocite_counts[iy, cited2int[focus_pid]] = focus_citations[y]
+                # when temporal is True, a temporal adj mat is returned where each key is the year
+                years = np.sort(list(adj_mat.keys()))
 
-            cocite_counts = cocite_counts.cumsum(axis=0)
+                cocite_counts = np.zeros((years.shape[0], cocited_pubs.shape[0]), dtype=float)
 
+                for iy, y in enumerate(years):
+                    cocite_counts[iy] = adj_mat[y].tocsr()[cited2int[focus_pid]].todense()
+                    cocite_counts[iy, cited2int[focus_pid]] = focus_citations[y]
+
+                cocite_counts = cocite_counts.cumsum(axis=0)
+
+            else:
+                # just do credit allocation with the full cocitation matrix
+                cocite_counts = adj_mat.tocsr()[cited2int[focus_pid]].todense()
+
+                # the co-citation matrix misses the number of citations to the focus publication
+                # so explicitly calculate the number of citations to the focus publication
+                cocite_counts[0,cited2int[focus_pid]] = pub2ref_df.loc[isin_sorted(pub2ref_df['CitedPublicationId'].values, np.sort([focus_pid]))]['CitingPublicationId'].nunique()
+
+            # credit share is the matrix product of the credit_allocation_mat with cocite_counts
+            credit_share = np.squeeze(np.asarray(credit_allocation_mat.dot(cocite_counts.T)))
+
+            # normalize the credit share vector to sum to 1
+            if normed:
+                credit_share = credit_share/credit_share.sum(axis=0)
+
+            if temporal:
+                return credit_share, author2int, years
+            else:
+                return credit_share, author2int
         else:
-            # just do credit allocation with the full cocitation matrix
-            cocite_counts = adj_mat.tocsr()[cited2int[focus_pid]].todense()
-
-            # the co-citation matrix misses the number of citations to the focus publication
-            # so explicitly calculate the number of citations to the focus publication
-            cocite_counts[0,cited2int[focus_pid]] = pub2ref_df.loc[isin_sorted(pub2ref_df['CitedPublicationId'].values, np.sort([focus_pid]))]['CitingPublicationId'].nunique()
-
-        # credit share is the matrix product of the credit_allocation_mat with cocite_counts
-        credit_share = np.squeeze(np.asarray(credit_allocation_mat.dot(cocite_counts.T)))
-
-        # normalize the credit share vector to sum to 1
-        if normed:
-            credit_share = credit_share/credit_share.sum(axis=0)
-
-        if temporal:
-            return credit_share, author2int, years
-        else:
-            return credit_share, author2int
-    else:
-        return np.array(), {}
+            return np.array([None for a in author2int]), author2int
+    elif focus_authors.shape[0] == 1:
+        return np.array([1.0]), author2int
 
 ### Productivity Trajectory
 
