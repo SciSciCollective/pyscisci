@@ -24,12 +24,6 @@ try:
     from gensim.models import Word2Vec
 except ImportError:
     raise ImportError('Please install gensim to take full advantage of fast embedding tools. \n pip install gensim')
-
-# determine if we are loading from a jupyter notebook (to make pretty progress bars)
-if 'ipykernel' in sys.modules:
-    from tqdm.notebook import tqdm
-else:
-    from tqdm import tqdm
     
 
 
