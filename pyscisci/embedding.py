@@ -146,7 +146,7 @@ class Node2Vec(object):
         """
         :param file_name: name of file_name
         """
-        self.model.wv.save_word2vec_format('{}.w2v'.fomrat(file_name))
+        self.model.wv.save_word2vec_format('{}.w2v'.format(file_name))
         with open('{}_mapper.json',format(file_name), 'w') as fp:
             json.dump(self.entity2int, fp)
             
