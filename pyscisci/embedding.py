@@ -5,30 +5,34 @@
 
 .. moduleauthor:: Jisung Yoon <jisung.yoon92@gmail.com>
  """
-import sys
-import numpy as np
-from scipy import sparse
 import json
-from joblib import Parallel, delayed
-from scipy import spatial
+import sys
 
+import numpy as np
+from joblib import Parallel, delayed
+from scipy import sparse, spatial
 
 # For now, I dont think we need to make the full pySciSci package dependent on these packages
 try:
     import numba
 except ImportError:
-    raise ImportError('Please install numba to take full advantage of fast embedding tools. \n pip install numba')
-    
-try:    
+    raise ImportError(
+        "Please install numba to take full advantage of fast embedding tools. \n pip install numba"
+    )
+
+try:
     from gensim.models import Word2Vec
 except ImportError:
-    raise ImportError('Please install gensim to take full advantage of fast embedding tools. \n pip install gensim')
-    
-try:    
+    raise ImportError(
+        "Please install gensim to take full advantage of fast embedding tools. \n pip install gensim"
+    )
+
+try:
     import networkx as nx
 except ImportError:
-    raise ImportError('Please install networkx if you want to take an input as networkx object. \n pip install networkx')
-    
+    raise ImportError(
+        "Please install networkx if you want to take an input as networkx object. \n pip install networkx"
+    )
 
 
 class Node2Vec(object):
@@ -55,7 +59,7 @@ class Node2Vec(object):
         dimensions=128,
         window_size=10,
         epoch=1,
-        workers=1
+        workers=1,
     ):
         """
         :param A: Sparse Adjacecny Matrix
@@ -69,8 +73,10 @@ class Node2Vec(object):
         :param epoch: Number of epochs over the walks
         :param workers: Number of CPU cores that will be used in training
         """
-        
-        self.A = to_csr_adjacency_matrix(A) #transform input to csr_matrix for calculation
+
+        self.A = to_csr_adjacency_matrix(
+            A
+        )  # transform input to csr_matrix for calculation
         self.entity2int = entity2int
 
         # parameters for random walker
@@ -91,7 +97,7 @@ class Node2Vec(object):
         )  # for the random-walker with p=q=1, which is an unbiased random walker
 
         self.simulate_walks()
-        
+
     def simulate_walks(self):
         self.num_nodes = self.A.shape[0]
 
@@ -104,7 +110,7 @@ class Node2Vec(object):
                 workers=self.workers,
             )
 
-        else:  
+        else:
             Asupra, node_pairs = construct_line_net_adj(self.A)
 
             # Find the starting node ids
@@ -124,7 +130,6 @@ class Node2Vec(object):
             )
         self.walks = self.walks.astype(str).tolist()
 
-
     def learn_embedding(self):
         """
         Learning an embedding of nodes in the base graph.
@@ -139,19 +144,22 @@ class Node2Vec(object):
             workers=self.workers,
             iter=self.epoch,
         )
-        self.embedding = {entity: self.model.wv[str(index)] for entity, index in self.entity2int.items()}
+        self.embedding = {
+            entity: self.model.wv[str(index)]
+            for entity, index in self.entity2int.items()
+        }
 
         return self.embedding
-    
+
     def save_embedding(self, file_name):
         """
         :param file_name: name of file_name
         """
-        self.model.wv.save_word2vec_format('{}.w2v'.format(file_name))
-        with open('{}_mapper.json',format(file_name), 'w') as fp:
+        self.model.wv.save_word2vec_format("{}.w2v".format(file_name))
+        with open("{}_mapper.json", format(file_name), "w") as fp:
             json.dump(self.entity2int, fp)
-            
-        
+
+
 # utility function for convert the type
 def to_csr_adjacency_matrix(net):
     if sparse.issparse(net):
@@ -162,14 +170,11 @@ def to_csr_adjacency_matrix(net):
         return nx.adjacency_matrix(net)
     elif "numpy.ndarray" == type(net):
         return sparse.csr_matrix(net)
-        
+
+
 # fast simulate walk
 def simulate_walk(
-    A,
-    num_walk,
-    walk_length,
-    start_node_ids,
-    workers=1,
+    A, num_walk, walk_length, start_node_ids, workers=1,
 ):
     """
     Simulate PageRank random walk on the given network.
@@ -206,42 +211,29 @@ def simulate_walk(
     # Compute the transition probability priori
     num_nodes = A.shape[0]
     A_data = _calc_cumulative_trans_prob(A_indptr, A_data, num_nodes)
-    
+
     if start_node_ids is None:
         start_node_ids = np.arange(num_nodes)
-        
+
     # Parallelize the process
     if workers == 1:
         trajectories = [
-            _csr_walk(
-                A_indptr,
-                A_indices,
-                A_data,
-                start_node_ids,
-                walk_length,
-            )
+            _csr_walk(A_indptr, A_indices, A_data, start_node_ids, walk_length,)
             for i in range(num_walk)
         ]
     else:
         trajectories = Parallel(n_jobs=workers)(
             delayed(_csr_walk)(
-                A_indptr,
-                A_indices,
-                A_data,
-                start_node_ids,
-                walk_length,
+                A_indptr, A_indices, A_data, start_node_ids, walk_length,
             )
             for i in range(num_walk)
         )
     return np.vstack(trajectories)
 
+
 @numba.jit(nopython=True, cache=True)
 def _csr_walk(
-    A_indptr,
-    A_indices,
-    A_data,
-    start_node_ids,
-    walk_length,
+    A_indptr, A_indices, A_data, start_node_ids, walk_length,
 ):
     """
     Simulate random walk on the given network.
@@ -302,7 +294,7 @@ def _csr_walk(
             outdeg = A_indptr[visit + 1] - A_indptr[visit]
 
             # If reaches to an absorbing state, finish the walk
-            if (outdeg == 0):
+            if outdeg == 0:
                 break
             else:
                 # find a neighbor
@@ -359,7 +351,8 @@ def _calc_cumulative_trans_prob(A_indptr, A_data, num_nodes):
         ) / np.maximum(outdeg, 1e-8)
 
     return A_data
-    
+
+
 # This function uses the following subroutines:
 # - _construct_node2vec_supra_net_edge_pairs
 def construct_line_net_adj(A, p=1, q=1, add_source_node=True):
@@ -426,7 +419,7 @@ def construct_line_net_adj(A, p=1, q=1, add_source_node=True):
 
 
 def sem_axis(emb, positive_entities, negative_entities):
-    '''
+    """
     SemAxis Code
     Paper: https://arxiv.org/abs/1806.05521
     SemAxis is a technique that leverages the latent semantic characteristics of word embeddings to represent 
@@ -437,11 +430,13 @@ def sem_axis(emb, positive_entities, negative_entities):
     2. calculate the semantic axis can be calculated as V_{axis} = V+ - V-, and project another instance into this semantic axis with measuring cosine similarity to the semantic axis.
     
     Higher scores mean that organization w is more closely aligned to S+ than S− .
-    '''
+    """
     mean_positivie_vec = np.array([emb[entity] for entity in positive_entities])
     mean_negative_vec = np.array([emb[entity] for entity in negative_entities])
-    
+
     target_axis = mean_positivie_vec - mean_negative_vec
-    sem_axis_result_dict = {k: 1 - spatial.distance.cosine(target_axis, v) for k,v in emb.items()}
-    
+    sem_axis_result_dict = {
+        k: 1 - spatial.distance.cosine(target_axis, v) for k, v in emb.items()
+    }
+
     return sem_axis_result_dict
