@@ -31,14 +31,17 @@ except ImportError:
     
 
 
-
-    
-# Node2Vec instaces    
 class Node2Vec(object):
     """
     Node2Vec node embedding object
+    Paper: https://snap.stanford.edu/node2vec/
     This code is originated from https://github.com/yy/residual-node2vec written by Sadamori Kojaku,
-    and modified for own puprpose.
+    and modified for its own purpose.
+    
+    Node2vec works as follows.
+    1. Given the network, it generates random walkers on the network.
+    2. Random walkers start from each node and travel around the network until the length of the random-walker reaches walk_length. (Total num_walks * walk_length)
+    3. Get the embedding of each node with passing these sentences into Gensim Word2vec package (SGNS model).
     """
 
     def __init__(
@@ -422,10 +425,19 @@ def construct_line_net_adj(A, p=1, q=1, add_source_node=True):
     return Aspra, src_trg_pairs
 
 
-# sim_axis_code
-# For the detail, please read Sem_aixs paper, https://arxiv.org/abs/1806.05521. <br>
-
 def sem_axis(emb, positive_entities, negative_entities):
+    '''
+    SemAxis Code
+    Paper: https://arxiv.org/abs/1806.05521
+    SemAxis is a technique that leverages the latent semantic characteristics of word embeddings to represent 
+    The position of terms along a conceptual axis, reﬂecting the relationship of these terms to the concept.
+    
+    Semaxis works as follows.
+    1. Given the set of positive instances, S+, and set of negative instances S-, calculate the average vector of each set (V+, V-).
+    2. calculate the semantic axis can be calculated as V_{axis} = V+ - V-, and project another instance into this semantic axis with measuring cosine similarity to the semantic axis.
+    
+    Higher scores mean that organization w is more closely aligned to S+ than S− .
+    '''
     mean_positivie_vec = np.array([emb[entity] for entity in positive_entities])
     mean_negative_vec = np.array([emb[entity] for entity in negative_entities])
     
