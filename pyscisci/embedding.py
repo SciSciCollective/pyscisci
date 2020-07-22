@@ -8,7 +8,6 @@
 import sys
 import numpy as np
 from scipy import sparse
-import networkx as nx
 import json
 from joblib import Parallel, delayed
 from scipy import spatial
@@ -24,6 +23,11 @@ try:
     from gensim.models import Word2Vec
 except ImportError:
     raise ImportError('Please install gensim to take full advantage of fast embedding tools. \n pip install gensim')
+    
+try:    
+    import networkx as nx
+except ImportError:
+    raise ImportError('Please install networkx if you want to take an input as networkx object. \n pip install networkx')
     
 
 
