@@ -261,7 +261,7 @@ def compute_yearly_productivity_traj(df, colgroupby = 'AuthorId', colx='Year',co
     return df.groupby(colgroupby, sort=False).apply(_fit_piecewise_lineardf, args=(colx,coly) ).reset_index().rename(columns = newname_dict)
 
 ### Disruption
-def compute_disruption_index(pub2ref, show_progress=False):
+def compute_disruption_index(pub2ref, focus_pubs = None, show_progress=False):
     """
     Funk, Owen-Smith (2017) A Dynamic Network Measure of Technological Change *Management Science* **63**(3),791-817
     Wu, Wang, Evans (2019) Large teams develop and small teams disrupt science and technology *Nature* **566**, 378–382
@@ -269,6 +269,9 @@ def compute_disruption_index(pub2ref, show_progress=False):
     """
     if show_progress:
         print("Starting computation of disruption index.")
+
+    if focus_pubs is None:
+        focus_pubs = pub2ref['CitedPublicationId'].unique()
 
     reference_groups = pub2ref.groupby('CitingPublicationId', sort = False)['CitedPublicationId']
     citation_groups = pub2ref.groupby('CitedPublicationId', sort = False)['CitingPublicationId']
@@ -303,10 +306,14 @@ def compute_disruption_index(pub2ref, show_progress=False):
         return (ni - nj)/(ni + nj + nk)
 
     # register our pandas apply with tqdm for a progress bar
-    tqdm.pandas(desc='Disruption Index', disable= not show_progress)
+    #tqdm.pandas()
 
-    newname_dict = {'CitingPublicationId':'DisruptionIndex', 'CitedPublicationId':'PublicationId'}
-    return citation_groups.progress_apply(disruption_index).to_frame().reset_index().rename(columns = newname_dict)
+    #newname_dict = {'CitingPublicationId':'DisruptionIndex', 'CitedPublicationId':'PublicationId'}
+    disrupt_df = [[focusciting, disruption_index(citation_groups.get_group(focusciting))] for focusciting 
+    in tqdm(focus_pubs, leave=True, desc='Disruption Index', disable= not show_progress)]
+
+    return pd.DataFrame(disrupt_df, columns = ['PublicationId', 'DisruptionIndex'])
+    #return citation_groups.progress_apply(disruption_index).to_frame().reset_index().rename(columns = newname_dict)
 
 
 def compute_raostriling_interdisciplinarity(pub2ref_df, pub2field_df, focus_pub_ids=None, pub2field_norm=True, temporal=False,
