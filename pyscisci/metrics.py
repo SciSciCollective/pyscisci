@@ -310,7 +310,7 @@ def compute_disruption_index(pub2ref, focus_pubs = None, show_progress=False):
 
     #newname_dict = {'CitingPublicationId':'DisruptionIndex', 'CitedPublicationId':'PublicationId'}
     disrupt_df = [[focusciting, disruption_index(citation_groups.get_group(focusciting))] for focusciting 
-    in tqdm(focus_pubs, leave=True, desc='Disruption Index', disable= not show_progress)]
+        in tqdm(focus_pubs, leave=True, desc='Disruption Index', disable= not show_progress) if focusciting in citation_groups.groups]
 
     return pd.DataFrame(disrupt_df, columns = ['PublicationId', 'DisruptionIndex'])
     #return citation_groups.progress_apply(disruption_index).to_frame().reset_index().rename(columns = newname_dict)
