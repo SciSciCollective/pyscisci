@@ -245,7 +245,8 @@ def pub_credit_share(focus_pid, pub2ref_df, pub2author_df, temporal=False, norme
 
     elif focus_authors.shape[0] == 1:
         if temporal:
-            return np.array([1.0]), author2int, years
+            years = np.sort(pub2ref_df.loc[pub2ref_df['CitedPublicationId'] == focusid]['CitingYear'].unique())
+            return np.ones(shape=(1,years.shape[0]), dype=float), author2int, years
         else:
             return np.array([1.0]), author2int
 
