@@ -238,16 +238,16 @@ def pub_credit_share(focus_pid, pub2ref_df, pub2author_df, temporal=False, norme
             else:
                 return credit_share, author2int
         else:
-        	if temporal:
-            	return np.array([None for a in author2int]), author2int, years
+            if temporal:
+                return np.array([None for a in author2int]), author2int, years
             else:
-            	return np.array([None for a in author2int]), author2int
+                return np.array([None for a in author2int]), author2int
 
     elif focus_authors.shape[0] == 1:
-    	if temporal:
-    		return np.array([1.0]), author2int, years
-    	else:
-        	return np.array([1.0]), author2int
+        if temporal:
+            return np.array([1.0]), author2int, years
+        else:
+            return np.array([1.0]), author2int
 
 ### Productivity Trajectory
 
