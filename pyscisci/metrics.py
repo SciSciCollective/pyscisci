@@ -312,7 +312,7 @@ def compute_disruption_index(pub2ref, focus_pubs = None, show_progress=False):
 
         ni = citing_focus.shape[0] - nj
 
-        return (ni - nj)/(ni + nj + nk)
+        return float(ni - nj)/(ni + nj + nk)
 
     # register our pandas apply with tqdm for a progress bar
     #tqdm.pandas()
