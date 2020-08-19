@@ -294,6 +294,9 @@ def compute_disruption_index(pub2ref, focus_pubs = None, show_progress=False):
     def disruption_index(citing_focus):
         focusid = citing_focus.name
 
+        print(focusid)
+        print(citing_focus)
+
         # if the focus publication has no references, then it has a disruption of None
         try:
             focusref = reference_groups.get_group(focusid)
@@ -311,6 +314,9 @@ def compute_disruption_index(pub2ref, focus_pubs = None, show_progress=False):
         nk = len(cite2ref) - nj
 
         ni = citing_focus.shape[0] - nj
+
+        print(ni, nj, nk)
+        asdgasdg
 
         return float(ni - nj)/(ni + nj + nk)
 
