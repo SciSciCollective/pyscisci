@@ -291,17 +291,19 @@ def compute_disruption_index(pub2ref, focus_pubs = None, show_progress=False):
         except KeyError:
             return np.array([])
 
-    def disruption_index(citing_focus):
-        focusid = citing_focus.name
+    def disruption_index(focusid):
 
-        print(focusid)
-        print(citing_focus)
-
-        # if the focus publication has no references, then it has a disruption of None
+        # if the focus publication has no references or citations, then it has a disruption of None
         try:
             focusref = reference_groups.get_group(focusid)
         except KeyError:
             return None
+
+        try:
+            citing_focus = citation_groups.get_group(focusid)
+        except KeyError:
+            return None
+
 
         # implementation 1: keep it numpy
         #cite2ref = reduce(np.union1d, [get_citation_groups(refid) for refid in focusref])
@@ -315,20 +317,12 @@ def compute_disruption_index(pub2ref, focus_pubs = None, show_progress=False):
 
         ni = citing_focus.shape[0] - nj
 
-        print(ni, nj, nk)
-        asdgasdg
-
         return float(ni - nj)/(ni + nj + nk)
 
-    # register our pandas apply with tqdm for a progress bar
-    #tqdm.pandas()
-
-    #newname_dict = {'CitingPublicationId':'DisruptionIndex', 'CitedPublicationId':'PublicationId'}
-    disrupt_df = [[focusciting, disruption_index(citation_groups.get_group(focusciting))] for focusciting 
+    disrupt_df = [[focusciting, disruption_index(focusciting)] for focusciting 
         in tqdm(focus_pubs, leave=True, desc='Disruption Index', disable= not show_progress) if get_citation_groups(focusciting).shape[0] > 0]
 
     return pd.DataFrame(disrupt_df, columns = ['PublicationId', 'DisruptionIndex'])
-    #return citation_groups.progress_apply(disruption_index).to_frame().reset_index().rename(columns = newname_dict)
 
 
 def compute_raostriling_interdisciplinarity(pub2ref_df, pub2field_df, focus_pub_ids=None, pub2field_norm=True, temporal=False,
