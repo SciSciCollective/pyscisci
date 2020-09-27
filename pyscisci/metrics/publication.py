@@ -63,74 +63,6 @@ def compute_citation_rank(df, colgroupby='Year', colrankby='C10', ascending=True
     return df
 
 
-## Q-factor
-def qfactor(show_progress=False):
-    """
-    This function calculates the Q-factor for an author.  See [q] for details.
-
-    References
-    ----------
-    .. [q] Sinatra (2016): "title", *Science*.
-           DOI: xxx
-    """
-
-    # register our pandas apply with tqdm for a progress bar
-    tqdm.pandas(desc='Q-factor', disable= not show_progress)
-
-    # TODO: implement
-    return False
-
-
-### H index
-
-def author_hindex(a):
-    """
-    Calculate the h index for the array of citation values.  See :cite:`hirsch2005index` for the definition.
-
-    Parameters
-    ----------
-    :param a : numpy array
-        An array of citation counts for each publication by the Author.
-
-    Returns
-    -------
-    int
-        The Hindex
-
-    """
-    d = np.sort(a)[::-1] - np.arange(a.shape[0])
-    return (d>0).sum()
-
-def compute_hindex(df, colgroupby, colcountby, show_progress=False):
-    """
-    Calculate the h index for each group in the DataFrame.  See :cite:`hirsch2005index` for the definition.
-
-    The algorithmic implementation for each author can be found in :py:func:`citationanalysis.author_hindex`.
-
-    Parameters
-    ----------
-    :param df : DataFrame
-        A DataFrame with the citation information for each Author.
-
-    :param colgroupby : str
-        The DataFrame column with Author Ids.
-
-    :param colcountby : str
-        The DataFrame column with Citation counts for each publication.
-
-    Returns
-    -------
-    DataFrame
-        DataFrame with 2 columns: colgroupby, 'Hindex'
-
-        """
-    # register our pandas apply with tqdm for a progress bar
-    tqdm.pandas(desc='Hindex', disable= not show_progress)
-
-    newname_dict = zip2dict([str(colcountby), '0'], [str(colgroupby)+'Hindex']*2)
-    return df.groupby(colgroupby, sort=False)[colcountby].progress_apply(author_hindex).to_frame().reset_index().rename(columns=newname_dict)
-
-
 def pub_credit_share(focus_pid, pub2ref_df, pub2author_df, temporal=False, normed=False, show_progress=False):
     """
     Calculate the credit share for each author of a publication.
@@ -213,8 +145,8 @@ def pub_credit_share(focus_pid, pub2ref_df, pub2author_df, temporal=False, norme
                 cocite_counts = np.zeros((years.shape[0], cocited_pubs.shape[0]), dtype=float)
 
                 for iy, y in enumerate(years):
-                    cocite_counts[iy] = adj_mat[y].tocsr()[cited2int[focus_pid]].todense()
-                    cocite_counts[iy, cited2int[focus_pid]] = focus_citations[y]
+                    cocite_counts[iy] = adj_mat[y].tocsr()[cited2int[focus_pid]].todense()#set the off-diagonal to be the total co-citations from that year
+                    cocite_counts[iy, cited2int[focus_pid]] = focus_citations[y]          #set the diagonal to be the total citations from that year
 
                 cocite_counts = cocite_counts.cumsum(axis=0)
 
@@ -251,23 +183,6 @@ def pub_credit_share(focus_pid, pub2ref_df, pub2author_df, temporal=False, norme
         else:
             return np.array([1.0]), author2int
 
-### Productivity Trajectory
-
-def _fit_piecewise_lineardf(author_df, args):
-    return fit_piecewise_linear(author_df[args[0]].values, author_df[args[1]].values)
-
-def compute_yearly_productivity_traj(df, colgroupby = 'AuthorId', colx='Year',coly='YearlyProductivity'):
-    """
-    This function calculates the piecewise linear yearly productivity trajectory original studied in [w].
-
-    References
-    ----------
-    .. [w] Way, Larremore (2018): "title", *PNAS*.
-           DOI: xxx
-    """
-
-    newname_dict = zip2dict(list(range(4)), ['t_break', 'b', 'm1', 'm2' ]) #[str(i) for i in range(4)]
-    return df.groupby(colgroupby, sort=False).apply(_fit_piecewise_lineardf, args=(colx,coly) ).reset_index().rename(columns = newname_dict)
 
 ### Disruption
 def compute_disruption_index(pub2ref, focus_pubs = None, show_progress=False):
@@ -389,10 +304,10 @@ def compute_raostriling_interdisciplinarity(pub2ref_df, pub2field_df, focus_pub_
         Nyears = years.shape[0]
 
     # check that the precomputed distance matrix is the correct size
-    if not precomputed_distance_matrix is None:
-        if not temporal and precomputed_distance_matrix != (Nfields, Nfields):
+    if not distance_matrix is None:
+        if not temporal and distance_matrix != (Nfields, Nfields):
             raise pySciSciMetricError('The precomputed_distance_matrix is of the wrong size to compute the RaoStirling interdisciplinarity for the publications passed.')
-        elif temporal and precomputed_distance_matrix != (Nyears, Nfields, Nfields):
+        elif temporal and distance_matrix != (Nyears, Nfields, Nfields):
             raise pySciSciMetricError('The precomputed_distance_matrix is of the wrong size to compute the RaoStirling interdisciplinarity for the publications and years passed.')
 
     # the assignment of a publication to a field is 1/(number of fields) when normalized, and 1 otherwise
@@ -490,7 +405,7 @@ def compute_raostriling_interdisciplinarity(pub2ref_df, pub2field_df, focus_pub_
 
         rsdf = pd.concat(rsdf)
 
-        return rsdf, precomputed_distance_matrix, field2int, years
+        return rsdf, distance_matrix, field2int, years
 
     else:
 

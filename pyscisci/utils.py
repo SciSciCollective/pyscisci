@@ -278,7 +278,9 @@ def jenson_shannon(p,q):
 
 def rank_array(a, ascending=True, normed=False):
     """
-    Rank elements in the array.
+    Rank elements in the array.  
+    ascending=> lowest=0, highest=1
+    descending=> lowest=1, highest=0
 
     Parameters
     ----------

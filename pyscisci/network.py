@@ -21,6 +21,25 @@ if 'ipykernel' in sys.modules:
 else:
     from tqdm import tqdm
 
+def threshold_network(adj_mat, threshold=0):
+    """
+
+    """
+    if adj_mat.getformat() != 'coo':
+        adj_mat = spsparse.coo_matrix(adj_mat)
+
+    adj_mat.data[adj_mat.data <=threshold] = 0
+    adj_mat.eliminate_zeros()
+
+    return adj_mat
+
+def largest_connected_component_vertices(adj_mat):
+    """
+    """
+    n_components, labels = spsparse.csgraph.connected_components(adj_mat)
+    comidx, compsizes = np.unique(labels, return_counts=True)
+    
+    return np.arange(adj_mat.shape[0])[labels==np.argmax(compsizes)]
 
 def coauthorship_network(paa_df, focus_author_ids=None, focus_constraint='authors', temporal=False, show_progress=False):
     """
@@ -334,16 +353,80 @@ def cocitation_network(pub2ref_df, focus_pub_ids=None, focus_constraint='citing'
     else:
         return spsparse.coo_matrix(), {}
 
-def cocited_edgedict(refdf):
+def cociting_network(pub2ref_df, focus_pub_ids=None, focus_constraint='citing', temporal=False, show_progress=False):
+    """
+    Create the co-citing network.  Each node is a publication, two publications are linked if they cite the same article.
 
-    cocite_dict = defaultdict(int)
-    def count_cocite(refseries):
-        for i, j in combinations(np.sort(refseries.values), 2):
-            cocite_dict[(i, j)] += 1
+    Parameters
+    ----------
+    :param pub2ref_df : DataFrame
+        A DataFrame with the links between authors and publications.
 
-    refdf.groupby('CitingPublicationId', sort=False)['CitedPublicationId'].apply(count_cocite)
+    :param focus_pub_ids : numpy array or list, default None
+        A list of the PublicationIds to seed the cocitation-network.
 
-    return cocite_dict
+    :param focus_constraint : str, default `citing`
+        If focus_author_ids is not None:
+            `citing` : the `focus_pub_ids' defines the citation set, giving only the co-citations between the references
+                of the publications from this set.
+            `cited` : the `focus_pub_ids' defines the cocitation node set.
+            
+    :param show_progress : bool, default False
+        If True, show a progress bar tracking the calculation.
+
+
+    Returns
+    -------
+    coo_matrix or dict of coo_matrix
+        The adjacency matrix for the co-citing network
+
+    pub2int, dict
+        A mapping of PublicationIds to the row/column of the adjacency matrix.
+
+    """
+    required_columns = ['CitedPublicationId', 'CitingPublicationId']
+    check4columns(pub2ref_df, required_columns)
+    pub2ref_df = pub2ref_df[required_columns].dropna()
+
+    if not focus_pub_ids is None:
+        focus_pub_ids = np.sort(focus_pub_ids)
+
+        # identify the subset of the publications we need to form the network
+        if focus_constraint == 'citing':
+            # take only the links that have a citing publication from the `focus_pub_ids'
+            pub2ref_df = pub2ref_df.loc[isin_sorted(pub2ref_df['CitingPublicationId'].values, focus_pub_ids)]
+
+        elif focus_constraint == 'cited':
+            # take only the links that have a cited publication from the `focus_pub_ids'
+            pub2ref_df = pub2ref_df.loc[isin_sorted(pub2ref_df['CitedPublicationId'].values, focus_pub_ids)]
+
+    pub2ref_df.drop_duplicates(subset=['CitingPublicationId', 'CitedPublicationId'], inplace=True)
+
+    if pub2ref_df.shape[0] > 0:
+        #  map cited publications to the rows of the bipartite adj mat
+        cited2int = {pid:i for i, pid in enumerate(np.sort(pub2ref_df['CitedPublicationId'].unique()))}
+        Ncited = pub2ref_df['CitedPublicationId'].nunique()
+
+        pub2ref_df['CitedPublicationId'] = [cited2int[pid] for pid in pub2ref_df['CitedPublicationId'].values]
+
+        #  map citing publications to the columns of the bipartite adj mat
+        citing2int = {pid:i for i, pid in enumerate(np.sort(pub2ref_df['CitingPublicationId'].unique()))}
+        Nciting = pub2ref_df['CitingPublicationId'].nunique()
+
+        pub2ref_df['CitingPublicationId'] = [citing2int[pid] for pid in pub2ref_df['CitingPublicationId'].values]
+
+        bipartite_adj = dataframe2bipartite(pub2ref_df, 'CitedPublicationId', 'CitingPublicationId', (Ncited, Nciting) )
+
+        adj_mat = project_bipartite_mat(bipartite_adj, project_to = 'col')
+
+        # remove diagonal entries
+        adj_mat.setdiag(0)
+        adj_mat.eliminate_zeros()
+
+        return adj_mat, cited2int
+
+    else:
+        return spsparse.coo_matrix(), {}
 
 def temporal_cocited_edgedict(pub2ref, pub2year):
 

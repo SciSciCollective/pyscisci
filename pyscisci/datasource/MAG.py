@@ -24,6 +24,9 @@ class MAG(BibDataBase):
     """
     Base class for Microsoft Academic Graph interface.
 
+    This is an extension of 'BibDataBase' with processing functions specific to the MAG.  
+    See 'BibDataBase' in database.py for details of non-MAG specific functions.
+
     The MAG comes structured into three folders: mag, advanced, nlp.
     Explain downloading etc.
 

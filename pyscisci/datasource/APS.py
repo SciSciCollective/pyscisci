@@ -47,6 +47,8 @@ class APS(BibDataBase):
         self._pub2field_df=None
         self._fieldinfo_df=None
 
+        if os.path.exists(os.path.join(path2database, 'publication', 'publication0.hdf')):
+            pd.read_hdf(os.path.join(path2database, 'publication', 'publication0.hdf'))['PublicationId'].dtype
         self.PublicationIdType = str
         self.AffiliationIdType = str
         self.AuthorIdType = None

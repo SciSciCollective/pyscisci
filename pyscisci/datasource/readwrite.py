@@ -33,6 +33,13 @@ def load_html_str(s):
     else:
         return unidecode(HTMLParser().unescape(s))
 
+def load_xml_text(root_element, default=''):
+    if len(root_element) == 0:
+        return default
+    else:
+        return root_element[0].text
+
+
 def load_preprocessed_data(dataname, path2database, columns = None, isindict=None, duplicate_subset=None,
     duplicate_keep='last', dropna=None, keep_source_file=False, prefunc2apply=None, postfunc2apply=None, show_progress=False):
     """
