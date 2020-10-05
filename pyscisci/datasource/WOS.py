@@ -93,7 +93,7 @@ class WOS(BibDataBase):
         record['Country'] = ''
         return record
 
-    def _save_dataframes(self, ifile, publication_df, author_df, author_columns, paa_df):
+    def _save_dataframes(self, ifile, publication_df, author_df, author_columns, paa_df, pub2ref_df):
 
         publication_df = pd.DataFrame(publication_df)
         publication_df['PublicationId'] = publication_df['PublicationId']
@@ -109,6 +109,9 @@ class WOS(BibDataBase):
 
         paa_df = pd.DataFrame(paa_df, columns = ['PublicationId', 'AuthorId', 'AuthorSequence', 'OrigAuthorName'])
         paa_df.to_hdf( os.path.join(self.path2database,'publicationauthoraffiliation', 'publicationauthoraffiliation{}.hdf'.format(ifile)), key = 'pa', mode='w')
+
+        pub2ref_df = pd.DataFrame(pub2ref_df, columns = ['CitingPublicationId', 'CitedPubliationId'])
+        pub2ref_df.to_hdf(os.path.join(self.path2database,'pub2ref', 'pub2ref{}.hdf'.format(ifile)), key = 'pub2ref', mode='w')
 
     def preprocess(self, xml_directory = 'RawXML', name_space = 'http://scientific.thomsonreuters.com/schema/wok5.4/public/FullRecord', 
         process_name=True, num_file_lines=10**6, show_progress=True):
@@ -132,12 +135,8 @@ class WOS(BibDataBase):
 
         """
 
-        ACCEPT_DOCTYPES = set(['article', 'inproceedings', 'proceedings', 'book', 'incollection', 'phdthesis', 'mastersthesis'])
-        REJECT_DOCTYPES = set(['www'])
-        DATA_ITEMS = ['title', 'booktitle', 'year', 'journal', 'ee',' url', 'month', 'mdate', 'isbn', 'publisher']
-        SKIP_FIELDS = ['note', 'cite', 'cdrom', 'crossref', 'editor',  'series', 'tt', 'school', 'chapter', 'address']
-
-        html_format_keys = ['<sub>', '</sub>', '<sup>', '</sup>', '<i>', '</i>']
+        pub_column_names = ['PublicationId', 'Year', 'JournalId', 'Doi', 'ISSN', 'Title', 'Date', 'Volume', 'Issue', 'Pages', 'DocType']
+        author_column_names = ['AuthorId', 'FullName', 'FirstName', 'LastName']
 
         if show_progress:
             print("Starting to preprocess the WOS database.")
@@ -151,13 +150,18 @@ class WOS(BibDataBase):
         
         
 
-        aname2aid = {}
+        
         pub2year = {}
+
+        found_aids = set([])
+
+        found_affiliations = {}
 
 
         ns = {"ns": name_space}
         xmlfiles = sorted([fname for fname in os.listdir(os.path.join(self.path2database, xml_directory)) if '.xml' in fname])
 
+        ifile = 0
         for xml_file_name in tqdm(xmlfiles, desc='WOS xml files', leave=True, disable=not show_progress):
             
             publication_df = []
@@ -181,6 +185,7 @@ class WOS(BibDataBase):
 
             for event, elem in xmltree:
                 
+                # scrape the publication information
                 PublicationId = load_html_str(elem.xpath('./ns:UID', namespaces=ns)[0].text.replace('WOS:', ''))
                 
                 pub_record = self._blank_wos_publication(PublicationId)
@@ -208,7 +213,8 @@ class WOS(BibDataBase):
 
                 pub_record['DocType'] = load_html_str(load_xml_text(elem.xpath('./ns:static_data/ns:summary/ns:doctypes/ns:doctype', namespaces=ns)))
 
-                
+
+                # now scrape the authors
                 pub_authors = {}
                 author_objects = elem.xpath('./ns:static_data/ns:summary/ns:names/ns:name[@role="author"]', namespaces=ns)
                 pub_record['TeamSize'] = len(author_objects)
@@ -221,8 +227,8 @@ class WOS(BibDataBase):
                     author_record['FirstName'] = load_html_str(load_xml_text(author_obj.xpath('./ns:first_name', namespaces=ns)))
                     author_record['LastName'] = load_html_str(load_xml_text(author_obj.xpath('./ns:last_name', namespaces=ns)))
 
-                    author_record['AffiliationOrder'] = author_obj.get('addr_no', '')
-                    author_record['AffiliationOrder'] = [int(single_addr_no) for single_addr_no in author_record['AffiliationOrder'].split(' ') if len(single_addr_no) > 0]
+                    author_record['Affiliations'] = author_obj.get('addr_no', '')
+                    author_record['Affiliations'] = [int(single_addr_no) for single_addr_no in author_record['Affiliations'].split(' ') if len(single_addr_no) > 0]
                     
                     author_record['AuthorOrder'] = int(author_obj.get('seq_no', None))
 
@@ -238,6 +244,9 @@ class WOS(BibDataBase):
                     organization_objects = addr_obj.xpath('./ns:organizations/ns:organization[@pref="Y"]', namespaces=ns)
 
                     address_no = int(addr_obj.get('addr_no'))
+
+                    if found_affiliations
+
                     article['addresses'][address_no] = address_info
 
 
@@ -250,35 +259,20 @@ class WOS(BibDataBase):
                         elif ref_elem.tag == "{{{0}}}year".format(name_space):
                             pub2year[refid] = load_int(ref_elem.text)
 
-                print(pub_record)
-                print(pub2ref_df)
-                print(pub2year)
-                asdgasdg
+                publication_df.append([pub_record[k] for k in pub_column_names])
+                
+                for author_record in pub_authors:
+                    if not author_record['AuthorId'] is None:
+                        found_aids.add(author_record['AuthorId'])
+                        author_df.append([author_record[k] for k in author_column_names])
+                
+
+                paa_df.append([pub_record[k] for k in publication_columns])
 
                 
-    """
-                elif elemtag == 'name' and elem.get('role', '') == 'author':
+            self._save_dataframes(ifile, publication_df, author_df, paa_df, pub2ref_df)
+            ifile += 1
 
-                    AuthorCount += 1
-                    fullname = load_html_str(elem.text)
-                    
-                elif elemtag == 'REC':
-                    print(pub_record)
-                    pub_record['TeamSize'] = AuthorCount
+        with gzip.open(os.path.join(self.path2database, 'pub2year.json.gz'), 'w') as outfile:
+            outfile.write(json.dumps(pub2year).encode('utf8'))
 
-                    # reset everything
-                    publication_df.append(pub_record)
-                    author2pub_df.extend(pub_authors)
-                    PublicationId += 1
-                    pub_record = self._blank_dblp_publication(PublicationId)
-                    AuthorCount = 0
-                    pub_authors = []
-
-                #pub_record['TeamSize'] = load_html_int(elem.get('count'))
-
-
-                last_position += 1
-                if last_position==100:
-                    print(pub_record)
-                    asdjlgaklsgjoia """
-        
