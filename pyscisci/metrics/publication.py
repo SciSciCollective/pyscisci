@@ -25,7 +25,7 @@ else:
 from pyscisci.utils import isin_sorted, zip2dict, check4columns, fit_piecewise_linear, groupby_count, groupby_range, rank_array
 from pyscisci.network import dataframe2bipartite, project_bipartite_mat, cocitation_network
 
-def compute_citation_rank(df, colgroupby='Year', colrankby='C10', ascending=True, normed=False, show_progress=False):
+def citation_rank(df, colgroupby='Year', colrankby='C10', ascending=True, normed=False, show_progress=False):
     """
     Rank elements in the array from 0 (smallest) to N -1 (largest)
 
@@ -63,7 +63,7 @@ def compute_citation_rank(df, colgroupby='Year', colrankby='C10', ascending=True
     return df
 
 
-def pub_credit_share(focus_pid, pub2ref_df, pub2author_df, temporal=False, normed=False, show_progress=False):
+def credit_share(focus_pid, pub2ref_df, pub2author_df, temporal=False, normed=False, show_progress=False):
     """
     Calculate the credit share for each author of a publication.
 
@@ -185,7 +185,7 @@ def pub_credit_share(focus_pid, pub2ref_df, pub2author_df, temporal=False, norme
 
 
 ### Disruption
-def compute_disruption_index(pub2ref, focus_pubs = None, show_progress=False):
+def disruption_index(pub2ref, focus_pubs = None, show_progress=False):
     """
     Funk, Owen-Smith (2017) A Dynamic Network Measure of Technological Change *Management Science* **63**(3),791-817
     Wu, Wang, Evans (2019) Large teams develop and small teams disrupt science and technology *Nature* **566**, 378–382
@@ -234,13 +234,13 @@ def compute_disruption_index(pub2ref, focus_pubs = None, show_progress=False):
 
         return float(ni - nj)/(ni + nj + nk)
 
-    disrupt_df = [[focusciting, disruption_index(focusciting)] for focusciting 
+    disrupt_df = [[focusciting, disruption_index(focusciting)] for focusciting
         in tqdm(focus_pubs, leave=True, desc='Disruption Index', disable= not show_progress) if get_citation_groups(focusciting).shape[0] > 0]
 
     return pd.DataFrame(disrupt_df, columns = ['PublicationId', 'DisruptionIndex'])
 
 
-def compute_raostriling_interdisciplinarity(pub2ref_df, pub2field_df, focus_pub_ids=None, pub2field_norm=True, temporal=False,
+def raostriling_interdisciplinarity(pub2ref_df, pub2field_df, focus_pub_ids=None, pub2field_norm=True, temporal=False,
     citation_direction='references', field_distance_metric='cosine', distance_matrix=None, show_progress=False):
     """
     Calculate the RaoStirling index as a measure of a publication's interdisciplinarity.
@@ -433,8 +433,8 @@ def compute_raostriling_interdisciplinarity(pub2ref_df, pub2field_df, focus_pub_
 
 ### Novelty
 
-def compute_novelty(pubdf, pub2ref_df, focuspubids=None, n_samples = 10, path2randomizednetworks=None, show_progress=False):
-    
+def novelty_conventionality(pubdf, pub2ref_df, focuspubids=None, n_samples = 10, path2randomizednetworks=None, show_progress=False):
+
     """
     This function calculates the novelty and conventionality for publications.
     References
@@ -488,14 +488,14 @@ def compute_novelty(pubdf, pub2ref_df, focuspubids=None, n_samples = 10, path2ra
         yjournal_cite = journalcitation_table.loc[journalcitation_table['CitingYear'] == y]
         yNpubs = yjournal_cite['PublicationId']
         bipartite_adj = dataframe2bipartite(journalcitation_table, 'CitedJournalInt', 'CitingPublicationId', (Njournals, Njournals) )
-        
+
         adj_mat = project_bipartite_mat(bipartite_adj, project_to = 'row')
 
         # remove diagonal entries
         adj_mat.setdiag(0)
         adj_mat.eliminate_zeros()
 
-        temporal_adj[y] = adj_mat 
+        temporal_adj[y] = adj_mat
 
 
     #observed_journal_bipartite = dataframe2bipartite(journalcitation_table, rowname='CitedJournalId', colname='', shape=None, weightname=None)

@@ -24,7 +24,7 @@ class MAG(BibDataBase):
     """
     Base class for Microsoft Academic Graph interface.
 
-    This is an extension of 'BibDataBase' with processing functions specific to the MAG.  
+    This is an extension of 'BibDataBase' with processing functions specific to the MAG.
     See 'BibDataBase' in database.py for details of non-MAG specific functions.
 
     The MAG comes structured into three folders: mag, advanced, nlp.
@@ -383,7 +383,7 @@ class MAG(BibDataBase):
 
         return pub2ref_df
 
-    def parse_publicationauthoraffiliation(self, preprocess = False, num_file_lines=10**7, show_progress=True):
+    def parse_publicationauthoraffiliation(self, preprocess = False, num_file_lines=5*10**6, show_progress=True):
         """
         Parse the MAG PublicationAuthorAffiliation raw data.
 

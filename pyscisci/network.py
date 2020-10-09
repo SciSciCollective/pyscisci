@@ -38,7 +38,7 @@ def largest_connected_component_vertices(adj_mat):
     """
     n_components, labels = spsparse.csgraph.connected_components(adj_mat)
     comidx, compsizes = np.unique(labels, return_counts=True)
-    
+
     return np.arange(adj_mat.shape[0])[labels==np.argmax(compsizes)]
 
 def coauthorship_network(paa_df, focus_author_ids=None, focus_constraint='authors', temporal=False, show_progress=False):
@@ -220,24 +220,24 @@ def extract_multiscale_backbone(Xs, alpha):
         The directed, weighted multiscale backbone
 
     """
-    
+
     X = spsparse.coo_matrix(Xs)
     X.eliminate_zeros()
-    
+
     #normalize
     row_sums = X.sum(axis = 1)
     degrees = X.getnnz(axis = 1)
-    
-    
+
+
     pijs = np.multiply(X.data, 1.0/np.array(row_sums[X.row]).squeeze())
     powers = degrees[X.row.squeeze()] - 1
 
     # equation 2 => where 1 - (k - 1) * integrate.quad(lambda x: (1 - x) ** (k - 2)) = (1-x)**(k - 1) if k  > 1
     significance = np.logical_and(pijs < 1, np.power(1.0 - pijs, powers) < alpha)
-    
+
     keep_graph = spsparse.coo_matrix((X.data[significance], (X.row[significance], X.col[significance])), shape = X.shape)
     keep_graph.eliminate_zeros()
-    
+
     return keep_graph
 
 
@@ -370,7 +370,7 @@ def cociting_network(pub2ref_df, focus_pub_ids=None, focus_constraint='citing', 
             `citing` : the `focus_pub_ids' defines the citation set, giving only the co-citations between the references
                 of the publications from this set.
             `cited` : the `focus_pub_ids' defines the cocitation node set.
-            
+
     :param show_progress : bool, default False
         If True, show a progress bar tracking the calculation.
 

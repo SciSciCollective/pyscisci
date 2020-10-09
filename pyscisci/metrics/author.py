@@ -62,7 +62,7 @@ def author_yearly_productivity(pub2author_df, colgroupby = 'AuthorId', datecol =
     Parameters
     ----------
     :param pub2author_df : DataFrame, default None, Optional
-        A DataFrame with the author2publication information. 
+        A DataFrame with the author2publication information.
 
     :param colgroupby : str, default 'AuthorId', Optional
         The DataFrame column with Author Ids.  If None then the database 'AuthorId' is used.
@@ -79,7 +79,7 @@ def author_yearly_productivity(pub2author_df, colgroupby = 'AuthorId', datecol =
         Productivity DataFrame with 3 columns: 'AuthorId', 'Year', 'YearlyProductivity'
 
     """
-    
+
     # we can use show_progress to pass a label for the progress bar
     if show_progress:
         show_progress='Yearly Productivity'
@@ -109,7 +109,7 @@ def author_career_length(pub2author_df = None, colgroupby = 'AuthorId', datecol 
         Productivity DataFrame with 2 columns: 'AuthorId', 'CareerLength'
 
     """
-   
+
     # we can use show_progress to pass a label for the progress bar
     if show_progress:
         show_progress='Career Length'
@@ -138,7 +138,7 @@ def author_startyear(pub2author_df = None, colgroupby = 'AuthorId', datecol = 'Y
         Productivity DataFrame with 2 columns: 'AuthorId', 'CareerLength'
 
     """
-   
+
     newname_dict = zip2dict([str(datecol), '0'], ['StartYear']*2)
     return pub2author_df.groupby(colgroupby)[datecol].min().to_frame().reset_index().rename(columns=newname_dict)
 
@@ -163,7 +163,7 @@ def author_endyear(pub2author_df = None, colgroupby = 'AuthorId', datecol = 'Yea
         Productivity DataFrame with 2 columns: 'AuthorId', 'CareerLength'
 
     """
-   
+
     newname_dict = zip2dict([str(datecol), '0'], ['EndYear']*2)
     return pub2author_df.groupby(colgroupby)[datecol].max().to_frame().reset_index().rename(columns=newname_dict)
 
@@ -177,7 +177,7 @@ def author_productivity_trajectory(pub2author_df, colgroupby = 'AuthorId', datec
     Parameters
     ----------
     :param pub2author_df : DataFrame, default None
-        A DataFrame with the author2publication information. 
+        A DataFrame with the author2publication information.
 
     :param colgroupby : str, default 'AuthorId'
         The DataFrame column with Author Ids.  If None then the database 'AuthorId' is used.
@@ -195,7 +195,7 @@ def author_productivity_trajectory(pub2author_df, colgroupby = 'AuthorId', datec
 
     """
 
-    return compute_yearly_productivity_traj(pub2author_df, colgroupby = colgroupby)
+    return yearly_productivity_traj(pub2author_df, colgroupby = colgroupby)
 
 def author_hindex(pub2author_df, impact_df, colgroupby = 'AuthorId', colcountby = 'Ctotal', show_progress=False):
     """
@@ -220,13 +220,13 @@ def author_hindex(pub2author_df, impact_df, colgroupby = 'AuthorId', colcountby 
         Trajectory DataFrame with 2 columns: 'AuthorId', 'Hindex'
 
     """
-    
-    #df = 
+
+    #df =
 
     if show_progress: print("Computing H-index.")
     return compute_hindex(pub2author_df.merge(impact_df[[colgroupby, colcountby]], on='PublicationId', how='left'),
-     colgroupby = colgroupby, 
-     colcountby = colcountby, 
+     colgroupby = colgroupby,
+     colcountby = colcountby,
      show_progress=show_progress)
 
 ## Q-factor
@@ -302,7 +302,7 @@ def compute_hindex(df, colgroupby, colcountby, show_progress=False):
 def _fit_piecewise_lineardf(author_df, args):
     return fit_piecewise_linear(author_df[args[0]].values, author_df[args[1]].values)
 
-def compute_yearly_productivity_traj(df, colgroupby = 'AuthorId', colx='Year',coly='YearlyProductivity'):
+def yearly_productivity_traj(df, colgroupby = 'AuthorId', colx='Year',coly='YearlyProductivity'):
     """
     This function calculates the piecewise linear yearly productivity trajectory original studied in [w].
 

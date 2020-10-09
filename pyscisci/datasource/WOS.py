@@ -113,7 +113,7 @@ class WOS(BibDataBase):
         pub2ref_df = pd.DataFrame(pub2ref_df, columns = ['CitingPublicationId', 'CitedPubliationId'])
         pub2ref_df.to_hdf(os.path.join(self.path2database,'pub2ref', 'pub2ref{}.hdf'.format(ifile)), key = 'pub2ref', mode='w')
 
-    def preprocess(self, xml_directory = 'RawXML', name_space = 'http://scientific.thomsonreuters.com/schema/wok5.4/public/FullRecord', 
+    def preprocess(self, xml_directory = 'RawXML', name_space = 'http://scientific.thomsonreuters.com/schema/wok5.4/public/FullRecord',
         process_name=True, num_file_lines=10**6, show_progress=True):
         """
         Bulk preprocess of the DBLP raw data.
@@ -147,10 +147,10 @@ class WOS(BibDataBase):
             if not os.path.exists(os.path.join(self.path2database, hier_dir_type)):
                 os.mkdir(os.path.join(self.path2database, hier_dir_type))
 
-        
-        
 
-        
+
+
+
         pub2year = {}
 
         found_aids = set([])
@@ -163,7 +163,7 @@ class WOS(BibDataBase):
 
         ifile = 0
         for xml_file_name in tqdm(xmlfiles, desc='WOS xml files', leave=True, disable=not show_progress):
-            
+
             publication_df = []
             author_df = []
             paa_df = []
@@ -184,15 +184,15 @@ class WOS(BibDataBase):
             last_position = 0
 
             for event, elem in xmltree:
-                
+
                 # scrape the publication information
                 PublicationId = load_html_str(elem.xpath('./ns:UID', namespaces=ns)[0].text.replace('WOS:', ''))
-                
+
                 pub_record = self._blank_wos_publication(PublicationId)
 
                 pub_record['Title'] = load_html_str(load_xml_text(elem.xpath('./ns:static_data/ns:summary/ns:titles/ns:title[@type="item"]', namespaces=ns)))
                 pub_record['JournalId'] = load_html_str(load_xml_text(elem.xpath('./ns:static_data/ns:summary/ns:titles/ns:title[@type="source"]', namespaces=ns)))
-                
+
                 pub_info = elem.xpath('./ns:static_data/ns:summary/ns:pub_info', namespaces=ns)[0]
                 pub_record['Year'] = load_int(pub_info.get('pubyear', ''))
                 pub_record['Date'] = load_html_str(pub_info.get('sortdate', ''))
@@ -202,13 +202,13 @@ class WOS(BibDataBase):
                 pub2year[PublicationId] = pub_record['Year']
 
                 pub_record['Pages'] = load_html_str(load_xml_text(elem.xpath('./ns:static_data/ns:summary/ns:pub_info/ns:page', namespaces=ns), default=''))
-                
+
                 for ident in ['ISSN', 'DOI']:
                     identobject = elem.xpath('./ns:dynamic_data/ns:cluster_related/ns:identifiers/ns:identifier[@type="{}"]'.format(ident.lower()), namespaces=ns)
                     if len(identobject) > 0:
                         pub_record[ident] =load_html_str( identobject[0].get('value', ''))
-                    
-                
+
+
                 #load_html_str(load_xml_text(elem.xpath('./ns:dynamic_data/ns:cluster_related/ns:identifiers/ns:identifier[@type="doi"]', namespaces=ns)))
 
                 pub_record['DocType'] = load_html_str(load_xml_text(elem.xpath('./ns:static_data/ns:summary/ns:doctypes/ns:doctype', namespaces=ns)))
@@ -229,12 +229,12 @@ class WOS(BibDataBase):
 
                     author_record['Affiliations'] = author_obj.get('addr_no', '')
                     author_record['Affiliations'] = [int(single_addr_no) for single_addr_no in author_record['Affiliations'].split(' ') if len(single_addr_no) > 0]
-                    
+
                     author_record['AuthorOrder'] = int(author_obj.get('seq_no', None))
 
                     pub_authors[author_record['AuthorOrder']] = author_record
-                    
-                    
+
+
                 #contributor_objects = elem.xpath('./ns:static_data/ns:contributors/ns:contributor/ns:name[@role="researcher_id"]', namespaces=ns)
 
                 address_objects = elem.xpath('./ns:static_data/ns:fullrecord_metadata/ns:addresses/ns:address_name/ns:address_spec', namespaces=ns)
@@ -245,9 +245,9 @@ class WOS(BibDataBase):
 
                     address_no = int(addr_obj.get('addr_no'))
 
-                    if found_affiliations
+                    #if found_affiliations
 
-                    article['addresses'][address_no] = address_info
+                    #article['addresses'][address_no] = address_info
 
 
                 reference_objects = elem.xpath('./ns:static_data/ns:fullrecord_metadata/ns:references/ns:reference', namespaces=ns)
@@ -260,16 +260,16 @@ class WOS(BibDataBase):
                             pub2year[refid] = load_int(ref_elem.text)
 
                 publication_df.append([pub_record[k] for k in pub_column_names])
-                
+
                 for author_record in pub_authors:
                     if not author_record['AuthorId'] is None:
                         found_aids.add(author_record['AuthorId'])
                         author_df.append([author_record[k] for k in author_column_names])
-                
+
 
                 paa_df.append([pub_record[k] for k in publication_columns])
 
-                
+
             self._save_dataframes(ifile, publication_df, author_df, paa_df, pub2ref_df)
             ifile += 1
 
