@@ -30,7 +30,7 @@ class WOS(BibDataBase):
 
         self.path2database = path2database
         self.keep_in_memory = keep_in_memory
-        self.global_filter = None
+        self.global_filter = global_filter
         self.show_progress = show_progress
 
         self._affiliation_df = None
