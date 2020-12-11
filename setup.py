@@ -31,7 +31,8 @@ setup(name=__package__,
             'lxml',
             'requests',
             'unidecode',
-            'tqdm'
+            'tqdm',
+            'tables'
       ],
       include_package_data=True,
       zip_safe=False

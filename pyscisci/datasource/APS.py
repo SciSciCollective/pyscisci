@@ -29,10 +29,11 @@ class APS(BibDataBase):
 
     """
 
-    def __init__(self, path2database = '', keep_in_memory = False, show_progress=True):
+    def __init__(self, path2database = '', keep_in_memory = False, global_filter=None, show_progress=True):
 
         self.path2database = path2database
         self.keep_in_memory = keep_in_memory
+        self.global_filter = global_filter
         self.show_progress = show_progress
 
         self._affiliation_df = None
@@ -206,13 +207,39 @@ class APS(BibDataBase):
 
                     authorseq += 1
 
+                classificationschemes = pubjson.get('classificationSchemes', {})
 
                 # now do the subject classifications
-                for subjectdict in pubjson.get('classificationSchemes', {}).get('pysh', {}).get('disciplines', []):
-                    pub2field_df.append([pubid, subjectdict.get('id', None)])
+                for subjectdict in classificationschemes.get('subjectAreas', []):
+                    fid = subjectdict.get('id', None)
 
-                    if field_dict.get(subjectdict.get('id', None), None) is None:
-                        field_dict[subjectdict.get('id', None)] = subjectdict.get('label', None)
+                    if not fid is None and len(fid) > 0:
+                        pub2field_df.append([pubid, fid])
+
+                        if field_dict.get(fid, None) is None:
+                            field_dict[fid] = [subjectdict.get('label', None), 'subjectAreas']
+
+                # now do the subject disciplines
+                for subjectdict in classificationschemes.get('physh', {}).get('disciplines', []):
+                    fid = subjectdict.get('id', None)
+
+                    if not fid is None and len(fid) > 0:
+                        pub2field_df.append([pubid, fid])
+
+                        if field_dict.get(fid, None) is None:
+                            field_dict[fid] = [subjectdict.get('label', None), 'disciplines']
+
+                # now do the subject concepts
+                for subjectdict in classificationschemes.get('physh', {}).get('concepts', []):
+                    fid = subjectdict.get('id', None)
+
+                    if not fid is None and len(fid) > 0:
+                        pub2field_df.append([pubid, fid])
+
+                        if field_dict.get(fid, None) is None:
+                            field_dict[fid] = [subjectdict.get('label', None), 'concepts']
+
+                    
 
                 # ToDo: parse concepts
 
@@ -236,7 +263,7 @@ class APS(BibDataBase):
             for intcol in pubintcol:
                 pub2field_df[intcol] = pub2field_df[intcol].astype(int)
 
-            field_df = pd.DataFrame([[fieldid, fieldname] for fieldid, fieldname in field_dict.items()], columns = ['FieldId', 'FullName'])
+            field_df = pd.DataFrame([[fieldid] + fieldname for fieldid, fieldname in field_dict.items()], columns = ['FieldId', 'FullName', 'ClassificationType'])
 
             if preprocess:
                 pub_df.to_hdf(os.path.join(self.path2database, 'publication', 'publication0.hdf'), mode='w', key='publication')

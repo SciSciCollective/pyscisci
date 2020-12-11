@@ -229,6 +229,64 @@ def author_hindex(pub2author_df, impact_df, colgroupby = 'AuthorId', colcountby 
      colcountby = colcountby,
      show_progress=show_progress)
 
+def author_top_field(pub2author_df, colgroupby = 'AuthorId', colcountby = 'FieldId', fractional_field_counts = False, show_progress=False):
+    """
+    Calculate the most frequent field in the authors career.
+
+    Parameters
+    ----------
+    :param pub2author_df : DataFrame
+        A DataFrame with the author2publication field information.
+
+    :param colgroupby : str, default 'AuthorId'
+        The DataFrame column with Author Ids.  If None then the database 'AuthorId' is used.
+
+    :param colcountby : str, default 'FieldId'
+        The DataFrame column with Citation counts for each publication.  If None then the database 'FieldId' is used.
+
+    :param fractional_field_counts : bool, default False
+        How to count publications that are assigned to multiple fields:
+            If False, each publication-field assignment is counted once.
+            If True, each publication is counted once, contributing 1/#fields to each field.
+
+    Returns
+    -------
+    DataFrame
+        DataFrame with 2 columns: 'AuthorId', 'TopFieldId'
+
+    """
+
+    check4columns(pub2author_df, [colgroupby, 'PublicationId', colcountby])
+
+    # register our pandas apply with tqdm for a progress bar
+    tqdm.pandas(desc='Author Top Field', disable= not show_progress)
+
+    if not fractional_field_counts:
+        author2field = pub2author_df.groupby(colgroupby)[colcountby].progress_apply(lambda x: x.mode()[0])
+
+    else:
+        # first calculate how many fields each publication maps too
+        pub2nfields = groupby_count(pub2author_df, colgroupby='PublicationId', colcountby=colcountby)
+
+        # each pub2field mapping is weighted by the number of fields for the publication
+        pub2nfields['PublicationWeight'] = 1.0/pub2nfields['PublicationIdCount']
+        del pub2nfields[str(colcountby)+'Count']
+
+        # merge counts
+        author2field = pub2author_df.merge(pub2nfields, how='left', on='PublicationId')
+
+        # custom weighted mode based on 
+        def weighted_mode(adf):
+            p = adf.groupby(colcountby)['PublicationWeight'].sum()
+            return p.idxmax()
+
+        # now take the weighted mode for each groupby column
+        author2field = author2field.groupby(colgroupby).progress_apply(weighted_mode)
+
+    newname_dict = zip2dict([str(colcountby), '0'], ['Top', str(colgroupby)]*2)
+    return author2field.to_frame().reset_index().rename(columns=newname_dict)
+
+
 ## Q-factor
 def qfactor(show_progress=False):
     """

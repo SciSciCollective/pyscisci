@@ -238,7 +238,7 @@ def check4columns(df, column_list):
     # TODO: make proper error messages
     for col in column_list:
         if not col in list(df):
-            print("Must pass {0} in {1}".format(col, df.name))
+            print("Must pass column {0}".format(col))
 
 def rolling_window(a, window, step_size = 1):
     shape = a.shape[:-1] + (a.shape[-1] - window + 1 - step_size, window)

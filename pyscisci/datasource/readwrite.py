@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 from unidecode import unidecode
-from html.parser import HTMLParser
+import html
 
 # determine if we are loading from a jupyter notebook (to make pretty progress bars)
 if 'ipykernel' in sys.modules:
@@ -31,7 +31,7 @@ def load_html_str(s):
     if s is None:
         return ''
     else:
-        return unidecode(HTMLParser().unescape(s))
+        return unidecode(html.unescape(s))
 
 def load_xml_text(root_element, default=''):
     if len(root_element) == 0:
@@ -40,7 +40,7 @@ def load_xml_text(root_element, default=''):
         return root_element[0].text
 
 
-def load_preprocessed_data(dataname, path2database, columns = None, isindict=None, duplicate_subset=None,
+def load_preprocessed_data(dataname, path2database, columns = None, filter_dict=None, duplicate_subset=None,
     duplicate_keep='last', dropna=None, keep_source_file=False, prefunc2apply=None, postfunc2apply=None, show_progress=False):
     """
         Load the preprocessed DataFrame from a preprocessed directory.
@@ -56,7 +56,7 @@ def load_preprocessed_data(dataname, path2database, columns = None, isindict=Non
         :param columns : list, default None
             Load only this subset of columns
 
-        :param isindict : dict, default None
+        :param filter_dict : dict, default None
             Dictionary of format {"ColumnName":"ListofValues"} where "ColumnName" is a data column
             and "ListofValues" is a sorted list of valid values.  A DataFrame only containing rows that appear in
             "ListofValues" will be returned.
@@ -102,8 +102,8 @@ def load_preprocessed_data(dataname, path2database, columns = None, isindict=Non
     if isinstance(duplicate_subset, str):
         duplicate_subset = [duplicate_subset]
 
-    if isinstance(isindict, dict):
-        isindict = {isinkey:np.sort(isinlist) for isinkey, isinlist in isindict.items()}
+    if isinstance(filter_dict, dict):
+        filter_dict = {isinkey:np.sort(isinlist) for isinkey, isinlist in filter_dict.items()}
 
 
     FileNumbers = sorted([int(fname.replace(dataname, '').split('.')[0]) for fname in os.listdir(path2files) if dataname in fname])
@@ -126,8 +126,8 @@ def load_preprocessed_data(dataname, path2database, columns = None, isindict=Non
         if isinstance(dropna, list):
             subdf.dropna(subset = dropna, inplace = True, how = 'any')
 
-        if isinstance(isindict, dict):
-            for isinkey, isinlist in isindict.items():
+        if isinstance(filter_dict, dict):
+            for isinkey, isinlist in filter_dict.items():
                 subdf = subdf[isin_sorted(subdf[isinkey], isinlist)]
 
         if isinstance(duplicate_subset, list):
@@ -146,6 +146,8 @@ def load_preprocessed_data(dataname, path2database, columns = None, isindict=Non
     if isinstance(duplicate_subset, list):
         data_df.drop_duplicates(subset = duplicate_subset, keep = duplicate_keep, inplace = True)
 
+    data_df.name = dataname
+    
     return data_df
 
 def append_to_preprocessed_df(newdf, path2database, preprocessname, startcount=0):
