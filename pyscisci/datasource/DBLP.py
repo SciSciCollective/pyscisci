@@ -337,7 +337,7 @@ class DBLP(BibDataBase):
 
         return self._author2pub_df
 
-    def load_publicationauthor(self, preprocess = True, columns = None, isindict = None, duplicate_subset = None,
+    def load_publicationauthor(self, preprocess = True, columns = None, filter_dict = None, duplicate_subset = None,
         duplicate_keep = 'last', dropna = None, show_progress=False):
         """
         Load the PublicationAuthor DataFrame from a preprocessed directory.  For DBLP, you must run preprocess before
@@ -351,7 +351,7 @@ class DBLP(BibDataBase):
         columns : list, default None, Optional
             Load only this subset of columns
 
-        isindict : dict, default None, Optional
+        filter_dict : dict, default None, Optional
             Dictionary of format {"ColumnName":"ListofValues"} where "ColumnName" is a data column
             and "ListofValues" is a sorted list of valid values.  A DataFrame only containing rows that appear in
             "ListofValues" will be returned.
@@ -376,7 +376,7 @@ class DBLP(BibDataBase):
             show_progress='Loading PublicationAuthor'
         if preprocess and os.path.exists(os.path.join(self.path2database, 'publicationauthor')):
             return load_preprocessed_data('publicationauthor', path2database=self.path2database, columns=columns,
-                isindict=isindict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
+                filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
                 show_progress=show_progress)
         else:
             raise NotImplementedError("DBLP is stored as a single xml file.  Run preprocess to parse the file.")

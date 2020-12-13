@@ -546,10 +546,11 @@ def raostriling_interdisciplinarity(pub2ref_df, pub2field_df, focus_pub_ids=None
             ypub2field_mat = normalize(ypub2field_mat, norm='l1', axis=1)
 
             # finally, we calculate the matrix representation of the RS measure
-            yrsdf = 0.5 * np.squeeze(np.asarray(ypub2field_mat.dot(spsparse.csr_matrix(distance_matrix[year2int[y]])).multiply(ypub2field_mat).sum(axis=1)))
-
-            yrsdf = pd.DataFrame(zip(np.sort(ydf['SourceId'].unique()), yrsdf, [y]*yNpubs), columns = ['PublicationId', 'RaoStirling', 'CitingYear'])
-            yrsdf['PublicationId'] = [yint2pub[i] for i in yrsdf['PublicationId'].values]
+            yrsdf = pd.DataFrame()
+            yrsdf['RaoStirling'] =  0.5 * np.squeeze(np.asarray(ypub2field_mat.dot(spsparse.csr_matrix(distance_matrix[year2int[y]])).multiply(ypub2field_mat).sum(axis=1)))
+            yrsdf['PublicationId'] = [yint2pub[i] for i in np.sort(ydf['SourceId'].unique())]
+            yrsdf['CitingYear'] = y
+            
             rsdf.append(yrsdf)
 
         rsdf = pd.concat(rsdf)
@@ -575,10 +576,10 @@ def raostriling_interdisciplinarity(pub2ref_df, pub2field_df, focus_pub_ids=None
         distance_matrix = spsparse.csr_matrix(distance_matrix)
 
         # finally, we calculate the matrix representation of the RS measure
-        rsdf = 0.5 * np.squeeze(np.asarray( spsparse.csr_matrix.multiply(pub2field_mat.dot(distance_matrix), pub2field_mat).sum(axis=1)))
+        rsdf = pd.DataFrame()
+        rsdf['RaoStirling'] = 0.5 * np.squeeze(np.asarray( spsparse.csr_matrix.multiply(pub2field_mat.dot(distance_matrix), pub2field_mat).sum(axis=1)))
+        rsdf['PublicationId'] = [int2pub[i] for i in np.sort(pub2ref_df['SourceId'].unique())]
         
-        rsdf = pd.DataFrame(zip(np.sort(pub2ref_df['SourceId'].unique()), rsdf), columns = ['PublicationId', 'RaoStirling'])
-        rsdf['PublicationId'] = [int2pub[i] for i in rsdf['PublicationId'].values]
         return rsdf
 
 
