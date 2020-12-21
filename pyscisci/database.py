@@ -17,7 +17,7 @@ from nameparser import HumanName
 from pyscisci.utils import isin_sorted, zip2dict, load_int, load_float, groupby_count
 from pyscisci.metrics import *
 from pyscisci.datasource.readwrite import load_preprocessed_data, append_to_preprocessed_df
-
+from pyscisci.filter import *
 
 class BibDataBase(object):
 
@@ -52,7 +52,7 @@ class BibDataBase(object):
 
         self.path2database = path2database
         self.keep_in_memory = keep_in_memory
-        self.global_filter = global_filter
+        self.global_filter = None
         self.show_progress = show_progress
 
         self._affiliation_df = None
@@ -60,12 +60,19 @@ class BibDataBase(object):
         self._journal_df = None
         self._author_df = None
         self._pub2year = None
+        self._pub2doctype = None
         self._pub2ref_df = None
         self._author2pub_df = None
         self._paa_df = None
         self._pub2refnoself_df = None
         self._pub2field_df=None
         self._fieldinfo_df = None
+
+        print(global_filter)
+        print(global_filter is None)
+        if not global_filter is None:
+        	print('here')
+        	self.set_global_filters(global_filter)
 
 
     @property
@@ -140,6 +147,22 @@ class BibDataBase(object):
                 return self.load_pub2year()
 
         return self._pub2year
+
+    @property
+    def pub2doctype(self):
+        """
+        A dictionary mapping PublicationId to Document Type.
+
+        'Journal': 'j', 'Book':'b', '':'', 'BookChapter':'bc', 'Conference':'c', 'Dataset':'d', 'Patent':'p', 'Repository':'r'
+
+        """
+        if self._pub2doctype is None:
+            if self.keep_in_memory:
+                self._pub2doctype = self.load_pub2doctype()
+            else:
+                return self.load_pub2doctype()
+
+        return self._pub2doctype
 
     @property
     def journal_df(self):
@@ -290,12 +313,11 @@ class BibDataBase(object):
             'Year', 'DocType', 'FieldId'
 
         """
-        
 
-        if type(global_filter) is list:
+        if isinstance(global_filter, list):
             filter_dict = {f.field:f for f in global_filter}
 
-        elif type(global_filter) in {'pyscisci.filter.RangeFilter', 'pyscisci.filter.SetFilter'}:
+        elif isinstance(global_filter, (RangeFilter, YearFilter, SetFilter, DocTypeFilter, FieldFilter) ):
             filter_dict = { global_filter.field:global_filter }
 
         elif type(global_filter) is dict:
@@ -323,7 +345,7 @@ class BibDataBase(object):
                 else:
                     self.global_filter = {pid for pid in self.global_filter if not pub2doctype.get(pid, None) is None and filter_dict['DocType'].check_value(pub2doctype[pid])}
 
-            if filtertype == 'FieldId':
+            elif filtertype == 'FieldId':
 
                 if self.global_filter is None:
                     load_fields_filter = {'FieldId':np.sort(list(filter_dict['FieldId'].value_set))}
@@ -490,6 +512,14 @@ class BibDataBase(object):
                 pub2year = json.loads(infile.read().decode('utf8'))
             return {self.PublicationIdType(k):int(y) for k,y in pub2year.items() if not y is None}
 
+    def load_pub2doctype(self):
+
+        if os.path.exists(os.path.join(self.path2database, 'pub2doctype.json.gz')):
+            with gzip.open(os.path.join(self.path2database, 'pub2doctype.json.gz'), 'r') as infile:
+                pub2doctype = json.loads(infile.read().decode('utf8'))
+            return {self.PublicationIdType(k):dt for k,dt in pub2doctype.items() if not dt is None}
+
+
     def load_journals(self, preprocess = True, columns = None, filter_dict = None, duplicate_subset = None,
         duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
         """
@@ -534,7 +564,7 @@ class BibDataBase(object):
         else:
             return self.parse_publications()
 
-    def load_references(self, preprocess = True, columns = None, filter_dict = None, duplicate_subset = None,
+    def load_references(self, preprocess = True, columns = None, filter_dict = {}, duplicate_subset = None,
         duplicate_keep = 'last', noselfcite = False, dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
         """
         Load the Pub2Ref DataFrame from a preprocessed directory, or parse from the raw files.
@@ -547,7 +577,7 @@ class BibDataBase(object):
         columns : list, default None, Optional
             Load only this subset of columns
 
-        filter_dict : dict, default None, Optional
+        filter_dict : dict, default {}, Optional
             Dictionary of format {"ColumnName":"ListofValues"} where "ColumnName" is a data column
             and "ListofValues" is a sorted list of valid values.  A DataFrame only containing rows that appear in
             "ListofValues" will be returned.
@@ -597,7 +627,7 @@ class BibDataBase(object):
         else:
             return self.parse_references()
 
-    def load_publicationauthoraffiliation(self, preprocess = True, columns = None, filter_dict = None, duplicate_subset = None,
+    def load_publicationauthoraffiliation(self, preprocess = True, columns = None, filter_dict = {}, duplicate_subset = None,
         duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
         """
         Load the PublicationAuthorAffilation DataFrame from a preprocessed directory, or parse from the raw files.
@@ -610,7 +640,7 @@ class BibDataBase(object):
         columns : list, default None, Optional
             Load only this subset of columns
 
-        filter_dict : dict, default None, Optional
+        filter_dict : dict, default {}, Optional
             Dictionary of format {"ColumnName":"ListofValues"} where "ColumnName" is a data column
             and "ListofValues" is a sorted list of valid values.  A DataFrame only containing rows that appear in
             "ListofValues" will be returned.
@@ -647,7 +677,7 @@ class BibDataBase(object):
         else:
             return self.parse_publicationauthoraffiliation()
 
-    def load_pub2field(self, preprocess = True, columns = None, filter_dict = None, duplicate_subset = None,
+    def load_pub2field(self, preprocess = True, columns = None, filter_dict = {}, duplicate_subset = None,
         duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
         """
         Load the Pub2Field DataFrame from a preprocessed directory, or parse from the raw files.
@@ -660,7 +690,7 @@ class BibDataBase(object):
         :param columns : list, default None, Optional
             Load only this subset of columns
 
-        :param filter_dict : dict, default None, Optional
+        :param filter_dict : dict, default {}, Optional
             Dictionary of format {"ColumnName":"ListofValues"} where "ColumnName" is a data column
             and "ListofValues" is a sorted list of valid values.  A DataFrame only containing rows that appear in
             "ListofValues" will be returned.
@@ -697,7 +727,7 @@ class BibDataBase(object):
         else:
             return self.parse_fields()
 
-    def load_fieldinfo(self, preprocess = True, columns = None, filter_dict = None, show_progress=False):
+    def load_fieldinfo(self, preprocess = True, columns = None, filter_dict = {}, show_progress=False):
         """
         Load the Field Information DataFrame from a preprocessed directory, or parse from the raw files.
 
@@ -709,7 +739,7 @@ class BibDataBase(object):
         :param columns : list, default None, Optional
             Load only this subset of columns
 
-        :param filter_dict : dict, default None, Optional
+        :param filter_dict : dict, default {}, Optional
             Dictionary of format {"ColumnName":"ListofValues"} where "ColumnName" is a data column
             and "ListofValues" is a sorted list of valid values.  A DataFrame only containing rows that appear in
             "ListofValues" will be returned.
@@ -738,7 +768,7 @@ class BibDataBase(object):
         else:
             return self.parse_fields()
 
-    def load_impact(self, preprocess = True, include_yearnormed = True, columns = None, filter_dict = None, duplicate_subset = None,
+    def load_impact(self, preprocess = True, include_yearnormed = True, columns = None, filter_dict = {}, duplicate_subset = None,
         duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
         """
         Load the precomputed impact DataFrame from a preprocessed directory.
@@ -754,7 +784,7 @@ class BibDataBase(object):
         :param columns : list, default None
             Load only this subset of columns
 
-        :param filter_dict : dict, default None, Optional
+        :param filter_dict : dict, default {}, Optional
             Dictionary of format {"ColumnName":"ListofValues"} where "ColumnName" is a data column
             and "ListofValues" is a sorted list of valid values.  A DataFrame only containing rows that appear in
             "ListofValues" will be returned.

@@ -25,6 +25,9 @@ class RangeFilter():
 		elif self.min is None and not self.max is None:
 			self.check_value = self.upperbound
 
+		else:
+			raise ValueError("One of min_value or max_value must be set.")
+
 
 	def fullrange(self, value):
 		return (value >= self.min) and (value <= self.max)
@@ -63,3 +66,17 @@ class YearFilter(RangeFilter):
 
 		elif self.min is None and not self.max is None:
 			self.check_value = self.upperbound
+
+class DocTypeFilter(SetFilter):
+
+	def __init__(self, doctypes=[]):
+
+		self.field = 'DocType'
+		self.value_set=set(doctypes)
+
+class FieldFilter(SetFilter):
+
+	def __init__(self, valid_fields=[]):
+		
+		self.field = 'FieldId'
+		self.value_set=set(valid_fields)

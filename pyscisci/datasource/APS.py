@@ -33,7 +33,7 @@ class APS(BibDataBase):
 
         self.path2database = path2database
         self.keep_in_memory = keep_in_memory
-        self.global_filter = global_filter
+        self.global_filter = None
         self.show_progress = show_progress
 
         self._affiliation_df = None
@@ -41,6 +41,7 @@ class APS(BibDataBase):
         self._journal_df = None
         self._author_df = None
         self._pub2year = None
+        self._pub2doctype = None
         self._pub2ref_df = None
         self._pub2refnoself_df = None
         self._author2pub_df = None
@@ -48,11 +49,12 @@ class APS(BibDataBase):
         self._pub2field_df=None
         self._fieldinfo_df=None
 
-        if os.path.exists(os.path.join(path2database, 'publication', 'publication0.hdf')):
-            pd.read_hdf(os.path.join(path2database, 'publication', 'publication0.hdf'))['PublicationId'].dtype
         self.PublicationIdType = str
         self.AffiliationIdType = str
         self.AuthorIdType = None
+
+        if not global_filter is None:
+            self.set_global_filters(global_filter)
 
 
     def preprocess(self, archive_year=2019, pubid2int=False, metadata_archive=None, citation_archive=None, show_progress=True):

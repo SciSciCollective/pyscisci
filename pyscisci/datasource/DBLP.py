@@ -35,7 +35,7 @@ class DBLP(BibDataBase):
 
         self.path2database = path2database
         self.keep_in_memory = keep_in_memory
-        self.global_filter = global_filter
+        self.global_filter = None
         self.show_progress = show_progress
 
         self._affiliation_df = None
@@ -43,6 +43,7 @@ class DBLP(BibDataBase):
         self._journal_df = None
         self._author_df = None
         self._pub2year = None
+        self._pub2doctype = None
         self._pub2ref_df = None
         self._pub2refnoself_df = None
         self._author2pub_df = None
@@ -53,6 +54,9 @@ class DBLP(BibDataBase):
         self.PublicationIdType = int
         self.AffiliationIdType = int
         self.AuthorIdType = str
+
+        if not global_filter is None:
+            self.set_global_filters(global_filter)
 
     def _blank_dblp_publication(self, PublicationId = 0):
         record = {}

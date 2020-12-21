@@ -36,7 +36,7 @@ class MAG(BibDataBase):
 
         self.path2database = path2database
         self.keep_in_memory = keep_in_memory
-        self.global_filter = global_filter
+        self.global_filter = None
         self.show_progress = show_progress
 
         self._affiliation_df = None
@@ -44,6 +44,7 @@ class MAG(BibDataBase):
         self._journal_df = None
         self._author_df = None
         self._pub2year = None
+        self._pub2doctype = None
         self._pub2ref_df = None
         self._pub2refnoself_df = None
         self._author2pub_df = None
@@ -54,6 +55,9 @@ class MAG(BibDataBase):
         self.PublicationIdType = int
         self.AffiliationIdType = int
         self.AuthorIdType = int
+
+        if not global_filter is None:
+            self.set_global_filters(global_filter)
 
     def preprocess(self, dflist = None, show_progress=True):
         """
