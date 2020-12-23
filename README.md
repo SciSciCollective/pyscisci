@@ -6,7 +6,7 @@ Note: Package is currently under construction.
 
 The ``pySciSci`` package offers a unified interface to analyze several of the most common Bibliometric DataBases used in the Science of Science, including:
 - [Microsoft Academic Graph](https://docs.microsoft.com/en-us/academic-services/graph/) (MAG)
-- [Clarivate Web of Science](https://clarivate.com/webofsciencegroup/solutions/web-of-science/) (WoS), ToDo
+- [Clarivate Web of Science](https://clarivate.com/webofsciencegroup/solutions/web-of-science/) (WoS)
 - [DBLP](https://dblp.uni-trier.de)
 - [American Physical Society](https://journals.aps.org/datasets) (APS)
 
@@ -24,6 +24,7 @@ Advanced tools for constructing and analyzing network objects (both static and t
 - Citation network
 - Co-citation network
 - Co-authorship network
+- Graph2vec network embedding
 
 Natural Language Processing
 - Author matching
@@ -74,7 +75,7 @@ with the help of many others. Thanks to everyone who has improved ``pySciSci`` b
 Optionally, add your desired name and include a few relevant links. The order
 is an attempt at historical ordering.
 
-- My Name, GitHub: ``[gitname](https://github.com/gitname)
+- Jisung Yoon, GitHub: ``[jisungyoon](https://github.com/jisungyoon)''
 
 Support
 -------
