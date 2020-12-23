@@ -75,7 +75,7 @@ with the help of many others. Thanks to everyone who has improved ``pySciSci`` b
 Optionally, add your desired name and include a few relevant links. The order
 is an attempt at historical ordering.
 
-- Jisung Yoon, GitHub: ``[jisungyoon](https://github.com/jisungyoon)''
+- Jisung Yoon, GitHub: [jisungyoon](https://github.com/jisungyoon)
 
 Support
 -------
