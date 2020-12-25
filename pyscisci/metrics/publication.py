@@ -8,11 +8,14 @@
 import os
 import sys
 import itertools
+import datetime
 from functools import reduce
 from collections import defaultdict
 import pandas as pd
 import numpy as np
 import scipy.sparse as spsparse
+import scipy.optimize as spopt
+import scipy.stats as spstats
 from sklearn.metrics import pairwise_distances
 from sklearn.preprocessing import normalize
 
@@ -238,6 +241,48 @@ def disruption_index(pub2ref, focus_pubs = None, show_progress=False):
         in tqdm(focus_pubs, leave=True, desc='Disruption Index', disable= not show_progress) if get_citation_groups(focusciting).shape[0] > 0]
 
     return pd.DataFrame(disrupt_df, columns = ['PublicationId', 'DisruptionIndex'])
+
+
+def _fit_predicted_citations(publication_citations):
+
+    recenter_time = np.sort(publication_citations['DateDelta'].values)
+
+    def fit_f(x):
+        return np.arange(1,len(recenter_time) + 1) - np.array([predicted_c(t, x[0], x[1], x[2]) for t in recenter_time])
+
+    s, _ = spopt.leastsq(fit_f, x0 = np.ones(3))
+    return pd.Series(s)
+
+def predicted_c(t, lam, mu, sig, m = 30.):
+    lognormt = (np.log(t) - mu) / sig
+    return m * (np.exp(lam * spstats.norm.cdf( lognormt ) ) - 1.0)
+
+def longterm_impact(pub2ref_df, colgroupby = 'CitedPublicationId', coldate='CitingYear', show_progress=True):
+    """
+    This function calculates the longterm scientific impact as introduced in [w].
+
+    Following equation (3) from [w]:
+    c_(t) = m * (e^{lam * PHI()})
+
+    References
+    ----------
+    .. [w] Wang, Song, Barabasi (2013): "Quantifying Long-Term Scienctific Impact", *Science* 342, 127-132.
+           DOI: 10.1126/science.1237825
+    """
+    pub2ref_df = pub2ref_df.copy()
+
+    if 'Year' in coldate:
+        pub2ref_df['DateDelta'] = pub2ref_df.groupby(colgroupby, sort=False)[coldate].transform(lambda x: x-x.min())
+    elif 'Date' in coldate:
+        pub2ref_df['DateDelta'] = pub2ref_df.groupby(colgroupby, sort=False)[coldate].transform(lambda x: x-x.min()) / np.timedelta64(1,'D')
+    else:
+        print("Column Date Error") 
+
+    pub2ref_df = pub2ref_df.loc[pub2ref_df['DateDelta'] > 0]
+    pub2ref_df.sort_values(by=['DateDelta'], inplace=True)
+
+    newname_dict = zip2dict(list(range(4)), ['lam', 'mu', 'sig', 'm' ])
+    return pub2ref_df.groupby(colgroupby, sort=False).apply(_fit_predicted_citations).reset_index().rename(columns = newname_dict)
 
 
 def field_citation_distance(pub2ref_df, pub2field_df, pub2field_norm=True, temporal=True,citation_direction='references', 
