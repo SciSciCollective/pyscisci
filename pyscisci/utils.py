@@ -8,7 +8,7 @@
 import sys
 import pandas as pd
 import numpy as np
-from scipy import optimize
+import requests
 
 # determine if we are loading from a jupyter notebook (to make pretty progress bars)
 if 'ipykernel' in sys.modules:
@@ -152,6 +152,38 @@ def groupby_total(df, colgroupby, colcountby, show_progress=False):
     newname_dict = zip2dict([str(colcountby), '0'], [str(colcountby)+'Total']*2)
     return df.groupby(colgroupby, sort=False)[colrange].progress_apply(lambda x: x.sum()).to_frame().reset_index().rename(columns=newname_dict)
 
+def groupby_mean(df, colgroupby, colcountby, show_progress=False):
+    """
+    Group the DataFrame and find the mean of the column.
+
+    Parameters
+    ----------
+    :param df: DataFrame
+        The DataFrame.
+
+    :param colgroupby: str
+        The column to groupby.
+
+    :param colcountby: str
+        The column to find the mean of values.
+
+    :param show_progress: bool or str, default False
+        If True, display a progress bar for the summation.  If str, the name of the progress bar to display.
+
+    Returns
+    ----------
+    DataFrame
+        DataFrame with two columns: colgroupby, colcountby+'Mean'
+    """
+    desc = ''
+    if isinstance(show_progress, str):
+        desc = show_progress
+    # register our pandas apply with tqdm for a progress bar
+    tqdm.pandas(desc=desc, disable= not show_progress)
+
+    newname_dict = zip2dict([str(colcountby), '0'], [str(colcountby)+'Mean']*2)
+    return df.groupby(colgroupby, sort=False)[colrange].progress_apply(lambda x: x.mean()).to_frame().reset_index().rename(columns=newname_dict)
+
 def isin_range(values2check, min_value, max_value):
     """
     Check if the values2check are in the inclusive range [min_value, max_value].
@@ -197,18 +229,6 @@ def isin_sorted(values2check, masterlist):
     index = np.searchsorted(masterlist, values2check, side = 'left')
     index[index >= masterlist.shape[0]] = masterlist.shape[0] - 1
     return values2check == masterlist[index]
-
-def piecewise_linear(x, x_break, b, m1, m2):
-    """
-    A piece wise linear function:
-    x <= x_break: y = m1*x + b
-    x > x_break : y = m1*x_break + b + m2*(x - x_break)
-    """
-    return np.piecewise(x, [x <= x_break], [lambda x:m1*x + b, lambda x:m1*x_break + b + m2*(x-x_break)])
-
-def fit_piecewise_linear(xvalues, yvalues):
-    p , e = optimize.curve_fit(piecewise_linear, xvalues, yvalues)
-    return pd.Series(p)
 
 def argtopk(a, k=5):
     return np.argpartition(a, -k)[-k:][::-1]
@@ -310,3 +330,79 @@ def rank_array(a, ascending=True, normed=False):
     if normed:
         ranks = ranks/(ranks.shape[0]-1)
     return ranks
+
+def holder_mean(a, rho=1):
+    """
+    Holder mean
+
+    Parameters
+    ----------
+    :param a : numpy array or list
+        array of values
+
+    :param rho : float
+        holder parameter
+        arithmetic mean (rho=1)
+        geometric mean (rho=0)
+        harmonic mean (rho=-1)
+        quadratic mean (rho=2)
+        max (rho-> infty)
+        min (rho-> -infty)
+
+    """
+    return (a**rho).sum()**(1.0/rho) / a.shape[0]
+
+def uniquemap_by_frequency(df, colgroupby='PublicationId', colcountby='FieldId', ascending=False):
+    """
+    Reduce a one-to-many mapping to a selection based on frequency of occurence in the dataframe  
+    (either to the largest, most common or smallest, least common).
+    
+    Parameters
+    ----------
+    :param ascending : bool, default False
+        False: larger counts dominate--map defaults to the most common
+        True: smaller counts dominate--map defaults to the least common
+    """
+    countkeydict = {countid:i for i, countid in enumerate(df[colcountby].value_counts(ascending=ascending).index.values)}
+    def countkey(a):
+        if isinstance(a, pd.Series):
+            return [countkeydict[c] for c in a]
+        else:
+            return countkeydict[a]
+    return df.sort_values(by=[colcountby], key=countkey).drop_duplicates(subset=[colgroupby], keep='first')
+
+
+def download_file_from_google_drive(file_id, destination=None):
+    """
+    Download data files from the google Drive.
+
+    Modified from: from https://stackoverflow.com/questions/38511444/python-download-files-from-google-drive-using-url
+    """
+    CHUNK_SIZE = 32768
+
+    URL = "https://docs.google.com/uc?export=download"
+
+    session = requests.Session()
+
+    response = session.get(URL, params = { 'id' : file_id }, stream = True)
+    token = get_confirm_token(response)
+
+    if token:
+        params = { 'id' : file_id, 'confirm' : token }
+        response = session.get(URL, params = params, stream = True)
+
+    if destination is None:
+        return response
+    else:
+        with open(destination, "wb") as f:
+            for chunk in response.iter_content(CHUNK_SIZE):
+                if chunk: # filter out keep-alive new chunks
+                    f.write(chunk)
+        return None   
+
+def get_confirm_token(response):
+    for key, value in response.cookies.items():
+        if key.startswith('download_warning'):
+            return value
+
+    return None

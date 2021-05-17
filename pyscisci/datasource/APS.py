@@ -7,8 +7,6 @@ import zipfile
 import pandas as pd
 import numpy as np
 from nameparser import HumanName
-import requests
-from lxml import etree
 
 # determine if we are loading from a jupyter notebook (to make pretty progress bars)
 if 'ipykernel' in sys.modules:
@@ -18,6 +16,12 @@ else:
 
 from pyscisci.datasource.readwrite import load_preprocessed_data, load_int, load_float, load_html_str
 from pyscisci.database import BibDataBase
+from pyscisci.utils import download_file_from_google_drive
+
+# hide this annoying performance warnings
+import warnings
+warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
+
 
 class APS(BibDataBase):
     """
@@ -75,12 +79,28 @@ class APS(BibDataBase):
 
 
 
-    def download_from_source(self):
+    def download_from_source(self, files_to_download='all'):
 
-        import webbrowser
-        webbrowser.open("https://journals.aps.org/datasets")
+        if files_to_download in ['all', 'orig']:
+            import webbrowser
+            webbrowser.open("https://journals.aps.org/datasets")
 
-        raise NotImplementedError("APS is shared by request from the American Physical Society.  Contact APS to download the source files.")
+            print("APS is shared by request from the American Physical Society.  Contact APS to download the source files.")
+
+
+        if files_to_download in ['all', 'paa_supplement']:
+
+            aps_author_file_id = '1U6f9AYQJUHQ_IzeiI-rADFsrg7LWH3WO'
+
+            if not os.path.exists(os.path.join(self.path2database, 'publicationauthoraffiliation')):
+                os.mkdir(os.path.join(self.path2database, 'publicationauthoraffiliation'))
+
+            filename = os.path.join(self.path2database, 'publicationauthoraffiliation', 'publicationauthoraffiliation0.hdf')
+            apsauthors_gzip = download_file_from_google_drive(file_id=aps_author_file_id, destination= filename)
+            pd.read_csv(filename, sep='\t', compression='gzip').to_hdf(filename, mode='w', key='paa')
+
+        if not files_to_download in ['all', 'orig', 'paa_supplement']:
+            print("Unrecognized file name.")
 
 
     def parse_affiliations(self, preprocess = False, show_progress=False):

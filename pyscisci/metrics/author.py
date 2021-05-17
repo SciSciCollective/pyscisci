@@ -5,16 +5,11 @@
 
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
  """
-import os
+
 import sys
-import itertools
-from functools import reduce
-from collections import defaultdict
+
 import pandas as pd
 import numpy as np
-import scipy.sparse as spsparse
-from sklearn.metrics import pairwise_distances
-from sklearn.preprocessing import normalize
 
 # determine if we are loading from a jupyter notebook (to make pretty progress bars)
 if 'ipykernel' in sys.modules:
@@ -22,8 +17,11 @@ if 'ipykernel' in sys.modules:
 else:
     from tqdm import tqdm
 
-from pyscisci.utils import isin_sorted, zip2dict, check4columns, fit_piecewise_linear, groupby_count, groupby_range, rank_array
-from pyscisci.network import dataframe2bipartite, project_bipartite_mat, cocitation_network
+from pyscisci.utils import zip2dict, check4columns, groupby_count, groupby_range
+from pyscisci.metrics.hindex import compute_hindex
+from pyscisci.metrics.qfactor import compute_qfactor
+from pyscisci.metrics.productivitytrajectory import yearly_productivity_traj
+from pyscisci.metrics.diffusionscientificcredit import diffusion_of_scientific_credit
 
 def author_productivity(pub2author_df, colgroupby = 'AuthorId', colcountby = 'PublicationId', show_progress=False):
     """
@@ -194,10 +192,13 @@ def author_productivity_trajectory(pub2author_df, colgroupby = 'AuthorId', datec
         Trajectory DataFrame with 5 columns: 'AuthorId', 't_break', 'b', 'm1', 'm2'
 
     """
+    if not 'YearlyProductivity' in list(pub2author_df):
+        yearlyprod = author_yearly_productivity(pub2author_df, colgroupby=colgroupby, datecol=datecol, colcountby=colcountby)
+    else:
+        yearlyprod = pub2author_df
+    return yearly_productivity_traj(yearlyprod, colgroupby = colgroupby)
 
-    return yearly_productivity_traj(pub2author_df, colgroupby = colgroupby)
-
-def author_hindex(pub2author_df, impact_df, colgroupby = 'AuthorId', colcountby = 'Ctotal', show_progress=False):
+def author_hindex(pub2author_df, impact_df=None, colgroupby = 'AuthorId', colcountby = 'Ctotal', show_progress=False):
     """
     Calculate the author yearly productivity trajectory.  See :cite:`hirsch2005index` for the derivation.
 
@@ -224,10 +225,46 @@ def author_hindex(pub2author_df, impact_df, colgroupby = 'AuthorId', colcountby 
     #df =
 
     if show_progress: print("Computing H-index.")
-    return compute_hindex(pub2author_df.merge(impact_df[[colgroupby, colcountby]], on='PublicationId', how='left'),
-     colgroupby = colgroupby,
-     colcountby = colcountby,
-     show_progress=show_progress)
+    if impact_df is None:
+        df = pub2author_df
+    else:
+        df = pub2author_df.merge(impact_df[[colgroupby, colcountby]], on='PublicationId', how='left')
+
+    return compute_hindex(df, colgroupby = colgroupby, colcountby = colcountby, show_progress=show_progress)
+
+def author_qfactor(pub2author_df, impact_df=None, colgroupby = 'AuthorId', colcountby = 'Ctotal', show_progress=False):
+    """
+    Calculate the author yearly productivity trajectory.  See :cite:`hirsch2005index` for the derivation.
+
+    The algorithmic implementation can be found in :py:func:`citationanalysis.compute_hindex`.
+
+    Parameters
+    ----------
+    :param df : DataFrame, default None, Optional
+        A DataFrame with the author2publication information.  If None then the database 'author2pub_df' is used.
+
+    :param colgroupby : str, default 'AuthorId', Optional
+        The DataFrame column with Author Ids.  If None then the database 'AuthorId' is used.
+
+    :param colcountby : str, default 'Ctotal', Optional
+        The DataFrame column with Citation counts for each publication.  If None then the database 'Ctotal' is used.
+
+    Returns
+    -------
+    DataFrame
+        Trajectory DataFrame with 2 columns: 'AuthorId', 'Hindex'
+
+    """
+
+    #df =
+
+    if show_progress: print("Computing Q-factor.")
+    if impact_df is None:
+        df = pub2author_df
+    else:
+        df = pub2author_df.merge(impact_df[[colgroupby, colcountby]], on='PublicationId', how='left')
+
+    return compute_qfactor(df, colgroupby = colgroupby, colcountby = colcountby, show_progress=show_progress)
 
 def author_top_field(pub2author_df, colgroupby = 'AuthorId', colcountby = 'FieldId', fractional_field_counts = False, show_progress=False):
     """
@@ -283,95 +320,11 @@ def author_top_field(pub2author_df, colgroupby = 'AuthorId', colcountby = 'Field
         # now take the weighted mode for each groupby column
         author2field = author2field.groupby(colgroupby).progress_apply(weighted_mode)
 
-    newname_dict = zip2dict([str(colcountby), '0'], ['Top', str(colgroupby)]*2)
+    newname_dict = zip2dict([str(colcountby), '0'], ['Top' + str(colcountby)]*2)
     return author2field.to_frame().reset_index().rename(columns=newname_dict)
 
 
-## Q-factor
-def qfactor(show_progress=False):
-    """
-    This function calculates the Q-factor for an author.  See [q] for details.
 
-    References
-    ----------
-    .. [q] Sinatra (2016): "title", *Science*.
-           DOI: xxx
-    """
-
-    # register our pandas apply with tqdm for a progress bar
-    tqdm.pandas(desc='Q-factor', disable= not show_progress)
-
-    # TODO: implement
-    return False
-
-
-### H index
-
-def hindex(a):
-    """
-    Calculate the h index for the array of citation values.  See :cite:`hirsch2005index` for the definition.
-
-    Parameters
-    ----------
-    :param a : numpy array
-        An array of citation counts for each publication by the Author.
-
-    Returns
-    -------
-    int
-        The Hindex
-
-    """
-    d = np.sort(a)[::-1] - np.arange(a.shape[0])
-    return (d>0).sum()
-
-def compute_hindex(df, colgroupby, colcountby, show_progress=False):
-    """
-    Calculate the h index for each group in the DataFrame.  See :cite:`hirsch2005index` for the definition.
-
-    The algorithmic implementation for each author can be found in :py:func:`citationanalysis.author_hindex`.
-
-    Parameters
-    ----------
-    :param df : DataFrame
-        A DataFrame with the citation information for each Author.
-
-    :param colgroupby : str
-        The DataFrame column with Author Ids.
-
-    :param colcountby : str
-        The DataFrame column with Citation counts for each publication.
-
-    Returns
-    -------
-    DataFrame
-        DataFrame with 2 columns: colgroupby, 'Hindex'
-
-        """
-    # register our pandas apply with tqdm for a progress bar
-    tqdm.pandas(desc='Hindex', disable= not show_progress)
-
-    newname_dict = zip2dict([str(colcountby), '0'], [str(colgroupby)+'Hindex']*2)
-    return df.groupby(colgroupby, sort=False)[colcountby].progress_apply(hindex).to_frame().reset_index().rename(columns=newname_dict)
-
-
-### Productivity Trajectory
-
-def _fit_piecewise_lineardf(author_df, args):
-    return fit_piecewise_linear(author_df[args[0]].values, author_df[args[1]].values)
-
-def yearly_productivity_traj(df, colgroupby = 'AuthorId', colx='Year',coly='YearlyProductivity'):
-    """
-    This function calculates the piecewise linear yearly productivity trajectory original studied in [w].
-
-    References
-    ----------
-    .. [w] Way, Larremore (2018): "title", *PNAS*.
-           DOI: xxx
-    """
-
-    newname_dict = zip2dict(list(range(4)), ['t_break', 'b', 'm1', 'm2' ]) #[str(i) for i in range(4)]
-    return df.groupby(colgroupby, sort=False).apply(_fit_piecewise_lineardf, args=(colx,coly) ).reset_index().rename(columns = newname_dict)
 
 
 class pySciSciMetricError(Exception):

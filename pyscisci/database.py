@@ -52,7 +52,7 @@ class BibDataBase(object):
 
         self.path2database = path2database
         self.keep_in_memory = keep_in_memory
-        self.global_filter = None
+        self.global_filter = global_filter
         self.show_progress = show_progress
 
         self._affiliation_df = None
@@ -68,11 +68,8 @@ class BibDataBase(object):
         self._pub2field_df=None
         self._fieldinfo_df = None
 
-        print(global_filter)
-        print(global_filter is None)
         if not global_filter is None:
-        	print('here')
-        	self.set_global_filters(global_filter)
+            self.set_global_filters(global_filter)
 
 
     @property
@@ -339,7 +336,7 @@ class BibDataBase(object):
 
             elif filtertype == 'DocType':
                 pub2doctype = self.pub2doctype
-
+                
                 if self.global_filter is None:
                     self.global_filter = {pid for pid, dt in pub2doctype.items() if filter_dict['DocType'].check_value(dt)}
                 else:
@@ -513,12 +510,10 @@ class BibDataBase(object):
             return {self.PublicationIdType(k):int(y) for k,y in pub2year.items() if not y is None}
 
     def load_pub2doctype(self):
-
         if os.path.exists(os.path.join(self.path2database, 'pub2doctype.json.gz')):
             with gzip.open(os.path.join(self.path2database, 'pub2doctype.json.gz'), 'r') as infile:
                 pub2doctype = json.loads(infile.read().decode('utf8'))
             return {self.PublicationIdType(k):dt for k,dt in pub2doctype.items() if not dt is None}
-
 
     def load_journals(self, preprocess = True, columns = None, filter_dict = None, duplicate_subset = None,
         duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
@@ -855,7 +850,6 @@ class BibDataBase(object):
 
     def parse_fields(self, preprocess = False, num_file_lines=10**7):
         raise NotImplementedError
-
 
     def remove_selfcitations(self, preprocess=True, show_progress=False):
         """

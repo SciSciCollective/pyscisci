@@ -5,16 +5,11 @@
 
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
  """
-import os
+
 import sys
-import itertools
-from functools import reduce
-from collections import defaultdict
+
 import pandas as pd
 import numpy as np
-import scipy.sparse as spsparse
-from sklearn.metrics import pairwise_distances
-from sklearn.preprocessing import normalize
 
 # determine if we are loading from a jupyter notebook (to make pretty progress bars)
 if 'ipykernel' in sys.modules:
@@ -22,8 +17,8 @@ if 'ipykernel' in sys.modules:
 else:
     from tqdm import tqdm
 
-from pyscisci.utils import isin_sorted, zip2dict, check4columns, groupby_count
-from pyscisci.metrics.author import compute_hindex
+from pyscisci.utils import zip2dict, groupby_count
+from pyscisci.metrics.hindex import compute_hindex
 
 def journal_productivity(pub2journal_df, colgroupby = 'JournalId', colcountby = 'PublicationId', show_progress=False):
     """
@@ -125,14 +120,14 @@ def journal_hindex(pub2journal_df, impact_df=None, colgroupby = 'JournalId', col
     if show_progress: print("Computing Journal H-index.")
     return compute_hindex(pub2journal_df, colgroupby = colgroupby, colcountby = colcountby, show_progress=show_progress)
 
-def journal_impactfactor(pub2journal_df, pub2ref_df, pub2year=None, citation_window=5, colgroupby = 'JournalId', show_progress=False):
+def journal_impactfactor(pub_df, pub2ref_df, pub2year=None, citation_window=5, colgroupby = 'JournalId', show_progress=False):
     """
-    Calculate the impact factor for a journal.  See :cite:`hirsch2005index` for the derivation.
+    Calculate the impact factor for a journal.
 
     Parameters
     ----------
-    :param pub2journal_df : DataFrame
-        A DataFrame with the publication and journal information.
+    :param pub_df : DataFrame
+        A DataFrame with the publication, journal, and year information.
 
     :param pub2ref_df : DataFrame
         A DataFrame with the author2publication information.  If None then the database 'author2pub_df' is used.
@@ -152,16 +147,7 @@ def journal_impactfactor(pub2journal_df, pub2ref_df, pub2year=None, citation_win
     Returns
     -------
     DataFrame
-        Trajectory DataFrame with 2 columns: 'JournalId', 'Hindex'
+        Trajectory DataFrame with 2 columns: 'JournalId', 'ImpactFactor{y}' where y is the citation_window size
 
     """
 
-class pySciSciMetricError(Exception):
-    """
-    Base Class for metric errors.
-    """
-    def __str__(self, msg=None):
-        if msg is None:
-            return 'pySciSci metric error.'
-        else:
-            return msg

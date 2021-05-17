@@ -14,6 +14,7 @@ import pandas as pd
 import scipy.sparse as spsparse
 
 from pyscisci.utils import isin_sorted, zip2dict, check4columns
+from pyscisci.sparsenetworkutils import threshold_network, largest_connected_component_vertices, dataframe2bipartite, project_bipartite_mat
 
 # determine if we are loading from a jupyter notebook (to make pretty progress bars)
 if 'ipykernel' in sys.modules:
@@ -21,25 +22,6 @@ if 'ipykernel' in sys.modules:
 else:
     from tqdm import tqdm
 
-def threshold_network(adj_mat, threshold=0):
-    """
-
-    """
-    if adj_mat.getformat() != 'coo':
-        adj_mat = spsparse.coo_matrix(adj_mat)
-
-    adj_mat.data[adj_mat.data <=threshold] = 0
-    adj_mat.eliminate_zeros()
-
-    return adj_mat
-
-def largest_connected_component_vertices(adj_mat):
-    """
-    """
-    n_components, labels = spsparse.csgraph.connected_components(adj_mat)
-    comidx, compsizes = np.unique(labels, return_counts=True)
-
-    return np.arange(adj_mat.shape[0])[labels==np.argmax(compsizes)]
 
 def coauthorship_network(paa_df, focus_author_ids=None, focus_constraint='authors', temporal=False, show_progress=False):
     """
@@ -153,49 +135,6 @@ def coauthorship_network(paa_df, focus_author_ids=None, focus_constraint='author
 
         return adj_mat, author2int
 
-
-def cogroupby(df, N):
-    adj_mat = spsparse.dok_matrix( (N,N), dtype=int)
-    def inducedcombos(authorlist):
-        if authorlist.shape[0] >= 2:
-            for i,j in combinations(authorlist, 2):
-                adj_mat[i,j] += 1
-
-    tqdm.pandas(desc='CoAuthorship')
-    df.groupby('PublicationId')['AuthorId'].progress_apply(inducedcombos)
-
-    adj_mat = adj_mat + adj_mat.T
-
-    return adj_mat
-
-
-def dataframe2bipartite(df, rowname, colname, shape=None, weightname=None):
-
-    if shape is None:
-        shape = (int(df[rowname].max()+1), int(df[colname].max()+1) )
-
-    if weightname is None:
-        weights = np.ones(df.shape[0], dtype=int)
-    else:
-        weights = df[weightname].values
-
-    # create a bipartite adj matrix connecting authors to their publications
-    bipartite_adj = spsparse.coo_matrix( ( weights,
-                                        (df[rowname].values, df[colname].values) ),
-                                        shape=shape, dtype=weights.dtype)
-
-    bipartite_adj.sum_duplicates()
-
-    return bipartite_adj
-
-def project_bipartite_mat(bipartite_adj, project_to = 'row'):
-
-    if project_to == 'row':
-        adj_mat = bipartite_adj.dot(bipartite_adj.T).tocoo()
-    elif project_to == 'col':
-        adj_mat = bipartite_adj.T.dot(bipartite_adj).tocoo()
-
-    return adj_mat
 
 def extract_multiscale_backbone(Xs, alpha):
     """
@@ -450,40 +389,6 @@ def temporal_cocited_edgedict(pub2ref, pub2year):
             temporal_cocitation_dict[y][jcitedpid].add(icitedpid)
 
     pub2ref.groupby('CitingPublicationId', sort=False).apply(count_cocite)
-
-
-def dataframe2sparse(df, index_columns = ['name_citing', 'name_cited'], weight_values = None):
-
-    """
-    Take a pandas Data Frame as an edge list and convert it into a sparse adjacency matrix
-    """
-
-    # convert values 2 int
-    nameindex = pd.DataFrame(pd.unique(df[index_columns].values.ravel()), columns = ['name'])
-    nameindex.sort_values('name', inplace = True)
-    nameindex.reset_index(inplace = True, drop = True)
-    nameindex['name2int'] = nameindex.index.values
-
-    # sparse matrix size
-    N = nameindex.shape[0]
-
-    df = pd.merge(df, nameindex, left_on = 'name_citing', right_on = 'name',
-                   copy = 'False', how = 'left', suffixes = ['', '_citing'])
-    del df['name']
-
-    df = pd.merge(df, nameindex, left_on = 'name_cited', right_on = 'name',
-                   copy = 'False', how = 'left', suffixes = ['_citing', '_cited'])
-    del df['name']
-
-    if weight_values is None:
-        weight_values = np.ones(df.shape[0])
-    else:
-        weight_values = df[weight_values].values
-
-    mat = sp.coo_matrix((weight_values, (df['name2int_citing'].values, df['name2int_cited'].values)), shape = (N,N))
-    mat.sum_duplicates()
-
-    return mat, nameindex
 
 
 def create_citation_edgelist(database, publication_subset = [], temporal = True):
