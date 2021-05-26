@@ -35,30 +35,12 @@ class APS(BibDataBase):
 
     def __init__(self, path2database = '', keep_in_memory = False, global_filter=None, show_progress=True):
 
-        self.path2database = path2database
-        self.keep_in_memory = keep_in_memory
-        self.global_filter = None
-        self.show_progress = show_progress
-
-        self._affiliation_df = None
-        self._pub_df = None
-        self._journal_df = None
-        self._author_df = None
-        self._pub2year = None
-        self._pub2doctype = None
-        self._pub2ref_df = None
-        self._pub2refnoself_df = None
-        self._author2pub_df = None
-        self._paa_df = None
-        self._pub2field_df=None
-        self._fieldinfo_df=None
+        self._default_init(path2database, keep_in_memory, global_filter, show_progress)
 
         self.PublicationIdType = str
         self.AffiliationIdType = str
-        self.AuthorIdType = None
 
-        if not global_filter is None:
-            self.set_global_filters(global_filter)
+        
 
 
     def preprocess(self, archive_year=2019, pubid2int=False, metadata_archive=None, citation_archive=None, show_progress=True):
@@ -92,12 +74,16 @@ class APS(BibDataBase):
 
             aps_author_file_id = '1U6f9AYQJUHQ_IzeiI-rADFsrg7LWH3WO'
 
-            if not os.path.exists(os.path.join(self.path2database, 'publicationauthoraffiliation')):
-                os.mkdir(os.path.join(self.path2database, 'publicationauthoraffiliation'))
+            if not os.path.exists(os.path.join(self.path2database, 'publicationauthoraffiliation_supp2010')):
+                os.mkdir(os.path.join(self.path2database, 'publicationauthoraffiliation_supp2010'))
 
-            filename = os.path.join(self.path2database, 'publicationauthoraffiliation', 'publicationauthoraffiliation0.hdf')
+            filename = os.path.join(self.path2database, 'publicationauthoraffiliation_supp2010', 'publicationauthoraffiliation_supp20100.hdf')
             apsauthors_gzip = download_file_from_google_drive(file_id=aps_author_file_id, destination= filename)
             pd.read_csv(filename, sep='\t', compression='gzip').to_hdf(filename, mode='w', key='paa')
+
+            self.set_new_data_path(dataframe_name='paa_df', new_path='publicationauthoraffiliation_supp2010')
+
+            print("New data saved to {}.".format('publicationauthoraffiliation_supp2010'))
 
         if not files_to_download in ['all', 'orig', 'paa_supplement']:
             print("Unrecognized file name.")
@@ -119,23 +105,11 @@ class APS(BibDataBase):
         if len(metadata_files) > 0:
 
             if preprocess:
-                if not os.path.exists(os.path.join(self.path2database, 'publication')):
-                    os.mkdir(os.path.join(self.path2database, 'publication'))
 
-                if not os.path.exists(os.path.join(self.path2database, 'journal')):
-                    os.mkdir(os.path.join(self.path2database, 'journal'))
+                for hier_dir_type in [self.path2pub_df, self.path2journal_df, self.path2affiliation_df, self.path2paa_df, self.path2pub2field_df, self.path2fieldinfo_df]:
 
-                if not os.path.exists(os.path.join(self.path2database, 'affiliation')):
-                    os.mkdir(os.path.join(self.path2database, 'affiliation'))
-
-                if not os.path.exists(os.path.join(self.path2database, 'publicationauthoraffiliation')):
-                    os.mkdir(os.path.join(self.path2database, 'publicationauthoraffiliation'))
-
-                if not os.path.exists(os.path.join(self.path2database, 'pub2field')):
-                    os.mkdir(os.path.join(self.path2database, 'pub2field'))
-
-                if not os.path.exists(os.path.join(self.path2database, 'fieldinfo')):
-                    os.mkdir(os.path.join(self.path2database, 'fieldinfo'))
+                    if not os.path.exists(os.path.join(self.path2database, hier_dir_type)):
+                        os.mkdir(os.path.join(self.path2database, hier_dir_type))
 
 
             journal_dict = {}
@@ -302,23 +276,23 @@ class APS(BibDataBase):
                         outfile.write(json.dumps(pub2doctype).encode('utf8'))
 
 
-                journal_df.to_hdf(os.path.join(self.path2database, 'journal', 'journal0.hdf'), mode='w', key='journal')
+                journal_df.to_hdf(os.path.join(self.path2database, self.path2journal_df, 'journal0.hdf'), mode='w', key='journal')
 
-                affiliation_df.to_hdf(os.path.join(self.path2database, 'affiliation', 'affiliation0.hdf'), mode='w', key='affiliation')
+                affiliation_df.to_hdf(os.path.join(self.path2database, self.path2affiliation_df, 'affiliation0.hdf'), mode='w', key='affiliation')
 
-                paa_df.to_hdf(os.path.join(self.path2database, 'publicationauthoraffiliation', 'publicationauthoraffiliation0.hdf'), mode='w', key='publicationauthoraffiliation')
+                paa_df.to_hdf(os.path.join(self.path2database, self.path2paa_df, 'publicationauthoraffiliation0.hdf'), mode='w', key='publicationauthoraffiliation')
 
-                pub2field_df.to_hdf( os.path.join(self.path2database, 'pub2field', 'pub2field0.hdf'), mode='w', key='pub2field')
+                pub2field_df.to_hdf( os.path.join(self.path2database, self.path2pub2field_df, 'pub2field0.hdf'), mode='w', key='pub2field')
 
-                field_df.to_hdf( os.path.join(self.path2database, 'fieldinfo', 'fieldinfo0.hdf'), mode='w', key='pub2field')
+                field_df.to_hdf( os.path.join(self.path2database, self.path2fieldinfo_df, 'fieldinfo0.hdf'), mode='w', key='pub2field')
 
         else:
             raise FileNotFoundError('The archive {0} does not contain a metadata directory: {1}.'.format(archive_name, 'aps-dataset-metadata'))
 
     def parse_references(self, preprocess=False, pubid2int=False, archive_name='aps-dataset-citations-2019.zip', show_progress=False):
 
-        if preprocess and not os.path.exists(os.path.join(self.path2database, 'pub2ref')):
-            os.mkdir(os.path.join(self.path2database, 'pub2ref'))
+        if preprocess and not os.path.exists(os.path.join(self.path2database, self.path2pub2ref_df)):
+            os.mkdir(os.path.join(self.path2database, self.path2pub2ref_df))
 
         if pubid2int:
             with gzip.open(os.path.join(self.path2database, 'pub2int.json.gz'), 'r') as infile:
@@ -351,7 +325,7 @@ class APS(BibDataBase):
                         outfile.write(json.dumps(pub2int).encode('utf8'))
 
             if preprocess:
-                pub2ref.to_hdf(os.path.join(self.path2database, 'pub2ref', 'pub2ref0.hdf'), mode='w', key = 'pub2ref')
+                pub2ref.to_hdf(os.path.join(self.path2database, self.path2pub2ref_df, 'pub2ref0.hdf'), mode='w', key = 'pub2ref')
 
             return pub2ref
 

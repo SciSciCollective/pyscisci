@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 .. module:: diffusionscientificcredit
-    :synopsis: Set of functions for typical bibliometric citation analysis
+    :synopsis: Rank authors based on the pagerank within their citation graph.
 
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
  """
@@ -9,7 +9,7 @@
 import pandas as pd
 import numpy as np
 
-from pyscisci.utils import isin_sorted, groupby_count
+from pyscisci.utils import isin_sorted, groupby_count, groupby_total
 from pyscisci.network import cocitation_network
 from pyscisci.sparsenetworkutils import dataframe2bipartite, sparse_pagerank_scipy
 
@@ -108,7 +108,7 @@ def diffusion_of_scientific_credit(pub2ref_df, pub2author_df, pub_df=None, alpha
     weighted_productivity['AuthorCreditTotal'] = weighted_productivity['AuthorCreditTotal'] / weighted_productivity['AuthorCreditTotal'].sum()
 
     # run the power method to solve the diffusion 
-    sc = sparse_pagerank_scipy(adjmat, alpha= alpha, 
+    sc = sparse_pagerank_scipy(adj_mat, alpha= alpha, 
         personalization=weighted_productivity['AuthorCreditTotal'].values, 
         initialization=weighted_productivity['AuthorCreditTotal'].values,
                    max_iter=max_iter, tol=tol, dangling=None)

@@ -33,30 +33,12 @@ class DBLP(BibDataBase):
 
     def __init__(self, path2database='', keep_in_memory=False, global_filter=None, show_progress=True):
 
-        self.path2database = path2database
-        self.keep_in_memory = keep_in_memory
-        self.global_filter = None
-        self.show_progress = show_progress
-
-        self._affiliation_df = None
-        self._pub_df = None
-        self._journal_df = None
-        self._author_df = None
-        self._pub2year = None
-        self._pub2doctype = None
-        self._pub2ref_df = None
-        self._pub2refnoself_df = None
-        self._author2pub_df = None
-        self._paa_df = None
-        self._pub2field_df=None
-        self._fieldinfo_df = None
+        self._default_init(path2database, keep_in_memory, global_filter, show_progress)
 
         self.PublicationIdType = int
         self.AffiliationIdType = int
         self.AuthorIdType = str
 
-        if not global_filter is None:
-            self.set_global_filters(global_filter)
 
     def _blank_dblp_publication(self, PublicationId = 0):
         record = {}
@@ -80,15 +62,15 @@ class DBLP(BibDataBase):
         publication_df['Year'] = publication_df['Year'].astype(int)
         publication_df['Volume'] = pd.to_numeric(publication_df['Volume'])
         publication_df['TeamSize'] = publication_df['TeamSize'].astype(int)
-        publication_df.to_hdf( os.path.join(self.path2database,'publication', 'publication{}.hdf'.format(ifile)), key = 'pub', mode='w')
+        publication_df.to_hdf( os.path.join(self.path2database, self.path2pub_df, 'publication{}.hdf'.format(ifile)), key = 'pub', mode='w')
 
 
         author_df = pd.DataFrame(author_df, columns = author_columns)
         author_df['AuthorId'] = author_df['AuthorId'].astype(int)
-        author_df.to_hdf( os.path.join(self.path2database,'author', 'author{}.hdf'.format(ifile)), key = 'author', mode='w')
+        author_df.to_hdf( os.path.join(self.path2database, self.path2author_df, 'author{}.hdf'.format(ifile)), key = 'author', mode='w')
 
         author2pub_df = pd.DataFrame(author2pub_df, columns = ['PublicationId', 'AuthorId', 'AuthorSequence'], dtype=int)
-        author2pub_df.to_hdf( os.path.join(self.path2database,'publicationauthor', 'publicationauthor{}.hdf'.format(ifile)), key = 'pa', mode='w')
+        author2pub_df.to_hdf( os.path.join(self.path2database, self.path2paa_df, 'publicationauthor{}.hdf'.format(ifile)), key = 'pa', mode='w')
 
     def preprocess(self, xml_file_name = 'dblp.xml.gz', process_name=True, num_file_lines=10**6, show_progress=True):
         """
@@ -124,14 +106,10 @@ class DBLP(BibDataBase):
         if show_progress:
             print("Starting to preprocess the DBLP database.")
 
-        if not os.path.exists(os.path.join(self.path2database, 'publication')):
-            os.mkdir(os.path.join(self.path2database, 'publication'))
+        for hier_dir_type in [self.path2pub_df, self.path2author_df, self.path2paa_df]:
 
-        if not os.path.exists(os.path.join(self.path2database, 'author')):
-            os.mkdir(os.path.join(self.path2database, 'author'))
-
-        if not os.path.exists(os.path.join(self.path2database, 'publicationauthor')):
-            os.mkdir(os.path.join(self.path2database, 'publicationauthor'))
+            if not os.path.exists(os.path.join(self.path2database, hier_dir_type)):
+                os.mkdir(os.path.join(self.path2database, hier_dir_type))
 
         publication_df = []
         author_df = []

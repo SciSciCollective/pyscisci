@@ -34,30 +34,11 @@ class MAG(BibDataBase):
 
     def __init__(self, path2database = '', keep_in_memory = False, global_filter = None, show_progress=True):
 
-        self.path2database = path2database
-        self.keep_in_memory = keep_in_memory
-        self.global_filter = None
-        self.show_progress = show_progress
-
-        self._affiliation_df = None
-        self._pub_df = None
-        self._journal_df = None
-        self._author_df = None
-        self._pub2year = None
-        self._pub2doctype = None
-        self._pub2ref_df = None
-        self._pub2refnoself_df = None
-        self._author2pub_df = None
-        self._paa_df = None
-        self._pub2field_df = None
-        self._fieldinfo_df = None
+        self._default_init(path2database, keep_in_memory, global_filter, show_progress)
 
         self.PublicationIdType = int
         self.AffiliationIdType = int
         self.AuthorIdType = int
-
-        if not global_filter is None:
-            self.set_global_filters(global_filter)
 
     def preprocess(self, dflist = None, show_progress=True):
         """

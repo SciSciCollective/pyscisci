@@ -31,11 +31,14 @@ def load_html_str(s):
     if s is None:
         return ''
     else:
-        return unidecode(html.unescape(s))
+        return unidecode(html.unescape(s)).strip()
 
 def load_xml_text(root_element, default=''):
-    if len(root_element) == 0:
-        return default
+    if root_element is None or len(root_element) == 0:
+        try:
+            return root_element.text
+        except:
+            return default
     else:
         return root_element[0].text
 

@@ -9,10 +9,12 @@ The ``pySciSci`` package offers a unified interface to analyze several of the mo
 - [Clarivate Web of Science](https://clarivate.com/webofsciencegroup/solutions/web-of-science/) (WoS)
 - [DBLP](https://dblp.uni-trier.de)
 - [American Physical Society](https://journals.aps.org/datasets) (APS)
+- [PubMed](https://www.nlm.nih.gov/databases/download/pubmed_medline.html)
 
 The ``pySciSci`` also provides efficient implemntations of recent metrics developed to study scientific publications and authors, including:
 - H-index
 - Disruption Index
+- Author Pagerank
 - Collective credit allocation
 - Interdisciplinarity (RoaStirling)
 - Annual productivity trajectories
@@ -57,6 +59,11 @@ ToDo: explore Dask and pySpark implemenations for multiprocessing.
 Fortunato et al. (2018).
 [Science of Science](https://science.sciencemag.org/content/359/6379/eaao0185).
 Science, 359(6379), eaao0185.
+
+<a id="2">[2]</a>
+Wang & Barabasi (2021).
+[Science of Science](https://science.sciencemag.org/content/359/6379/eaao0185).
+Cambridge University Press.
 
 
 ## Credits

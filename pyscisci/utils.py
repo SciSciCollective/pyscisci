@@ -150,7 +150,7 @@ def groupby_total(df, colgroupby, colcountby, show_progress=False):
     tqdm.pandas(desc=desc, disable= not show_progress)
 
     newname_dict = zip2dict([str(colcountby), '0'], [str(colcountby)+'Total']*2)
-    return df.groupby(colgroupby, sort=False)[colrange].progress_apply(lambda x: x.sum()).to_frame().reset_index().rename(columns=newname_dict)
+    return df.groupby(colgroupby, sort=False)[colcountby].progress_apply(lambda x: x.sum()).to_frame().reset_index().rename(columns=newname_dict)
 
 def groupby_mean(df, colgroupby, colcountby, show_progress=False):
     """

@@ -18,5 +18,6 @@ from pyscisci.datasource.MAG import MAG
 from pyscisci.datasource.WOS import WOS
 from pyscisci.datasource.DBLP import DBLP
 from pyscisci.datasource.APS import APS
+from pyscisci.datasource.PubMed import PubMed
 from pyscisci.filter import *
 from pyscisci.visualization import *

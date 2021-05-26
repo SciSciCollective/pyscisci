@@ -50,10 +50,24 @@ class BibDataBase(object):
 
     def __init__(self, path2database = '', keep_in_memory = False, global_filter = None, show_progress=True):
 
+        self._default_init(path2database, keep_in_memory, global_filter, show_progress)
+        
+
+    def _default_init(self, path2database = '', keep_in_memory = False, global_filter = None, show_progress=True):
         self.path2database = path2database
         self.keep_in_memory = keep_in_memory
         self.global_filter = global_filter
         self.show_progress = show_progress
+
+        self.path2author_df = 'author'
+        self.path2pub_df = 'publication'
+        self.path2affiliation_df = 'affiliation'
+        self.path2pub2ref_df = 'pub2ref'
+        self.path2paa_df = 'publicationauthoraffiliation'
+        self.path2pub2field_df = 'pub2field'
+        self.path2journal_df = 'journal'
+        self.path2fieldinfo_df = 'fieldinfo'
+        self.path2impact_df = 'impact'
 
         self._affiliation_df = None
         self._pub_df = None
@@ -68,9 +82,34 @@ class BibDataBase(object):
         self._pub2field_df=None
         self._fieldinfo_df = None
 
+        self.PublicationIdType = int
+        self.AffiliationIdType = int
+        self.AuthorIdType = int
+
         if not global_filter is None:
             self.set_global_filters(global_filter)
 
+    def set_new_data_path(self, dataframe_name='', new_path=''):
+        if dataframe_name == 'author_df':
+            self.path2author_df = new_path
+        elif dataframe_name == 'pub_df':
+            self.path2pub_df = new_path
+        elif dataframe_name == 'affiliation_df':
+            self.path2affiliation_df = new_path
+        elif dataframe_name == 'pub2ref_df':
+            self.path2pub2ref_df = new_path
+        elif dataframe_name == 'paa_df':
+            self.path2paa_df = new_path
+        elif dataframe_name == 'pub2field_df':
+            self.path2pub2field_df = new_path
+        elif dataframe_name == 'fieldinfo_df':
+            self.path2fieldinfo_df = new_path
+        elif dataframe_name == 'journal_df':
+            self.path2journal_df = new_path
+        elif dataframe_name == 'impact_df':
+            self.path2impact_df = new_path
+        else:
+            print("Unrecognized DataFrame {}".format(dataframe_name))
 
     @property
     def affiliation_df(self):
@@ -397,8 +436,8 @@ class BibDataBase(object):
         if show_progress or self.show_progress:
             show_progress='Loading Affiliations'
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, 'affiliation')):
-            return load_preprocessed_data('affiliation', path2database=self.path2database, columns=columns,
+        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2affiliation_df)):
+            return load_preprocessed_data(self.path2affiliation_df, path2database=self.path2database, columns=columns,
                 filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
                 prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
         else:
@@ -445,8 +484,8 @@ class BibDataBase(object):
         if show_progress or self.show_progress:
             show_progress='Loading Authors'
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, 'author')):
-            return load_preprocessed_data('author', path2database=self.path2database, columns=columns,
+        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2author_df)):
+            return load_preprocessed_data(self.path2author_df, path2database=self.path2database, columns=columns,
                 filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
                 prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
         else:
@@ -495,8 +534,8 @@ class BibDataBase(object):
             else:
                 filter_dict['PublicationId'] = np.sort(list(self.global_filter))
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, 'publication')):
-            return load_preprocessed_data(dataname='publication', path2database=self.path2database, columns=columns,
+        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2pub_df)):
+            return load_preprocessed_data(dataname=self.path2pub_df, path2database=self.path2database, columns=columns,
                 filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
                 prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
         else:
@@ -552,8 +591,8 @@ class BibDataBase(object):
         if show_progress or self.show_progress:
             show_progress='Loading Journals'
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, 'journal')):
-            return load_preprocessed_data('journal', path2database=self.path2database, columns=columns,
+        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2journal_df)):
+            return load_preprocessed_data(self.path2journal_df, path2database=self.path2database, columns=columns,
                 filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
                 prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
         else:
@@ -597,9 +636,9 @@ class BibDataBase(object):
 
         """
         if noselfcite:
-            fileprefix = 'pub2refnoself'
+            fileprefix = self.path2pub2ref_df + 'noself'
         else:
-            fileprefix = 'pub2ref'
+            fileprefix = self.path2pub2ref_df
 
         if not self.global_filter is None:
             if 'CitingPublicationId' in filter_dict:
@@ -665,8 +704,8 @@ class BibDataBase(object):
             else:
                 filter_dict['PublicationId'] = np.sort(list(self.global_filter))
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, 'publicationauthoraffiliation')):
-            return load_preprocessed_data('publicationauthoraffiliation', path2database=self.path2database, columns=columns,
+        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2paa_df)):
+            return load_preprocessed_data(self.path2paa_df, path2database=self.path2database, columns=columns,
                 filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
                 prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
         else:
@@ -715,8 +754,8 @@ class BibDataBase(object):
             else:
                 filter_dict['PublicationId'] = np.sort(list(self.global_filter))
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, 'pub2field')):
-            return load_preprocessed_data('pub2field', path2database=self.path2database, columns=columns,
+        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2pub2field_df)):
+            return load_preprocessed_data(self.path2pub2field_df, path2database=self.path2database, columns=columns,
                 filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
                 prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
         else:
@@ -758,8 +797,8 @@ class BibDataBase(object):
         if show_progress or self.show_progress:
             show_progress='Loading Field Info'
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, 'fieldinfo')):
-            return pd.read_hdf(os.path.join(self.path2database, 'fieldinfo', 'fieldinfo0.hdf'))
+        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2fieldinfo_df)):
+            return pd.read_hdf(os.path.join(self.path2database, self.path2fieldinfo_df, 'fieldinfo0.hdf'))
         else:
             return self.parse_fields()
 
@@ -819,8 +858,8 @@ class BibDataBase(object):
             def normfunc(impactdf):
                 return impactdf
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, 'impact')):
-            return load_preprocessed_data('impact', path2database=self.path2database, columns=columns,
+        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2impact_df)):
+            return load_preprocessed_data(self.path2impact_df, path2database=self.path2database, columns=columns,
                 filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
                 prefunc2apply=normfunc, show_progress=show_progress)
         else:
