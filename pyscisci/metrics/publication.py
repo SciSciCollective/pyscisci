@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-.. module:: citationanalysis
-    :synopsis: Set of functions for typical bibliometric citation analysis
+.. module:: publicationmetrics
+    :synopsis: Set of functions for the bibliometric analysis of publications
 
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
  """
@@ -26,27 +26,27 @@ from pyscisci.metrics.longtermimpact import *
 
 def citation_rank(df, colgroupby='Year', colrankby='C10', ascending=True, normed=False, show_progress=False):
     """
-    Rank elements in the array from 0 (smallest) to N -1 (largest)
+    Rank publications by the number of citations (smallest) to N -1 (largest)
 
     Parameters
     ----------
-    :param df : DataFrame
+    df : DataFrame
         A DataFrame with the citation information for each Publication.
 
-    :param colgroupby : str, list
+    colgroupby : str, list
         The DataFrame column(s) to subset by.
 
-    :param colrankby : str
+    colrankby : str
         The DataFrame column to rank by.
 
-    :param ascending : bool, default True
+    ascending : bool, default True
         Sort ascending vs. descending.
 
-    :param normed : bool, default False
-        False : rank is from 0 to N -1
-        True : rank is from 0 to 1
+    normed : bool, default False
+        - False : rank is from 0 to N -1
+        - True : rank is from 0 to 1
 
-    :param show_progress : bool, default False
+    show_progress : bool, default False
         If True, show a progress bar tracking the calculation.
 
     Returns

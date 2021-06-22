@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-.. module:: citationanalysis
-    :synopsis: Set of functions for typical bibliometric citation analysis
+.. module:: authormetrics
+    :synopsis: Set of functions for the bibliometric analysis of authors
 
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
  """
@@ -29,13 +29,13 @@ def author_productivity(pub2author_df, colgroupby = 'AuthorId', colcountby = 'Pu
 
     Parameters
     ----------
-    :param pub2author_df : DataFrame, default None, Optional
+    pub2author_df : DataFrame, default None, Optional
         A DataFrame with the author2publication information.
 
-    :param colgroupby : str, default 'AuthorId', Optional
+    colgroupby : str, default 'AuthorId', Optional
         The DataFrame column with Author Ids.  If None then the database 'AuthorId' is used.
 
-    :param colcountby : str, default 'PublicationId', Optional
+    colcountby : str, default 'PublicationId', Optional
         The DataFrame column with Publication Ids.  If None then the database 'PublicationId' is used.
 
 
@@ -59,16 +59,16 @@ def author_yearly_productivity(pub2author_df, colgroupby = 'AuthorId', datecol =
 
     Parameters
     ----------
-    :param pub2author_df : DataFrame, default None, Optional
+    pub2author_df : DataFrame, default None, Optional
         A DataFrame with the author2publication information.
 
-    :param colgroupby : str, default 'AuthorId', Optional
+    colgroupby : str, default 'AuthorId', Optional
         The DataFrame column with Author Ids.  If None then the database 'AuthorId' is used.
 
-    :param datecol : str, default 'Year', Optional
+    datecol : str, default 'Year', Optional
         The DataFrame column with Year information.  If None then the database 'Year' is used.
 
-    :param colcountby : str, default 'PublicationId', Optional
+    colcountby : str, default 'PublicationId', Optional
         The DataFrame column with Publication Ids.  If None then the database 'PublicationId' is used.
 
     Returns
@@ -92,13 +92,13 @@ def author_career_length(pub2author_df = None, colgroupby = 'AuthorId', datecol 
 
     Parameters
     ----------
-    :param pub2author_df : DataFrame, default None, Optional
+    pub2author_df : DataFrame, default None, Optional
         A DataFrame with the author2publication information.
 
-    :param colgroupby : str, default 'AuthorId', Optional
+    colgroupby : str, default 'AuthorId', Optional
         The DataFrame column with Author Ids.  If None then the database 'AuthorId' is used.
 
-    :param datecol : str, default 'Year', Optional
+    datecol : str, default 'Year', Optional
         The DataFrame column with Date information.  If None then the database 'Year' is used.
 
     Returns
@@ -121,13 +121,13 @@ def author_startyear(pub2author_df = None, colgroupby = 'AuthorId', datecol = 'Y
 
     Parameters
     ----------
-    :param pub2author_df : DataFrame, default None, Optional
+    pub2author_df : DataFrame, default None, Optional
         A DataFrame with the author2publication information.
 
-    :param colgroupby : str, default 'AuthorId', Optional
+    colgroupby : str, default 'AuthorId', Optional
         The DataFrame column with Author Ids.  If None then the database 'AuthorId' is used.
 
-    :param datecol : str, default 'Year', Optional
+    datecol : str, default 'Year', Optional
         The DataFrame column with Date information.  If None then the database 'Year' is used.
 
     Returns
@@ -146,13 +146,13 @@ def author_endyear(pub2author_df = None, colgroupby = 'AuthorId', datecol = 'Yea
 
     Parameters
     ----------
-    :param pub2author_df : DataFrame, default None, Optional
+    pub2author_df : DataFrame, default None, Optional
         A DataFrame with the author2publication information.
 
-    :param colgroupby : str, default 'AuthorId', Optional
+    colgroupby : str, default 'AuthorId', Optional
         The DataFrame column with Author Ids.  If None then the database 'AuthorId' is used.
 
-    :param datecol : str, default 'Year', Optional
+    datecol : str, default 'Year', Optional
         The DataFrame column with Date information.  If None then the database 'Year' is used.
 
     Returns
@@ -168,22 +168,22 @@ def author_endyear(pub2author_df = None, colgroupby = 'AuthorId', datecol = 'Yea
 
 def author_productivity_trajectory(pub2author_df, colgroupby = 'AuthorId', datecol = 'Year', colcountby = 'PublicationId', show_progress=False):
     """
-    Calculate the author yearly productivity trajectory.  See :cite:`way2017misleading`
+    Calculate the author yearly productivity trajectory.  See :cite:p:`way2017misleading`
 
     The algorithmic implementation can be found in :py:func:`metrics.compute_yearly_productivity_traj`.
 
     Parameters
     ----------
-    :param pub2author_df : DataFrame, default None
+    pub2author_df : DataFrame, default None
         A DataFrame with the author2publication information.
 
-    :param colgroupby : str, default 'AuthorId'
+    colgroupby : str, default 'AuthorId'
         The DataFrame column with Author Ids.  If None then the database 'AuthorId' is used.
 
-    :param datecol : str, default 'Year'
+    datecol : str, default 'Year'
         The DataFrame column with Date information.  If None then the database 'Year' is used.
 
-    :param colcountby : str, default 'PublicationId'
+    colcountby : str, default 'PublicationId'
         The DataFrame column with Publication Ids.  If None then the database 'PublicationId' is used.
 
     Returns
@@ -202,17 +202,17 @@ def author_hindex(pub2author_df, impact_df=None, colgroupby = 'AuthorId', colcou
     """
     Calculate the author yearly productivity trajectory.  See :cite:`hirsch2005index` for the derivation.
 
-    The algorithmic implementation can be found in :py:func:`citationanalysis.compute_hindex`.
+    The algorithmic implementation can be found in :py:func:`metrics.hindex`.
 
     Parameters
     ----------
-    :param df : DataFrame, default None, Optional
+    df : DataFrame, default None, Optional
         A DataFrame with the author2publication information.  If None then the database 'author2pub_df' is used.
 
-    :param colgroupby : str, default 'AuthorId', Optional
+    colgroupby : str, default 'AuthorId', Optional
         The DataFrame column with Author Ids.  If None then the database 'AuthorId' is used.
 
-    :param colcountby : str, default 'Ctotal', Optional
+    colcountby : str, default 'Ctotal', Optional
         The DataFrame column with Citation counts for each publication.  If None then the database 'Ctotal' is used.
 
     Returns
@@ -234,19 +234,19 @@ def author_hindex(pub2author_df, impact_df=None, colgroupby = 'AuthorId', colcou
 
 def author_qfactor(pub2author_df, impact_df=None, colgroupby = 'AuthorId', colcountby = 'Ctotal', show_progress=False):
     """
-    Calculate the author yearly productivity trajectory.  See :cite:`hirsch2005index` for the derivation.
+    Calculate the author yearly productivity trajectory.  See :cite:`Sinatra2016qfactor` for the derivation.
 
-    The algorithmic implementation can be found in :py:func:`citationanalysis.compute_hindex`.
+    The algorithmic implementation can be found in :py:func:`metrics.qfactor`.
 
     Parameters
     ----------
-    :param df : DataFrame, default None, Optional
+    df : DataFrame, default None, Optional
         A DataFrame with the author2publication information.  If None then the database 'author2pub_df' is used.
 
-    :param colgroupby : str, default 'AuthorId', Optional
+    colgroupby : str, default 'AuthorId', Optional
         The DataFrame column with Author Ids.  If None then the database 'AuthorId' is used.
 
-    :param colcountby : str, default 'Ctotal', Optional
+    colcountby : str, default 'Ctotal', Optional
         The DataFrame column with Citation counts for each publication.  If None then the database 'Ctotal' is used.
 
     Returns
@@ -272,19 +272,19 @@ def author_top_field(pub2author_df, colgroupby = 'AuthorId', colcountby = 'Field
 
     Parameters
     ----------
-    :param pub2author_df : DataFrame
+    pub2author_df : DataFrame
         A DataFrame with the author2publication field information.
 
-    :param colgroupby : str, default 'AuthorId'
+    colgroupby : str, default 'AuthorId'
         The DataFrame column with Author Ids.  If None then the database 'AuthorId' is used.
 
-    :param colcountby : str, default 'FieldId'
+    colcountby : str, default 'FieldId'
         The DataFrame column with Citation counts for each publication.  If None then the database 'FieldId' is used.
 
-    :param fractional_field_counts : bool, default False
+    fractional_field_counts : bool, default False
         How to count publications that are assigned to multiple fields:
-            If False, each publication-field assignment is counted once.
-            If True, each publication is counted once, contributing 1/#fields to each field.
+            - If False, each publication-field assignment is counted once.
+            - If True, each publication is counted once, contributing 1/#fields to each field.
 
     Returns
     -------

@@ -46,10 +46,10 @@ class MAG(BibDataBase):
 
         Parameters
         ----------
-        :param dflist: list, default None
+        dflist: list, default None
             The list of DataFrames to preprocess.  If None, all MAG DataFrames are preprocessed.
 
-        :param show_progress: bool, default True
+        show_progress: bool, default True
             Show progress with processing of the data.
 
         """
@@ -84,10 +84,10 @@ class MAG(BibDataBase):
 
         Parameters
         ----------
-        :param preprocess: bool, default True
+        preprocess: bool, default True
             Save the processed data in new DataFrames.
 
-        :param show_progress: bool, default True
+        show_progress: bool, default True
             Show progress with processing of the data.
 
 
@@ -133,17 +133,17 @@ class MAG(BibDataBase):
 
         Parameters
         ----------
-        :param preprocess: bool, default True
+        preprocess: bool, default True
             Save the processed data in new DataFrames.
 
-        :param process_name: bool, default True
+        process_name: bool, default True
             If True, then when processing the raw file, the package `NameParser <https://nameparser.readthedocs.io/en/latest/>`_
             will be used to split author FullNames.
 
-        :param num_file_lines: int, default 5*10**6
+        num_file_lines: int, default 5*10**6
             The processed data will be saved into smaller DataFrames, each with `num_file_lines` rows.
 
-        :param show_progress: bool, default True
+        show_progress: bool, default True
             Show progress with processing of the data.
 
         Returns
@@ -210,16 +210,16 @@ class MAG(BibDataBase):
 
         Parameters
         ----------
-        :param preprocess: bool, default True
+        preprocess: bool, default True
             Save the processed data in new DataFrames.
 
-        :param num_file_lines: int, default 5*10**6
+        num_file_lines: int, default 5*10**6
             The processed data will be saved into smaller DataFrames, each with `num_file_lines` rows.
 
-        :param preprocess_dicts: bool, default True
+        preprocess_dicts: bool, default True
             Save the processed Year and DocType data as dictionaries.
 
-        :param show_progress: bool, default True
+        show_progress: bool, default True
             Show progress with processing of the data.
 
         Returns
@@ -319,13 +319,13 @@ class MAG(BibDataBase):
 
         Parameters
         ----------
-        :param preprocess: bool, default True
+        preprocess: bool, default True
             Save the processed data in new DataFrames.
 
-        :param num_file_lines: int, default 10**7
+        num_file_lines: int, default 10**7
             The processed data will be saved into smaller DataFrames, each with `num_file_lines` rows.
 
-        :param show_progress: bool, default True
+        show_progress: bool, default True
             Show progress with processing of the data.
 
         Returns
@@ -375,13 +375,13 @@ class MAG(BibDataBase):
 
         Parameters
         ----------
-        :param preprocess: bool, default True
+        preprocess: bool, default True
             Save the processed data in new DataFrames.
 
-        :param num_file_lines: int, default 10**7
+        num_file_lines: int, default 10**7
             The processed data will be saved into smaller DataFrames, each with `num_file_lines` rows.
 
-        :param show_progress: bool, default True
+        show_progress: bool, default True
             Show progress with processing of the data.
 
         Returns
@@ -433,13 +433,13 @@ class MAG(BibDataBase):
 
         Parameters
         ----------
-        :param preprocess: bool, default True
+        preprocess: bool, default True
             Save the processed data in new DataFrames.
 
-        :param num_file_lines: int, default 10**7
+        num_file_lines: int, default 10**7
             The processed data will be saved into smaller DataFrames, each with `num_file_lines` rows.
 
-        :param show_progress: bool, default True
+        show_progress: bool, default True
             Show progress with processing of the data.
 
         Returns

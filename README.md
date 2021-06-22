@@ -46,7 +46,7 @@ Pull and install in the current directory:
 
 ToDo
 
-## Computational Requirnments
+## Computational Requirements
 
 Currently, the ``pySciSci`` is built ontop of pandas, and keeps entire dataframes in working memory.  We have found that most large-scale analyzes require more computational power and RAM than available on a typical personal computer.   Consider running on a cloud computing platform (Google Cloud, Microsoft Azure, Amazon Web Services, etc).
 
@@ -74,7 +74,7 @@ with the help of many others. Thanks to everyone who has improved ``pySciSci`` b
 
 **Original Author**
 
-- [Alexander Gates](http://alexandergates.net/), GitHub: [ajgates42](https://github.com/ajgates42)
+- [Alexander Gates](https://alexandergates.net/), GitHub: [ajgates42](https://github.com/ajgates42)
 
 
 **Contributors**
@@ -83,6 +83,7 @@ Optionally, add your desired name and include a few relevant links. The order
 is an attempt at historical ordering.
 
 - Jisung Yoon, GitHub: [jisungyoon](https://github.com/jisungyoon)
+- Kishore Vasan, GitHub: [kishorevasan](https://github.com/kishorevasan)
 
 Support
 -------

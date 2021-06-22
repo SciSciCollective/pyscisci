@@ -80,3 +80,12 @@ class FieldFilter(SetFilter):
 		
 		self.field = 'FieldId'
 		self.value_set=set(valid_fields)
+
+class JournalFilter(SetFilter):
+
+	def __init__(self, valid_journals=[]):
+		
+		self.field = 'JournalId'
+		self.value_set=set(valid_journals)
+
+

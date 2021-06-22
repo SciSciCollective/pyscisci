@@ -78,17 +78,17 @@ class DBLP(BibDataBase):
 
         Parameters
         ----------
-        :param process_name: bool, default True
+        process_name: bool, default True
             If True, then when processing the raw file, the package `NameParser <https://nameparser.readthedocs.io/en/latest/>`_
             will be used to split author FullNames.
 
-        :param xml_file_name: str, default 'dblp.xml.gz'
+        xml_file_name: str, default 'dblp.xml.gz'
             The xml file name.
 
-        :param num_file_lines: int, default 10**6
+        num_file_lines: int, default 10**6
             The processed data will be saved into smaller DataFrames, each with `num_file_lines` rows.
 
-        :param show_progress: bool, default True
+        show_progress: bool, default True
             Show progress with processing of the data.
 
         """
@@ -252,16 +252,16 @@ class DBLP(BibDataBase):
 
         Parameters
         ----------
-        :param source_url: str, default 'https://dblp.uni-trier.de/xml/'
+        source_url: str, default 'https://dblp.uni-trier.de/xml/'
             The base url from which to download.
 
-        :param xml_file_name: str, default 'dblp.xml.gz'
+        xml_file_name: str, default 'dblp.xml.gz'
             The xml file name.
 
-        :param dtd_file_name: str, default 'dblp.dtd'
+        dtd_file_name: str, default 'dblp.dtd'
             The dtd file name.
 
-        :param show_progress: bool, default True
+        show_progress: bool, default True
             Show progress with processing of the data.
 
         """
@@ -306,9 +306,9 @@ class DBLP(BibDataBase):
         """
         The DataFrame keeping all publication, author relationships.  Columns may depend on the specific datasource.
 
-        Columns
+        Notes
         -------
-        'PublicationId', 'AuthorId', 'AuthorOrder'
+        columns: 'PublicationId', 'AuthorId', 'AuthorOrder'
 
         """
         if self._author2pub_df is None:

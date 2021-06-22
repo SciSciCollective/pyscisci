@@ -29,38 +29,39 @@ def coauthorship_network(paa_df, focus_author_ids=None, focus_constraint='author
 
     Parameters
     ----------
-    :param paa_df : DataFrame
+    paa_df : DataFrame
         A DataFrame with the links between authors and publications.
 
-    :param focus_author_ids : numpy array or list, default None
+    focus_author_ids : numpy array or list, default None
         A list of the AuthorIds to seed the coauthorship-network.
 
-    :param focus_constraint : str, default `authors`
+    focus_constraint : str, default 'authors'
         If focus_author_ids is not None:
-            `authors` : the `focus_author_ids' defines the node set, giving only the co-authorships between authors in the set.
-            `publications` : the publication history of `focus_author_ids' defines the edge set, giving the co-authorhips where at least
-                                one author from `focus_author_ids' was involved.
-            'ego' : the `focus_author_ids' defines a seed set, such that all authors must have co-authored at least one publication with
-                                an author from `focus_author_ids', but co-authorships are also found between the second-order author sets.
+            - 'authors' : the 'focus_author_ids' defines the node set, giving only the co-authorships between authors in the set.
+            - 'publications' : the publication history of `focus_author_ids' defines the edge set, giving the co-authorhips where at least one author from `focus_author_ids' was involved.
+            - 'ego' : the 'focus_author_ids' defines a seed set, such that all authors must have co-authored at least one publication with an author from `focus_author_ids', but co-authorships are also found between the second-order author sets.
 
-    :param temporal : bool, default False
+    temporal : bool, default False
         If True, compute the adjacency matrix using only publications for each year.
 
-    :param show_progress : bool, default False
+    show_progress : bool, default False
         If True, show a progress bar tracking the calculation.
 
+ 
 
     Returns
     -------
     coo_matrix or dict of coo_matrix
         If temporal == False:
             The adjacency matrix for the co-authorship network
-
         If temporal == True:
             A dictionary with key for each year, and value of the adjacency matrix for the co-authorship network induced by publications in that year.
-
     author2int, dict
         A mapping of AuthorIds to the row/column of the adjacency matrix.
+
+
+    |
+    
 
     """
     required_columns = ['AuthorId', 'PublicationId']
@@ -146,10 +147,10 @@ def extract_multiscale_backbone(Xs, alpha):
 
     Parameters
     ----------
-    :param Xs : numpy.array or sp.sparse matrix
+    Xs : numpy.array or sp.sparse matrix
         The adjacency matrix for the network.
 
-    :param alpha : float
+    alpha : float
         The significance value.
 
 
@@ -157,6 +158,11 @@ def extract_multiscale_backbone(Xs, alpha):
     -------
     coo_matrix
         The directed, weighted multiscale backbone
+
+
+
+    |
+    
 
     """
 
@@ -184,27 +190,29 @@ def cocitation_network(pub2ref_df, focus_pub_ids=None, focus_constraint='citing'
     """
     Create the co-citation network.
 
+
     Parameters
     ----------
-    :param pub2ref_df : DataFrame
+    pub2ref_df : DataFrame
         A DataFrame with the links between authors and publications.
 
-    :param focus_pub_ids : numpy array or list, default None
+    focus_pub_ids : numpy array or list, default None
         A list of the PublicationIds to seed the cocitation-network.
 
-    :param focus_constraint : str, default `citing`
-        If focus_author_ids is not None:
-            `citing` : the `focus_pub_ids' defines the citation set, giving only the co-citations between the references
+    focus_constraint : str, default 'citing'
+        If focus_author_ids is not None
+            -'citing' : the 'focus_pub_ids' defines the citation set, giving only the co-citations between the references
                 of the publications from this set.
-            `cited` : the `focus_pub_ids' defines the cocitation node set.
-            'egocited' : the `focus_pub_ids' defines a seed set, such that all other publications must have been co-citeed with
+            -'cited' : the 'focus_pub_ids' defines the cocitation node set.
+            -'egocited' : the 'focus_pub_ids' defines a seed set, such that all other publications must have been co-citeed with
                 at least one publication from this set.
 
-    :param temporal : bool, default False
+    temporal : bool, default False
         If True, compute the adjacency matrix using only publications for each year.
 
-    :param show_progress : bool, default False
+    show_progress : bool, default False
         If True, show a progress bar tracking the calculation.
+
 
 
     Returns
@@ -296,31 +304,39 @@ def cociting_network(pub2ref_df, focus_pub_ids=None, focus_constraint='citing', 
     """
     Create the co-citing network.  Each node is a publication, two publications are linked if they cite the same article.
 
+
     Parameters
     ----------
-    :param pub2ref_df : DataFrame
+
+    pub2ref_df : DataFrame
         A DataFrame with the links between authors and publications.
 
-    :param focus_pub_ids : numpy array or list, default None
+    focus_pub_ids : numpy array or list, default None
         A list of the PublicationIds to seed the cocitation-network.
 
-    :param focus_constraint : str, default `citing`
-        If focus_author_ids is not None:
-            `citing` : the `focus_pub_ids' defines the citation set, giving only the co-citations between the references
+    focus_constraint : str, default 'citing'
+        If focus_author_ids is not None
+            - 'citing' : the 'focus_pub_ids' defines the citation set, giving only the co-citations between the references
                 of the publications from this set.
-            `cited` : the `focus_pub_ids' defines the cocitation node set.
+            - 'cited' : the 'focus_pub_ids' defines the cocitation node set.
 
-    :param show_progress : bool, default False
+    show_progress : bool, default False
         If True, show a progress bar tracking the calculation.
 
 
     Returns
     -------
+
     coo_matrix or dict of coo_matrix
         The adjacency matrix for the co-citing network
 
     pub2int, dict
         A mapping of PublicationIds to the row/column of the adjacency matrix.
+
+
+
+    |
+    
 
     """
     required_columns = ['CitedPublicationId', 'CitingPublicationId']
