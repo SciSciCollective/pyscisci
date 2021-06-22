@@ -18,7 +18,3 @@ python:
    version: 3.9
    install:
    - requirements: docs/requirements.txt
-   - method: pip3
-        path: .
-        extra_requirements:
-         - docs
