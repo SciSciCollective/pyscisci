@@ -1,7 +1,5 @@
 # pySciSci
 
-Note: Package is currently under construction.
-
 "The Science of Science (SciSci) is based on a transdisciplinary approach that uses large data sets to study the mechanisms underlying the doing of science—from the choice of a research problem to career trajectories and progress within a field"[[1]](#1).
 
 The ``pySciSci`` package offers a unified interface to analyze several of the most common Bibliometric DataBases used in the Science of Science, including:
@@ -32,6 +30,8 @@ Natural Language Processing
 - Author matching
 
 
+
+
 ## Installation
 
 ### Latest development release on GitHub
@@ -52,7 +52,15 @@ Currently, the ``pySciSci`` is built ontop of pandas, and keeps entire dataframe
 
 ToDo: explore Dask and pySpark implemenations for multiprocessing.
 
+## Help and Support
 
+### Documentation
+ - HTML documentation is available [readthedocs](https://pyscisci.readthedocs.io/en/latest/).
+
+### Questions
+ - Email: Alex Gates (ajgates42@gmail.com)
+
+ 
 ## References
 
 <a id="1">[1]</a>
