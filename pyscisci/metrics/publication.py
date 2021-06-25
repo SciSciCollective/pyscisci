@@ -17,12 +17,13 @@ if 'ipykernel' in sys.modules:
 else:
     from tqdm import tqdm
 
-from pyscisci.utils import rank_array
+from pyscisci.utils import rank_array, check4columns
 
 from pyscisci.metrics.raostirling import *
 from pyscisci.metrics.creditshare import *
 from pyscisci.metrics.disruption import *
 from pyscisci.metrics.longtermimpact import *
+from pyscisci.metrics.sleepingbeauty import *
 
 def citation_rank(df, colgroupby='Year', colrankby='C10', ascending=True, normed=False, show_progress=False):
     """
@@ -60,3 +61,36 @@ def citation_rank(df, colgroupby='Year', colrankby='C10', ascending=True, normed
 
     df[str(colrankby)+"Rank"] = df.groupby(colgroupby)[colrankby].progress_transform(lambda x: rank_array(x, ascending, normed))
     return df
+
+def publication_beauty(pub2ref_df, colgroupby = 'CitedPublicationId', colcountby = 'CitingPublicationId', show_progress=False):
+    """
+    Calculate the sleeping beauty and awakening time for each cited publication.  See :cite:`Sinatra2016qfactor` for the derivation.
+
+    The algorithmic implementation can be found in :py:func:`metrics.qfactor`.
+
+    Parameters
+    ----------
+    pub2ref_df : DataFrame, default None, Optional
+        A DataFrame with the temporal citing information information.
+
+    colgroupby : str, default 'CitedPublicationId', Optional
+        The DataFrame column with Author Ids.  If None then the database 'CitedPublicationId' is used.
+
+    colcountby : str, default 'CitingPublicationId', Optional
+        The DataFrame column with Citation counts for each publication.  If None then the database 'CitingPublicationId' is used.
+
+    Returns
+    -------
+    DataFrame
+        Trajectory DataFrame with 2 columns: 'AuthorId', 'Hindex'
+
+    """
+
+    check4columns(pub2ref_df, ['CitedPublicationId', 'CitingPublicationId', 'CitingYear'])
+
+    tqdm.pandas(desc='Beauty', disable= not show_progress)
+
+    df = groupby_count(pub2ref_df, colgroupby = ['CitedPublicationId', 'CitingYear'], colcountby = 'CitingPublicationId', count_unique = True)
+
+    newname_dict = zip2dict([str(colcountby), '0', '1'], [str(colgroupby)+'Beauty']*2 + ['Awakening'])
+    return df.groupby(colgroupby)[colcountby + 'Count'].progress_transform(beauty_coefficient).rename(columns=newname_dict)

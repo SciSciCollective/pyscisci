@@ -16,6 +16,7 @@ The ``pySciSci`` also provides efficient implemntations of recent metrics develo
 - Collective credit allocation
 - Interdisciplinarity (RoaStirling)
 - Annual productivity trajectories
+- Sleeping Beauty Coefficient
 - Novelty & Conventionality, ToDo
 - Q-factor, ToDo
 ...
