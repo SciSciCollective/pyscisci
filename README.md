@@ -1,7 +1,5 @@
 # pySciSci
 
-Note: Package is currently under construction.
-
 "The Science of Science (SciSci) is based on a transdisciplinary approach that uses large data sets to study the mechanisms underlying the doing of science—from the choice of a research problem to career trajectories and progress within a field"[[1]](#1).
 
 The ``pySciSci`` package offers a unified interface to analyze several of the most common Bibliometric DataBases used in the Science of Science, including:
@@ -32,6 +30,8 @@ Natural Language Processing
 - Author matching
 
 
+
+
 ## Installation
 
 ### Latest development release on GitHub
@@ -46,13 +46,21 @@ Pull and install in the current directory:
 
 ToDo
 
-## Computational Requirnments
+## Computational Requirements
 
 Currently, the ``pySciSci`` is built ontop of pandas, and keeps entire dataframes in working memory.  We have found that most large-scale analyzes require more computational power and RAM than available on a typical personal computer.   Consider running on a cloud computing platform (Google Cloud, Microsoft Azure, Amazon Web Services, etc).
 
 ToDo: explore Dask and pySpark implemenations for multiprocessing.
 
+## Help and Support
 
+### Documentation
+ - HTML documentation is available [readthedocs](https://pyscisci.readthedocs.io/en/latest/).
+
+### Questions
+ - Email: Alex Gates (ajgates42@gmail.com)
+
+ 
 ## References
 
 <a id="1">[1]</a>
@@ -74,7 +82,7 @@ with the help of many others. Thanks to everyone who has improved ``pySciSci`` b
 
 **Original Author**
 
-- [Alexander Gates](http://alexandergates.net/), GitHub: [ajgates42](https://github.com/ajgates42)
+- [Alexander Gates](https://alexandergates.net/), GitHub: [ajgates42](https://github.com/ajgates42)
 
 
 **Contributors**
@@ -83,6 +91,7 @@ Optionally, add your desired name and include a few relevant links. The order
 is an attempt at historical ordering.
 
 - Jisung Yoon, GitHub: [jisungyoon](https://github.com/jisungyoon)
+- Kishore Vasan, GitHub: [kishorevasan](https://github.com/kishorevasan)
 
 Support
 -------

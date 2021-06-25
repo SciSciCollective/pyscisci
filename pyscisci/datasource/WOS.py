@@ -108,21 +108,21 @@ class WOS(BibDataBase):
     def preprocess(self, xml_directory = 'RawXML', name_space = 'http://scientific.thomsonreuters.com/schema/wok5.4/public/FullRecord',
         process_name=True, num_file_lines=10**6, show_progress=True):
         """
-        Bulk preprocess of the DBLP raw data.
+        Bulk preprocess of the Web of Science raw data.
 
         Parameters
         ----------
-        :param process_name: bool, default True
+        process_name: bool, default True
             If True, then when processing the raw file, the package `NameParser <https://nameparser.readthedocs.io/en/latest/>`_
             will be used to split author FullNames.
 
-        :param xml_file_name: str, default 'dblp.xml.gz'
+        xml_file_name: str, default 'dblp.xml.gz'
             The xml file name.
 
-        :param num_file_lines: int, default 10**6
+        num_file_lines: int, default 10**6
             The processed data will be saved into smaller DataFrames, each with `num_file_lines` rows.
 
-        :param show_progress: bool, default True
+        show_progress: bool, default True
             Show progress with processing of the data.
 
         """

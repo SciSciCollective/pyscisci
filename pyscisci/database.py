@@ -5,6 +5,7 @@
 
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
  """
+
 import os
 import json
 import gzip
@@ -20,7 +21,6 @@ from pyscisci.datasource.readwrite import load_preprocessed_data, append_to_prep
 from pyscisci.filter import *
 
 class BibDataBase(object):
-
     """
     Base class for all bibliometric database interfaces.
 
@@ -32,20 +32,27 @@ class BibDataBase(object):
         3. *Processing* Functions that calculate advanced data types from the raw files
         4. *Analysis* Functions that calculate Science of Science metrics.
 
+    |
+
     Parameters
     -------
 
-    :param path2database: str
+    path2database: str
         The path to the database files
 
-    :param keep_in_memory: bool, default False
+    keep_in_memory: bool, default False
         Flag to keep database files in memory once loaded
 
-    :param global_filter: dict or Filter
+    global_filter: dict or Filter
         Set of conditions to apply globally.
 
-    :param show_progress: bool, default True
+    show_progress: bool, default True
         Flag to show progress of loading, processing, and calculations.
+    
+
+    |
+
+
     """
 
     def __init__(self, path2database = '', keep_in_memory = False, global_filter = None, show_progress=True):
@@ -56,7 +63,7 @@ class BibDataBase(object):
     def _default_init(self, path2database = '', keep_in_memory = False, global_filter = None, show_progress=True):
         self.path2database = path2database
         self.keep_in_memory = keep_in_memory
-        self.global_filter = global_filter
+        self.global_filter = None
         self.show_progress = show_progress
 
         self.path2author_df = 'author'
@@ -116,9 +123,12 @@ class BibDataBase(object):
         """
         The DataFrame keeping affiliation information. Columns may depend on the specific datasource.
 
-        Columns
-        -------
-        'AffiliationId', 'NumberPublications', 'NumberCitations', 'FullName', 'GridId', 'OfficialPage', 'WikiPage', 'Latitude', 'Longitude'
+        Notes
+        --------
+        columns: 'AffiliationId', 'NumberPublications', 'NumberCitations', 'FullName', 'GridId', 'OfficialPage', 'WikiPage', 'Latitude', 'Longitude'
+
+        
+        |
 
         """
         if self._affiliation_df is None:
@@ -135,9 +145,12 @@ class BibDataBase(object):
         """
         The DataFrame keeping author information. Columns may depend on the specific datasource.
 
-        Columns
-        -------
-        'AuthorId', 'LastKnownAffiliationId', 'NumberPublications', 'NumberCitations', 'FullName', 'LastName', 'FirstName', 'MiddleName'
+        Notes
+        --------
+        columns: 'AuthorId', 'LastKnownAffiliationId', 'NumberPublications', 'NumberCitations', 'FullName', 'LastName', 'FirstName', 'MiddleName'
+
+
+        |
 
         """
         if self._author_df is None:
@@ -153,9 +166,12 @@ class BibDataBase(object):
         """
         The DataFrame keeping publication information. Columns may depend on the specific datasource.
 
-        Columns
+        Notes
         -------
-        'PublicationId', 'Year', 'JournalId', 'FamilyId', 'Doi', 'Title', 'Date', 'Volume', 'Issue', 'DocType'
+        columns: 'PublicationId', 'Year', 'JournalId', 'FamilyId', 'Doi', 'Title', 'Date', 'Volume', 'Issue', 'DocType'
+
+        
+        |
 
         """
         if self._pub_df is None:
@@ -171,10 +187,6 @@ class BibDataBase(object):
         """
         A dictionary mapping PublicationId to Year.
 
-        Columns
-        -------
-        'Journal': 'j', 'Book':'b', '':'', 'BookChapter':'bc', 'Conference':'c', 'Dataset':'d', 'Patent':'p', 'Repository':'r'
-
         """
         if self._pub2year is None:
             if self.keep_in_memory:
@@ -188,8 +200,12 @@ class BibDataBase(object):
     def pub2doctype(self):
         """
         A dictionary mapping PublicationId to Document Type.
-
-        'Journal': 'j', 'Book':'b', '':'', 'BookChapter':'bc', 'Conference':'c', 'Dataset':'d', 'Patent':'p', 'Repository':'r'
+        
+        Notes
+        -------
+        doctype mapping: 'Journal': 'j', 'Book':'b', '':'', 'BookChapter':'bc', 'Conference':'c', 'Dataset':'d', 'Patent':'p', 'Repository':'r'
+        
+        |
 
         """
         if self._pub2doctype is None:
@@ -205,9 +221,11 @@ class BibDataBase(object):
         """
         The DataFrame keeping journal information.  Columns may depend on the specific datasource.
 
-        Columns
+        Notes
         -------
-        'JournalId', 'FullName', 'Issn', 'Publisher', 'Webpage'
+        columns: 'JournalId', 'FullName', 'Issn', 'Publisher', 'Webpage'
+        
+        |
 
         """
         if self._journal_df is None:
@@ -223,9 +241,11 @@ class BibDataBase(object):
         """
         The DataFrame keeping citing and cited PublicationId.
 
-        Columns
+        Notes
         -------
-        CitingPublicationId, CitedPublicationId
+        columns: 'CitingPublicationId', 'CitedPublicationId'
+        
+        |
 
         """
         if self._pub2ref_df is None:
@@ -241,9 +261,11 @@ class BibDataBase(object):
         """
         The DataFrame keeping citing and cited PublicationId after filtering out the self-citations.
 
-        Columns
+        Notes
         -------
-        CitingPublicationId, CitedPublicationId
+        columns: CitingPublicationId, CitedPublicationId
+        
+        |
 
         """
         if self._pub2refnoself_df is None:
@@ -259,9 +281,11 @@ class BibDataBase(object):
         """
         The DataFrame keeping all publication, author, affiliation relationships.  Columns may depend on the specific datasource.
 
-        Columns
+        Notes
         -------
-        'PublicationId', 'AuthorId', 'AffiliationId', 'AuthorSequence',  'OrigAuthorName', 'OrigAffiliationName'
+        columns: 'PublicationId', 'AuthorId', 'AffiliationId', 'AuthorSequence',  'OrigAuthorName', 'OrigAffiliationName'
+        
+        |
 
         """
         if self._paa_df is None:
@@ -277,9 +301,11 @@ class BibDataBase(object):
         """
         The DataFrame keeping all publication, author relationships.  Columns may depend on the specific datasource.
 
-        Columns
+        Notes
         -------
-        'PublicationId', 'AuthorId'
+        columns: 'PublicationId', 'AuthorId'
+        
+        |
 
         """
         if self._paa_df is None:
@@ -297,9 +323,11 @@ class BibDataBase(object):
         """
         The DataFrame keeping all publication field relationships.  Columns may depend on the specific datasource.
 
-        Columns
+        Notes
         -------
-        'PublicationId', 'FieldId'
+        columns: 'PublicationId', 'FieldId'
+        
+        |
 
         """
 
@@ -316,9 +344,11 @@ class BibDataBase(object):
         """
         The DataFrame keeping all publication field relationships.  Columns may depend on the specific datasource.
 
-        Columns
+        Notes
         -------
-        'FieldId', 'FieldLevel', 'NumberPublications', 'FieldName'
+        columns: 'FieldId', 'FieldLevel', 'NumberPublications', 'FieldName'
+        
+        |
 
         """
         if self._fieldinfo_df is None:
@@ -332,6 +362,9 @@ class BibDataBase(object):
     def publicationid_list(self):
         """
         A list of all PublicationIds.
+        
+
+        |
 
         """
         if self.global_filter is None:
@@ -347,6 +380,9 @@ class BibDataBase(object):
 
         Allowable global filters are:
             'Year', 'DocType', 'FieldId'
+        
+
+        |
 
         """
 
@@ -354,7 +390,7 @@ class BibDataBase(object):
             filter_dict = {f.field:f for f in global_filter}
 
         elif isinstance(global_filter, (RangeFilter, YearFilter, SetFilter, DocTypeFilter, FieldFilter) ):
-            filter_dict = { global_filter.field:global_filter }
+            filter_dict = { global_filter.field:global_filter}
 
         elif type(global_filter) is dict:
             filter_dict = global_filter
@@ -403,6 +439,7 @@ class BibDataBase(object):
         duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
         """
         Load the Affiliation DataFrame from a preprocessed directory, or parse from the raw files.
+        
 
         Parameters
         ----------
@@ -426,11 +463,15 @@ class BibDataBase(object):
 
         dropna : list, default None, Optional
             Drop any NaN entries as specified by this subset of columns
-
+        
+   
         Returns
         -------
         DataFrame
             Affililation DataFrame.
+        
+
+        |
 
         """
         if show_progress or self.show_progress:
@@ -448,6 +489,59 @@ class BibDataBase(object):
         """
         Load the Author DataFrame from a preprocessed directory, or parse from the raw files.
 
+
+        Parameters
+        ----------
+        preprocess : bool, default True, Optional
+            Attempt to load from the preprocessed directory.
+
+        columns : list, default None, Optional
+            Load only this subset of columns
+
+        filter_dict : dict, default None, Optional
+            Dictionary of format {"ColumnName":"ListofValues"} where "ColumnName" is a data column and "ListofValues" is a sorted list of valid values.  A DataFrame only containing rows that appear in
+            "ListofValues" will be returned.
+
+        duplicate_subset : list, default None, Optional
+            Drop any duplicate entries as specified by this subset of columns
+
+        duplicate_keep : str, default 'last', Optional
+            If duplicates are being dropped, keep the 'first' or 'last'
+            (see `pandas.DataFram.drop_duplicates <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop_duplicates.html>`_)
+
+        dropna : list, default None, Optional
+            Drop any NaN entries as specified by this subset of columns
+
+        process_name : bool, default True, Optional
+            If True, then when processing the raw file, the package `NameParser <https://nameparser.readthedocs.io/en/latest/>`_
+            will be used to split author FullNames.
+
+
+        Returns
+        -------
+        DataFrame
+            Author DataFrame.
+        
+
+        |
+
+        """
+        if show_progress or self.show_progress:
+            show_progress='Loading Authors'
+
+        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2author_df)):
+            return load_preprocessed_data(self.path2author_df, path2database=self.path2database, columns=columns,
+                filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
+                prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
+        else:
+            return self.parse_authors(process_name=process_name)
+
+    def load_publications(self, preprocess = True, columns = None, filter_dict = None, duplicate_subset = None,
+        duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
+        """
+        Load the Publication DataFrame from a preprocessed directory, or parse from the raw files.
+
+
         Parameters
         ----------
         preprocess : bool, default True, Optional
@@ -471,58 +565,14 @@ class BibDataBase(object):
         dropna : list, default None, Optional
             Drop any NaN entries as specified by this subset of columns
 
-        process_name : bool, default True, Optional
-            If True, then when processing the raw file, the package `NameParser <https://nameparser.readthedocs.io/en/latest/>`_
-            will be used to split author FullNames.
-
-        Returns
-        -------
-        DataFrame
-            Author DataFrame.
-
-        """
-        if show_progress or self.show_progress:
-            show_progress='Loading Authors'
-
-        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2author_df)):
-            return load_preprocessed_data(self.path2author_df, path2database=self.path2database, columns=columns,
-                filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
-                prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
-        else:
-            return self.parse_authors(process_name=process_name)
-
-    def load_publications(self, preprocess = True, columns = None, filter_dict = None, duplicate_subset = None,
-        duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
-        """
-        Load the Publication DataFrame from a preprocessed directory, or parse from the raw files.
-
-        Parameters
-        ----------
-        :param preprocess: bool, default True, Optional
-            Attempt to load from the preprocessed directory.
-
-        columns : list, default None, Optional
-            Load only this subset of columns
-
-        filter_dict : dict, default None, Optional
-            Dictionary of format {"ColumnName":"ListofValues"} where "ColumnName" is a data column
-            and "ListofValues" is a sorted list of valid values.  A DataFrame only containing rows that appear in
-            "ListofValues" will be returned.
-
-        duplicate_subset : list, default None, Optional
-            Drop any duplicate entries as specified by this subset of columns
-
-        duplicate_keep : str, default 'last', Optional
-            If duplicates are being dropped, keep the 'first' or 'last'
-            (see `pandas.DataFram.drop_duplicates <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop_duplicates.html>`_)
-
-        dropna : list, default None, Optional
-            Drop any NaN entries as specified by this subset of columns
 
         Returns
         -------
         DataFrame
             Publication DataFrame.
+
+
+        |
 
         """
         if show_progress or self.show_progress:
@@ -586,6 +636,9 @@ class BibDataBase(object):
         -------
         DataFrame
             Journal DataFrame.
+        
+
+        |
 
         """
         if show_progress or self.show_progress:
@@ -633,6 +686,9 @@ class BibDataBase(object):
         -------
         DataFrame
             Pub2Ref DataFrame.
+        
+
+        |
 
         """
         if noselfcite:
@@ -693,6 +749,9 @@ class BibDataBase(object):
         -------
         DataFrame
             PublicationAuthorAffilation DataFrame.
+        
+
+        |
 
         """
         if show_progress or self.show_progress:
@@ -718,31 +777,34 @@ class BibDataBase(object):
 
         Parameters
         ----------
-        :param preprocess : bool, default True, Optional
+        preprocess : bool, default True, Optional
             Attempt to load from the preprocessed directory.
 
-        :param columns : list, default None, Optional
+        columns : list, default None, Optional
             Load only this subset of columns
 
-        :param filter_dict : dict, default {}, Optional
+        filter_dict : dict, default {}, Optional
             Dictionary of format {"ColumnName":"ListofValues"} where "ColumnName" is a data column
             and "ListofValues" is a sorted list of valid values.  A DataFrame only containing rows that appear in
             "ListofValues" will be returned.
 
-        :param duplicate_subset : list, default None, Optional
+        duplicate_subset : list, default None, Optional
             Drop any duplicate entries as specified by this subset of columns
 
-        :param duplicate_keep : str, default 'last', Optional
+        duplicate_keep : str, default 'last', Optional
             If duplicates are being dropped, keep the 'first' or 'last'
             (see `pandas.DataFram.drop_duplicates <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop_duplicates.html>`_)
 
-        :param dropna : list, default None, Optional
+        dropna : list, default None, Optional
             Drop any NaN entries as specified by this subset of columns
 
         Returns
         -------
         DataFrame
             Pub2Field DataFrame.
+        
+
+        |
 
         """
         if show_progress or self.show_progress:
@@ -767,31 +829,34 @@ class BibDataBase(object):
 
         Parameters
         ----------
-        :param preprocess : bool, default True, Optional
+        preprocess : bool, default True, Optional
             Attempt to load from the preprocessed directory.
 
-        :param columns : list, default None, Optional
+        columns : list, default None, Optional
             Load only this subset of columns
 
-        :param filter_dict : dict, default {}, Optional
+        filter_dict : dict, default {}, Optional
             Dictionary of format {"ColumnName":"ListofValues"} where "ColumnName" is a data column
             and "ListofValues" is a sorted list of valid values.  A DataFrame only containing rows that appear in
             "ListofValues" will be returned.
 
-        :param duplicate_subset : list, default None, Optional
+        duplicate_subset : list, default None, Optional
             Drop any duplicate entries as specified by this subset of columns
 
-        :param duplicate_keep : str, default 'last', Optional
+        duplicate_keep : str, default 'last', Optional
             If duplicates are being dropped, keep the 'first' or 'last'
             (see `pandas.DataFram.drop_duplicates <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop_duplicates.html>`_)
 
-        :param dropna : list, default None, Optional
+        dropna : list, default None, Optional
             Drop any NaN entries as specified by this subset of columns
 
         Returns
         -------
         DataFrame
             FieldInformation DataFrame.
+    
+
+        |
 
         """
         if show_progress or self.show_progress:
@@ -809,34 +874,37 @@ class BibDataBase(object):
 
         Parameters
         ----------
-        :param preprocess : bool, default True
+        preprocess : bool, default True
             Attempt to load from the preprocessed directory.
 
-        :param include_yearnormed: bool, default True
+        include_yearnormed: bool, default True
             Normalize all columns by yearly average.
 
-        :param columns : list, default None
+        columns : list, default None
             Load only this subset of columns
 
-        :param filter_dict : dict, default {}, Optional
+        filter_dict : dict, default {}, Optional
             Dictionary of format {"ColumnName":"ListofValues"} where "ColumnName" is a data column
             and "ListofValues" is a sorted list of valid values.  A DataFrame only containing rows that appear in
             "ListofValues" will be returned.
 
-        :param duplicate_subset : list, default None, Optional
+        duplicate_subset : list, default None, Optional
             Drop any duplicate entries as specified by this subset of columns
 
-        :param duplicate_keep : str, default 'last', Optional
+        duplicate_keep : str, default 'last', Optional
             If duplicates are being dropped, keep the 'first' or 'last'
             (see `pandas.DataFram.drop_duplicates <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop_duplicates.html>`_)
 
-        :param dropna : list, default None, Optional
+        dropna : list, default None, Optional
             Drop any NaN entries as specified by this subset of columns
 
         Returns
         -------
         DataFrame
             FieldInformation DataFrame.
+        
+
+        |
 
         """
         if show_progress or self.show_progress:
@@ -896,13 +964,15 @@ class BibDataBase(object):
 
         Parameters
         ----------
-        :param preprocess : bool, default True, Optional
+        preprocess : bool, default True, Optional
             If True then the new preprocessed DataFrames are saved in pub2refnoself
 
         Returns
         -------
         DataFrame
             Pub2Ref DataFrame with 2 columns: 'CitingPublicationId', 'CitedPublicationId'
+        
+        |
 
         """
         if self.show_progress:
@@ -947,19 +1017,22 @@ class BibDataBase(object):
 
         Parameters
         ----------
-        :param preprocess : bool, default True, Optional
+        preprocess : bool, default True, Optional
             If True then the impact measures are saved in preprocessed files.
 
-        :param citation_horizons : list, default [5,10], Optional
+        citation_horizons : list, default [5,10], Optional
             The DataFrame column with Author Ids.  If None then the database 'AuthorId' is used.
 
-        :param noselfcite : Bool, default 'True', Optional
+        noselfcite : Bool, default 'True', Optional
             If True then the noselfcitation pub2ref files are also processed.
 
         Returns
         -------
         DataFrame
             The impact DataFrame with at least two columns: 'PublicationId', 'Year', + citation columns
+        
+
+        |
 
         """
 
@@ -1042,16 +1115,19 @@ class BibDataBase(object):
 
         Parameters
         ----------
-        :param save2pubdf : bool, default True, Optional
+        save2pubdf : bool, default True, Optional
             If True the results are appended to the preprocessed publication DataFrames.
 
-        :param show_progress: bool, default False
+        show_progress: bool, default False
             If True, display a progress bar for the count.
 
         Returns
         -------
         DataFrame
             TeamSize DataFrame with 2 columns: 'PublicationId', 'TeamSize'
+        
+        
+        |
 
         """
         if show_progress or self.show_progress: 

@@ -26,9 +26,8 @@ class PubMed(BibDataBase):
     """
     Base class for PubMed Medline interface.
 
-    ==========
     Notes
-    ==========
+    -------
     ~ PubMed comes as >1000 compressed XML files.
     ~ The PMID is renamed PublicationId to be consistent with the rest of pySciSci.
     ~ PubMed does not disambiguate Authors.
@@ -100,17 +99,17 @@ class PubMed(BibDataBase):
 
         Parameters
         ----------
-        :param process_name: bool, default True
+        process_name: bool, default True
             If True, then when processing the raw file, the package `NameParser <https://nameparser.readthedocs.io/en/latest/>`_
             will be used to split author FullNames.
 
-        :param num_file_lines: int, default 10**6
+        num_file_lines: int, default 10**6
             The processed data will be saved into smaller DataFrames, each with `num_file_lines` rows.
 
-        :param show_progress: bool, default True
+        show_progress: bool, default True
             Show progress with processing of the data.
 
-        :param rewrite_existing: bool, default False
+        rewrite_existing: bool, default False
             If True, rewrites the files in the data directory
         """
 
@@ -271,13 +270,13 @@ class PubMed(BibDataBase):
 
         Parameters
         ----------
-        :param source_url: str, default 'ftp.ncbi.nlm.nih.gov'
+        source_url: str, default 'ftp.ncbi.nlm.nih.gov'
             The base url for the ftp server from which to download.
 
-        :param dtd_url: str, default 'pubmed_190101.dtd'
+        dtd_url: str, default 'pubmed_190101.dtd'
             The url for the dtd file.
 
-        :param show_progress: bool, default True
+        show_progress: bool, default True
             Show progress with processing of the data.
 
         """
@@ -314,17 +313,19 @@ class PubMed(BibDataBase):
     def parse_publications(self, xml_directory = 'RawXML',preprocess = True, num_file_lines=10**7,rewrite_existing = False):
         """
         Parse the PubMed publication raw data.
+        
         Parameters
         ----------
-        :param preprocess: bool, default True
+        preprocess: bool, default True
             Save the processed data in new DataFrames.
-        :param process_name: bool, default True
+        process_name: bool, default True
             If True, then when processing the raw file, the package `NameParser <https://nameparser.readthedocs.io/en/latest/>`_
             will be used to split author FullNames.
-        :param num_file_lines: int, default 5*10**6
+        num_file_lines: int, default 5*10**6
             The processed data will be saved into smaller DataFrames, each with `num_file_lines` rows.
-        :param show_progress: bool, default True
+        show_progress: bool, default True
             Show progress with processing of the data.
+        
         Returns
         ----------
         DataFrame
@@ -426,17 +427,19 @@ class PubMed(BibDataBase):
     def parse_references(self, xml_directory='RawXML',preprocess = True, num_file_lines=10**7, rewrite_existing=False,show_progress=True):
         """
         Parse the PubMed References raw data.
+        
         Parameters
         ----------
-        :param preprocess: bool, default True
+        preprocess: bool, default True
             Save the processed data in new DataFrames.
-        :param process_name: bool, default True
+        process_name: bool, default True
             If True, then when processing the raw file, the package `NameParser <https://nameparser.readthedocs.io/en/latest/>`_
             will be used to split author FullNames.
-        :param num_file_lines: int, default 5*10**6
+        num_file_lines: int, default 5*10**6
             The processed data will be saved into smaller DataFrames, each with `num_file_lines` rows.
-        :param show_progress: bool, default True
+        show_progress: bool, default True
             Show progress with processing of the data.
+        
         Returns
         ----------
         DataFrame
@@ -511,17 +514,19 @@ class PubMed(BibDataBase):
     def parse_publicationauthoraffiliation(self, xml_directory = 'RawXML',preprocess = True, num_file_lines=10**7, rewrite_existing = False):
         """
         Parse the PubMed publication-author raw data.
+        
         Parameters
         ----------
-        :param preprocess: bool, default True
+        preprocess: bool, default True
             Save the processed data in new DataFrames.
-        :param process_name: bool, default True
+        process_name: bool, default True
             If True, then when processing the raw file, the package `NameParser <https://nameparser.readthedocs.io/en/latest/>`_
             will be used to split author FullNames.
-        :param num_file_lines: int, default 5*10**6
+        num_file_lines: int, default 5*10**6
             The processed data will be saved into smaller DataFrames, each with `num_file_lines` rows.
-        :param show_progress: bool, default True
+        show_progress: bool, default True
             Show progress with processing of the data.
+       
         Returns
         ----------
         DataFrame
@@ -600,17 +605,19 @@ class PubMed(BibDataBase):
     def parse_fields(self, preprocess = True, num_file_lines=10**7, rewrite_existing=False,xml_directory = 'RawXML'):
         """
         Parse the PubMed field (mesh term) raw data.
+        
         Parameters
         ----------
-        :param preprocess: bool, default True
+        preprocess: bool, default True
             Save the processed data in new DataFrames.
-        :param process_name: bool, default True
+        process_name: bool, default True
             If True, then when processing the raw file, the package `NameParser <https://nameparser.readthedocs.io/en/latest/>`_
             will be used to split author FullNames.
-        :param num_file_lines: int, default 5*10**6
+        num_file_lines: int, default 5*10**6
             The processed data will be saved into smaller DataFrames, each with `num_file_lines` rows.
-        :param show_progress: bool, default True
+        show_progress: bool, default True
             Show progress with processing of the data.
+        
         Returns
         ----------
         DataFrame
