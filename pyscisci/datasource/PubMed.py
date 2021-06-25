@@ -228,7 +228,7 @@ class PubMed(BibDataBase):
                         ui = chemical.find("NameOfSubstance").attrib.get("UI", "")
                         if len(ui)>0:
                             pub2field_df.append([PublicationId, ui])
-                            fieldinfo[ui] = [ui, load_xml_text(chemical.find("NameOfSubstance")), 'chem']
+                            fieldinfo[ui] = [load_xml_text(chemical.find("NameOfSubstance")), 'chem']
 
                 references = article_bucket.find("PubmedData/ReferenceList")
                 if not references is None:
@@ -246,7 +246,7 @@ class PubMed(BibDataBase):
             ifile += 1
 
         # if rewriting
-        dest_file_name = os.path.join(self.path2database, self.path2fieldinfo_df,'fieldinfo.hdf')
+        dest_file_name = os.path.join(self.path2database, self.path2fieldinfo,'fieldinfo.hdf')
         if rewrite_existing:
             # save field info dictionary
             mesh_id_df_list = list(fieldinfo.values())
@@ -254,7 +254,7 @@ class PubMed(BibDataBase):
                 mesh_id_df_list[i].insert(0, j)
 
             fieldinfo = pd.DataFrame(mesh_id_df_list, columns = ['FieldId', 'FieldName', 'FieldType'], dtype=int)
-            fieldinfo.to_hdf( os.path.join(self.path2database, self.path2fieldinfo_df, 'fieldinfo.hdf'), key = 'fieldinfo', mode='w')
+            fieldinfo.to_hdf( os.path.join(self.path2database, self.path2fieldinfo, 'fieldinfo.hdf'), key = 'fieldinfo', mode='w')
 
         with gzip.open(os.path.join(self.path2database, 'pub2year.json.gz'), 'w') as outfile:
             outfile.write(json.dumps(pub2year).encode('utf8'))
@@ -668,7 +668,7 @@ class PubMed(BibDataBase):
                             ui = chemical.find("NameOfSubstance").attrib.get("UI", "")
                             if len(ui)>0:
                                 pub2field_df.append([PublicationId, ui])
-                                fieldinfo[ui] = [ui, load_xml_text(chemical.find("NameOfSubstance")), 'chem']
+                                fieldinfo[ui] = [load_xml_text(chemical.find("NameOfSubstance")), 'chem']
 
                     # save the pub-field id
                     pub2field_df = pd.DataFrame(pub2field_df, columns = ['PublicationId', 'FieldId'], dtype=int)
@@ -676,7 +676,7 @@ class PubMed(BibDataBase):
 
 
             # if rewriting
-            dest_file_name = os.path.join(self.path2database, self.path2pub2fieldinfo_df,'fieldinfo.hdf')
+            dest_file_name = os.path.join(self.path2database, self.path2fieldinfo,'fieldinfo.hdf')
             if rewrite_existing:
                 # save field info dictionary
                 mesh_id_df_list = list(fieldinfo.values())
@@ -697,4 +697,4 @@ class PubMed(BibDataBase):
         # field info map
         fieldinfo_df = pd.read_hdf(os.path.join(self.path2database, self.path2fieldinfo, 'fieldinfo.hdf'))
 
-        return pub2field_df, fildinfo_df
+        return pub2field_df, fieldinfo_df
