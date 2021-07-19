@@ -11,6 +11,8 @@ import numpy as np
 
 import scipy.sparse as spsparse
 
+from collections import defaultdict
+
 from sklearn.metrics import pairwise_distances
 from sklearn.preprocessing import normalize
 
