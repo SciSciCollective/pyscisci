@@ -255,8 +255,8 @@ class MAG(BibDataBase):
             journal_df.to_hdf(os.path.join(self.path2database, 'journal', 'journal.hdf'), key = 'journal', mode = 'w')
 
         #now lets do the publication information
-
-        doctype = {'Journal': 'j', 'Book':'b', '':'', 'BookChapter':'bc', 'Conference':'c', 'Dataset':'d', 'Patent':'p', 'Repository':'r'}
+        # as of 7/2021: Book, BookChapter, Conference, Dataset, Journal, Patent, Repository, Thesis, NULL : unknown
+        doctype = {'Journal': 'j', 'Book':'b', '':'', 'BookChapter':'bc', 'Conference':'c', 'Dataset':'d', 'Patent':'p', 'Repository':'r', 'Thesis':'t'}
 
         pub_int_columns = [0, 7, 10, 21]
         pub_str_columns = [2, 4, 8, 13, 14]
