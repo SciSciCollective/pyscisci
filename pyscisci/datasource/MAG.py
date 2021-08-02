@@ -152,7 +152,7 @@ class MAG(BibDataBase):
             Author DataFrame.
         """
 
-        author_int_columns = [0, 4, 5, 6]
+        author_int_columns = [0, 4, 5, 7]
 
         author_column_names = ['AuthorId', 'LastKnownAffiliationId', 'NumberPublications', 'NumberCitations', 'FullName']
         if process_name:
@@ -252,15 +252,15 @@ class MAG(BibDataBase):
 
         journal_df = pd.DataFrame(journal_info, columns = journal_column_names)
         if preprocess:
-            journal_df.to_hdf(os.path.join(self.path2database, 'journal', 'journal.hdf'), key = 'journal', mode = 'w')
+            journal_df.to_hdf(os.path.join(self.path2database, 'journal', 'journal0.hdf'), key = 'journal', mode = 'w')
 
         #now lets do the publication information
         # as of 7/2021: Book, BookChapter, Conference, Dataset, Journal, Patent, Repository, Thesis, NULL : unknown
         doctype = {'Journal': 'j', 'Book':'b', '':'', 'BookChapter':'bc', 'Conference':'c', 'Dataset':'d', 'Patent':'p', 'Repository':'r', 'Thesis':'t'}
 
-        pub_int_columns = [0, 7, 10, 21]
-        pub_str_columns = [2, 4, 8, 13, 14]
-        pub_column_names = ['PublicationId', 'Year', 'JournalId', 'FamilyId',  'Doi', 'Title', 'Date', 'Volume', 'Issue', 'DocType']
+        pub_int_columns = [0, 7, 11, 22]
+        pub_str_columns = [2, 4, 8, 14, 15, 24]
+        pub_column_names = ['PublicationId', 'Year', 'JournalId', 'FamilyId',  'Doi', 'Title', 'Date', 'Volume', 'Issue','DocSubTypes', 'DocType']
 
         if preprocess:
             if not os.path.exists(os.path.join(self.path2database, 'publication')):
