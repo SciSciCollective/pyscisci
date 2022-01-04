@@ -38,6 +38,9 @@ class DBLP(BibDataBase):
         self.PublicationIdType = int
         self.AffiliationIdType = int
         self.AuthorIdType = str
+        self.JournalIdType=str
+
+        self.path2journal = self.path2pub
 
 
     def _blank_dblp_publication(self, PublicationId = 0):
@@ -55,22 +58,22 @@ class DBLP(BibDataBase):
         record['DocType'] = ''
         return record
 
-    def _save_dataframes(self, ifile, publication_df, author_df, author_columns, author2pub_df):
+    def _save_dataframes(self, ifile, publication, author, author_columns, author2pub):
 
-        publication_df = pd.DataFrame(publication_df)
-        publication_df['PublicationId'] = publication_df['PublicationId'].astype(int)
-        publication_df['Year'] = publication_df['Year'].astype(int)
-        publication_df['Volume'] = pd.to_numeric(publication_df['Volume'])
-        publication_df['TeamSize'] = publication_df['TeamSize'].astype(int)
-        publication_df.to_hdf( os.path.join(self.path2database, self.path2pub_df, 'publication{}.hdf'.format(ifile)), key = 'pub', mode='w')
+        publication = pd.DataFrame(publication)
+        publication['PublicationId'] = publication['PublicationId'].astype(int)
+        publication['Year'] = publication['Year'].astype(int)
+        publication['Volume'] = pd.to_numeric(publication['Volume'])
+        publication['TeamSize'] = publication['TeamSize'].astype(int)
+        publication.to_hdf( os.path.join(self.path2database, self.path2pub, 'publication{}.hdf'.format(ifile)), key = 'pub', mode='w')
 
 
-        author_df = pd.DataFrame(author_df, columns = author_columns)
-        author_df['AuthorId'] = author_df['AuthorId'].astype(int)
-        author_df.to_hdf( os.path.join(self.path2database, self.path2author_df, 'author{}.hdf'.format(ifile)), key = 'author', mode='w')
+        author = pd.DataFrame(author, columns = author_columns)
+        author['AuthorId'] = author['AuthorId'].astype(int)
+        author.to_hdf( os.path.join(self.path2database, self.path2author, 'author{}.hdf'.format(ifile)), key = 'author', mode='w')
 
-        author2pub_df = pd.DataFrame(author2pub_df, columns = ['PublicationId', 'AuthorId', 'AuthorSequence'], dtype=int)
-        author2pub_df.to_hdf( os.path.join(self.path2database, self.path2paa_df, 'publicationauthor{}.hdf'.format(ifile)), key = 'pa', mode='w')
+        author2pub = pd.DataFrame(author2pub, columns = ['PublicationId', 'AuthorId', 'AuthorSequence'], dtype=int)
+        author2pub.to_hdf( os.path.join(self.path2database, self.path2paa, 'publicationauthor{}.hdf'.format(ifile)), key = 'pa', mode='w')
 
     def preprocess(self, xml_file_name = 'dblp.xml.gz', process_name=True, num_file_lines=10**6, show_progress=True):
         """
@@ -98,23 +101,29 @@ class DBLP(BibDataBase):
         DATA_ITEMS = ['title', 'booktitle', 'year', 'journal', 'ee',' url', 'month', 'mdate', 'isbn', 'publisher']
         SKIP_FIELDS = ['note', 'cite', 'cdrom', 'crossref', 'editor',  'series', 'tt', 'school', 'chapter', 'address']
 
-        doctype = {'article': 'j', 'book':'b', '':'', 'phdthesis':'phd', 'proceedings':'c', 'inproceedings':'c',
-        'mastersthesis':'ms', 'incollection':'c'}
+        doctype = {'Article': 'j', 'Book Review':'br', 'Letter':"l", 'Review':"rev", 'Correction':"corr",
+       'Editorial Material':"editorial", 'News Item':"news", 'Bibliography':"bib",
+       'Biographical-Item':"bibi", 'Hardware Review':"hr", 'Meeting Abstract':"ma", 'Note':"note",
+       'Discussion':"disc", 'Item About an Individual':"indv", 'Correction, Addition':"corradd",
+       'Chronology':"chrono", 'Software Review':"sr", 'Reprint':"re", 'Database Review':"dr", 
+       "Journal":'j', 'Book':'b', '':'', 'BookChapter':'bc', 'Conference':'c', 'Dataset':'d', 'Patent':'p', 'Repository':'r', 'Thesis':'t',
+       'article': 'j', 'book':'b', '':'', 'phdthesis':'t', 'proceedings':'c', 'inproceedings':'c',
+        'mastersthesis':'mst', 'incollection':'coll'}
 
         html_format_keys = ['<sub>', '</sub>', '<sup>', '</sup>', '<i>', '</i>']
 
         if show_progress:
             print("Starting to preprocess the DBLP database.")
 
-        for hier_dir_type in [self.path2pub_df, self.path2author_df, self.path2paa_df]:
+        for hier_dir_type in [self.path2pub, self.path2author, self.path2paa]:
 
             if not os.path.exists(os.path.join(self.path2database, hier_dir_type)):
                 os.mkdir(os.path.join(self.path2database, hier_dir_type))
 
-        publication_df = []
-        author_df = []
-        author2pub_df = []
-        journal_df = []
+        publication = []
+        author = []
+        author2pub = []
+        journal = []
 
         PublicationId = 1
         AuthorId = 1
@@ -192,9 +201,9 @@ class DBLP(BibDataBase):
                         if process_name:
                             fullname = ''.join([i for i in fullname if not i.isdigit()]).strip()
                             hname = HumanName(fullname)
-                            author_df.append([AuthorId, fullname, hname.last, hname.first, hname.middle])
+                            author.append([AuthorId, fullname, hname.last, hname.first, hname.middle])
                         else:
-                            author_df.append([AuthorId, fullname])
+                            author.append([AuthorId, fullname])
                         aname2aid[fullname] = AuthorId
                         AuthorId += 1
 
@@ -204,8 +213,8 @@ class DBLP(BibDataBase):
                     pub_record['TeamSize'] = AuthorCount
                     pub_record['DocType'] = doctype[load_html_str(elem.tag)]
 
-                    publication_df.append(pub_record)
-                    author2pub_df.extend(pub_authors)
+                    publication.append(pub_record)
+                    author2pub.extend(pub_authors)
                     PublicationId += 1
                     pub_record = self._blank_dblp_publication(PublicationId)
                     AuthorCount = 0
@@ -217,13 +226,13 @@ class DBLP(BibDataBase):
 
                     if num_file_lines > 0 and (PublicationId % num_file_lines) == 0:
 
-                        self._save_dataframes(ifile, publication_df, author_df, author_columns, author2pub_df)
+                        self._save_dataframes(ifile, publication, author, author_columns, author2pub)
 
                         ifile += 1
 
-                        publication_df = []
-                        author_df = []
-                        author2pub_df = []
+                        publication = []
+                        author = []
+                        author2pub = []
 
                 elif elem.tag in REJECT_DOCTYPES:
                     # the record was from a rejected category so reset record
@@ -236,7 +245,7 @@ class DBLP(BibDataBase):
 
         del xmltree
 
-        self._save_dataframes(ifile, publication_df, author_df, author_columns, author2pub_df)
+        self._save_dataframes(ifile, publication, author, author_columns, author2pub)
 
 
 
@@ -302,7 +311,7 @@ class DBLP(BibDataBase):
         raise NotImplementedError("DBLP does not contain field information.")
 
     @property
-    def author2pub_df(self):
+    def author2pub(self):
         """
         The DataFrame keeping all publication, author relationships.  Columns may depend on the specific datasource.
 
@@ -311,13 +320,13 @@ class DBLP(BibDataBase):
         columns: 'PublicationId', 'AuthorId', 'AuthorOrder'
 
         """
-        if self._author2pub_df is None:
+        if self._author2pub is None:
             if self.keep_in_memory:
-                self._author2pub_df = self.load_publicationauthor(show_progress=self.show_progress)
+                self._author2pub = self.load_publicationauthor(show_progress=self.show_progress)
             else:
                 return self.load_publicationauthor(show_progress=self.show_progress)
 
-        return self._author2pub_df
+        return self._author2pub
 
     def load_publicationauthor(self, preprocess = True, columns = None, filter_dict = None, duplicate_subset = None,
         duplicate_keep = 'last', dropna = None, show_progress=False):
@@ -363,3 +372,7 @@ class DBLP(BibDataBase):
         else:
             raise NotImplementedError("DBLP is stored as a single xml file.  Run preprocess to parse the file.")
 
+    def load_journals(self, preprocess = True, columns = None, filter_dict = {}, duplicate_subset = None,
+        duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
+
+        raise NotImplementedError("The DBLP does not have prespecified journal information.")

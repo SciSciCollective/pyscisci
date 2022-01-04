@@ -8,9 +8,14 @@
  """
 import os
 import sys
+import re
+from collections import defaultdict, Counter
 import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+import unicodedata
+from unidecode import  unidecode
+from nameparser import HumanName
 
 # For now, I dont think we need to make the full pySciSci package dependent on these packages
 try:
@@ -138,6 +143,4 @@ def align_publications(df1, df2=None, columns2match_exact=['Year'], column2match
             df1.groupby(columns2match_exact, group_keys=True).progress_apply(subgroup_match)
 
         return matches
-
-
 

@@ -30,9 +30,10 @@ class WOS(BibDataBase):
 
         self._default_init(path2database, keep_in_memory, global_filter, show_progress)
 
-        self.PublicationIdType = int
+        self.PublicationIdType = str
         self.AffiliationIdType = str
         self.AuthorIdType = str
+        self.JournalIdType = str
 
     def download_from_source(self):
 
@@ -67,7 +68,9 @@ class WOS(BibDataBase):
         record['FullName'] = ''
         record['FirstName'] = ''
         record['LastName'] = ''
-        record['OrigAuthorName'] = ''
+        record['AuthorOrder'] = None
+        record['Affiliations'] = ''
+
         return record
 
     def _blank_wos_affiliation(self):
@@ -79,31 +82,31 @@ class WOS(BibDataBase):
         record['Country'] = ''
         return record
 
-    def _save_dataframes(self, ifile, publication_df, pub_column_names, author_df, author_columns, paa_df, pub2ref_df, affiliation_df, field_df):
+    def _save_dataframes(self, ifile, publication, pub_column_names, author, author_columns, paa, pub2ref, affiliation, field):
 
-        publication_df = pd.DataFrame(publication_df, columns=pub_column_names)
-        publication_df['PublicationId'] = publication_df['PublicationId']
-        publication_df['Year'] = publication_df['Year'].astype(int)
-        publication_df['Volume'] = pd.to_numeric(publication_df['Volume'])
-        publication_df['TeamSize'] = publication_df['TeamSize'].astype(int)
-        publication_df.to_hdf( os.path.join(self.path2database, 'publication', 'publication{}.hdf'.format(ifile)), key = 'pub', mode='w')
+        publication = pd.DataFrame(publication, columns=pub_column_names)
+        publication['PublicationId'] = publication['PublicationId']
+        publication['Year'] = publication['Year'].astype(int)
+        publication['Volume'] = pd.to_numeric(publication['Volume'])
+        publication['TeamSize'] = publication['TeamSize'].astype(int)
+        publication.to_hdf( os.path.join(self.path2database, 'publication', 'publication{}.hdf'.format(ifile)), key = 'pub', mode='w')
 
 
-        author_df = pd.DataFrame(author_df, columns = author_columns)
-        author_df['AuthorId'] = author_df['AuthorId'].astype(int)
-        author_df.to_hdf( os.path.join(self.path2database, 'author', 'author{}.hdf'.format(ifile)), key = 'author', mode='w')
+        author = pd.DataFrame(author, columns = author_columns)
+        author['AuthorId'] = author['AuthorId'].astype(int)
+        author.to_hdf( os.path.join(self.path2database, 'author', 'author{}.hdf'.format(ifile)), key = 'author', mode='w')
 
-        paa_df = pd.DataFrame(paa_df, columns = ['PublicationId', 'AuthorId', 'AffiliationId', 'AuthorSequence', 'OrigAuthorName'])
-        paa_df.to_hdf( os.path.join(self.path2database, 'publicationauthoraffiliation', 'publicationauthoraffiliation{}.hdf'.format(ifile)), key = 'pa', mode='w')
+        paa = pd.DataFrame(paa, columns = ['PublicationId', 'AuthorId', 'AuthorSequence', 'OrigAuthorName'])
+        paa.to_hdf( os.path.join(self.path2database, 'publicationauthoraffiliation', 'publicationauthoraffiliation{}.hdf'.format(ifile)), key = 'pa', mode='w')
 
-        pub2ref_df = pd.DataFrame(pub2ref_df, columns = ['CitingPublicationId', 'CitedPubliationId'])
-        pub2ref_df.to_hdf(os.path.join(self.path2database, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)), key = 'pub2ref', mode='w')
+        pub2ref = pd.DataFrame(pub2ref, columns = ['CitingPublicationId', 'CitedPubliationId'])
+        pub2ref.to_hdf(os.path.join(self.path2database, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)), key = 'pub2ref', mode='w')
 
-        affiliation_df = pd.DataFrame(affiliation_df, columns = ['PublicationId', 'AffiliationId', 'AffiliationString'])
-        affiliation_df.to_hdf(os.path.join(self.path2database, 'affiliation', 'affiliation{}.hdf'.format(ifile)), key = 'affiliation', mode='w')
+        affiliation = pd.DataFrame(affiliation, columns = ['PublicationId', 'AffiliationId', 'AffiliationString'])
+        affiliation.to_hdf(os.path.join(self.path2database, 'affiliation', 'affiliation{}.hdf'.format(ifile)), key = 'affiliation', mode='w')
 
-        field_df = pd.DataFrame(field_df, columns = ['PublicationId', 'FieldId', 'FieldType'])
-        field_df.to_hdf(os.path.join(self.path2database, 'pub2field', 'pub2field{}.hdf'.format(ifile)), key = 'pub2field', mode='w')
+        field = pd.DataFrame(field, columns = ['PublicationId', 'FieldId', 'FieldType'])
+        field.to_hdf(os.path.join(self.path2database, 'pub2field', 'pub2field{}.hdf'.format(ifile)), key = 'pub2field', mode='w')
 
     def preprocess(self, xml_directory = 'RawXML', name_space = 'http://scientific.thomsonreuters.com/schema/wok5.4/public/FullRecord',
         process_name=True, num_file_lines=10**6, show_progress=True):
@@ -134,6 +137,18 @@ class WOS(BibDataBase):
             print("Starting to preprocess the WOS database.")
 
 
+        #and we need to standardize the document types
+        # as of 7/2021: Book, BookChapter, Conference, Dataset, Journal, Patent, Repository, Thesis, NULL : unknown
+        doctype = {'Article': 'j', 'Book Review':'br', 'Letter':"l", 'Review':"rev", 'Correction':"corr",
+       'Editorial Material':"editorial", 'News Item':"news", 'Bibliography':"bib",
+       'Biographical-Item':"bibi", 'Hardware Review':"hr", 'Meeting Abstract':"ma", 'Note':"note",
+       'Discussion':"disc", 'Item About an Individual':"indv", 'Correction, Addition':"corradd",
+       'Chronology':"chrono", 'Software Review':"sr", 'Reprint':"re", 'Database Review':"dr", 
+       "Journal":'j', 'Book':'b', '':'', 'BookChapter':'bc', 'Conference':'c', 'Dataset':'d', 'Patent':'p', 'Repository':'r', 'Thesis':'t',
+       'article': 'j', 'book':'b', '':'', 'phdthesis':'t', 'proceedings':'c', 'inproceedings':'c',
+        'mastersthesis':'mst', 'incollection':'coll'}
+
+
         for hier_dir_type in ['publication', 'author', 'publicationauthoraffiliation', 'pub2field', 'pub2ref', 'affiliation']:
 
             if not os.path.exists(os.path.join(self.path2database, hier_dir_type)):
@@ -154,20 +169,20 @@ class WOS(BibDataBase):
         ifile = 0
         for xml_file_name in tqdm(xmlfiles, desc='WOS xml files', leave=True, disable=not show_progress):
 
-            publication_df = []
-            author_df = []
-            paa_df = []
-            pub2field_df = []
-            pub2ref_df = []
-            affiliation_df = []
-            field_df = []
+            publication = []
+            author = []
+            paa = []
+            pub2field = []
+            pub2ref = []
+            affiliation = []
+            field = []
 
             name, extension = os.path.splitext(xml_file_name)
 
             if extension == '.gz':
                 with gzip.open(os.path.join(self.path2database, xml_directory, xml_file_name), 'r') as infile:
                     xml_file = infile.read()
-                bytesxml = BytesIO(xml_file)
+                xml_file = BytesIO(xml_file)
 
             elif extension == '.xml':
                 with open(os.path.join(self.path2database, xml_directory, xml_file_name), 'r') as infile:
@@ -175,10 +190,10 @@ class WOS(BibDataBase):
 
             # extract the desired fields from the XML tree  #
             
-            xmltree = etree.iterparse(bytesxml, events=('end',), tag="{{{0}}}REC".format(name_space))
+            xmltree = etree.iterparse(xml_file, events=('end',), tag="{{{0}}}REC".format(name_space))
 
-            if show_progress:
-                print("{} Xml tree parsed, iterating through elements.".format(xml_file_name))
+            #if show_progress:
+            #     print("{} Xml tree parsed, iterating through elements.".format(xml_file_name))
 
             last_position = 0
 
@@ -252,7 +267,7 @@ class WOS(BibDataBase):
                     
                     address_no = int(addr_obj.get('addr_no'))
 
-                    affiliation_df.append([PublicationId, addr_no, orgtext])
+                    affiliation.append([PublicationId, address_no, orgtext])
 
                     #if found_affiliations
 
@@ -260,43 +275,43 @@ class WOS(BibDataBase):
 
 
                 field_objects = elem.xpath('./ns:static_data/ns:fullrecord_metadata/ns:category_info/ns:headings/ns:heading', namespaces=ns)
-                field_df.extend([[PublicationId, field_obj.text, 'heading'] for field_obj in field_objects if field_obj is not None])
+                field.extend([[PublicationId, field_obj.text, 'heading'] for field_obj in field_objects if field_obj is not None])
 
                 field_objects = elem.xpath('./ns:static_data/ns:fullrecord_metadata/ns:category_info/ns:subheadings/ns:subheading', namespaces=ns)
-                field_df.extend([[PublicationId, field_obj.text, 'subheading'] for field_obj in field_objects if field_obj is not None])
+                field.extend([[PublicationId, field_obj.text, 'subheading'] for field_obj in field_objects if field_obj is not None])
 
                 field_objects = elem.xpath('./ns:static_data/ns:fullrecord_metadata/ns:category_info/ns:subjects/ns:subject[@ascatype="traditional"]', namespaces=ns)
-                field_df.extend([[PublicationId, field_obj.text, 'ASCA traditional subject'] for field_obj in field_objects if field_obj is not None])
+                field.extend([[PublicationId, field_obj.text, 'ASCA traditional subject'] for field_obj in field_objects if field_obj is not None])
 
                 field_objects = elem.xpath('./ns:static_data/ns:fullrecord_metadata/ns:category_info/ns:subjects/ns:subject[@ascatype="extended"]', namespaces=ns)
-                field_df.extend([[PublicationId, field_obj.text, 'ASCA extended subject'] for field_obj in field_objects if field_obj is not None])
+                field.extend([[PublicationId, field_obj.text, 'ASCA extended subject'] for field_obj in field_objects if field_obj is not None])
 
                 field_objects = elem.xpath('./ns:static_data/ns:fullrecord_metadata/ns:keywords/ns:keyword', namespaces=ns)
-                field_df.extend([[PublicationId, field_obj.text, 'keyword'] for field_obj in field_objects if field_obj is not None])
+                field.extend([[PublicationId, field_obj.text, 'keyword'] for field_obj in field_objects if field_obj is not None])
 
                 field_objects = elem.xpath('./ns:static_data/ns:item/ns:keywords_plus/ns:keyword', namespaces=ns)
-                field_df.extend([[PublicationId, field_obj.text, 'keyword plus'] for field_obj in field_objects if field_obj is not None])
+                field.extend([[PublicationId, field_obj.text, 'keyword plus'] for field_obj in field_objects if field_obj is not None])
 
                 reference_objects = elem.xpath('./ns:static_data/ns:fullrecord_metadata/ns:references/ns:reference', namespaces=ns)
                 for ref_obj in reference_objects:
                     for ref_elem in ref_obj:
                         if ref_elem.tag == "{{{0}}}uid".format(name_space):
                             refid = load_html_str(ref_elem.text.replace('WOS:', ''))
-                            pub2ref_df.append([PublicationId, refid])
+                            pub2ref.append([PublicationId, refid])
                         elif ref_elem.tag == "{{{0}}}year".format(name_space):
                             pub2year[refid] = load_int(ref_elem.text)
 
-                publication_df.append([pub_record[k] for k in pub_column_names])
+                publication.append([pub_record[k] for k in pub_column_names])
 
                 for aorder, author_record in pub_authors.items():
                     if not author_record['AuthorId'] is None and not author_record['AuthorId'] in found_aids:
                         found_aids.add(author_record['AuthorId'])
-                        author_df.append([author_record[k] for k in author_column_names])
+                        author.append([author_record[k] for k in author_column_names])
 
-                    paa_df.append([PublicationId, author_record['AuthorId'], aorder, author_record['FullName']])
+                    paa.append([PublicationId, author_record['AuthorId'], aorder, author_record['FullName']])
 
 
-            self._save_dataframes(ifile, publication_df, pub_column_names, author_df, author_column_names, paa_df, pub2ref_df, affiliation_df, field_df)
+            self._save_dataframes(ifile, publication, pub_column_names, author, author_column_names, paa, pub2ref, affiliation, field)
             ifile += 1
 
         with gzip.open(os.path.join(self.path2database, 'pub2year.json.gz'), 'w') as outfile:

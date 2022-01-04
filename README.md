@@ -17,8 +17,9 @@ The ``pySciSci`` also provides efficient implemntations of recent metrics develo
 - Interdisciplinarity (RoaStirling)
 - Annual productivity trajectories
 - Sleeping Beauty Coefficient
+- Q-factor
+- Career Topic Switching
 - Novelty & Conventionality, ToDo
-- Q-factor, ToDo
 ...
 
 Advanced tools for constructing and analyzing network objects (both static and temporal):

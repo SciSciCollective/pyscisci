@@ -2,14 +2,25 @@
 import datetime
 import numpy as np
 import matplotlib.pylab as plt
-from pyscisci.metrics.productivitytrajectory import piecewise_linear
+from pyscisci.methods.productivitytrajectory import piecewise_linear
 
-def career_impacttimeline(impact_df, datecol = 'Date', impactcol='Ctotal', fill_color='orange', edge_color='k', ax=None):
+def career_impacttimeline(impact, datecol = 'Date', impactcol='Ctotal', fill_color='orange', hot_streak_info = None, 
+    edge_color='k', streak_color='firebrick', ax=None):
 
     if ax is None:
         fig, ax = plt.subplots(1,1,figsize=(10,6))
 
-    for d, c in zip(impact_df[datecol].values, impact_df[impactcol].values):
+    if isinstance(datecol, str):
+        dates = impact[datecol].values
+    elif isinstance(datecol, np.ndarray):
+        dates = datecol
+
+    if isinstance(impactcol, str):
+        cites = impact[impactcol].values
+    elif isinstance(impactcol, np.ndarray):
+        cites = impactcol
+
+    for d, c in zip(dates, cites):
         if isinstance(d, str):
             if 'T' in d:
                 d= datetime.datetime.strptime(d.split('T')[0], '%Y-%m-%d')
@@ -18,21 +29,31 @@ def career_impacttimeline(impact_df, datecol = 'Date', impactcol='Ctotal', fill_
 
         ax.plot([d]*2, [0,c], c='k', lw = 0.5) 
         ax.scatter(d, c, color=fill_color, edgecolor=edge_color, linewidth=0.5, zorder=100)
+    
+    if not hot_streak_info is None:
+        nstreaks = 2 - hot_streak_info[:3].isnull().sum()
         
+        if nstreaks == 1:
+            gamma0, gamma1 = 10**(hot_streak_info[:2])
+            streak_start, streak_end = hot_streak_info[3:5].astype(int)
+            ax.plot(datecol[:streak_start], [gamma0]*streak_start, c=streak_color)
+            ax.plot(datecol[streak_start:(streak_end+1)], [gamma1]*(streak_end-streak_start+1), c=streak_color)
+            ax.plot(datecol[(streak_end+1):], [gamma0]*(datecol.shape[0]-streak_end-1), c=streak_color)
+
     return ax
 
 
-def career_productivitytimeline(yearlyprod_df, productivity_trajectory = None, datecol = 'Year', fill_color='blue', ax=None):
+def career_productivitytimeline(yearlyprod, productivity_trajectory = None, datecol = 'Year', fill_color='blue', ax=None):
 
     if ax is None:
         fig, ax = plt.subplots(1,1,figsize=(10,6))
 
-    ax.bar(yearlyprod_df[datecol].values, yearlyprod_df['YearlyProductivity'].values, color=fill_color) 
+    ax.bar(yearlyprod[datecol].values, yearlyprod['YearlyProductivity'].values, color=fill_color) 
     
     if not productivity_trajectory is None:
         t_break, b, m1, m2 = productivity_trajectory[['t_break','b','m1','m2']].values[0]
 
-        ts = np.arange(yearlyprod_df[datecol].min(), yearlyprod_df[datecol].max()+1)
+        ts = np.arange(yearlyprod[datecol].min(), yearlyprod[datecol].max()+1)
         ax.plot(ts, piecewise_linear(ts, t_break, b, m1, m2), color='black')
         
     return ax

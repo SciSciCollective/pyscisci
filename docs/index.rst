@@ -15,7 +15,7 @@ Table of Contents
    installation
    examples
    databases
-   metrics
+   methods
    network
    utils
 

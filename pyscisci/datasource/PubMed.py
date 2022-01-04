@@ -42,6 +42,7 @@ class PubMed(BibDataBase):
         self.PublicationIdType = int
         self.AffiliationIdType = int
         self.AuthorIdType = str
+        self.JournalIdType = str
 
 
     def _blank_pubmed_publication(self, PublicationId = 0):

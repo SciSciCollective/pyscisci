@@ -39,8 +39,9 @@ class MAG(BibDataBase):
         self.PublicationIdType = int
         self.AffiliationIdType = int
         self.AuthorIdType = int
+        self.JournalIdType = int
 
-    def preprocess(self, dflist = None, show_progress=True):
+    def preprocess(self, dflist = None, combine_conferences =True, show_progress=True):
         """
         Bulk preprocess the MAG raw data.
 
@@ -48,7 +49,10 @@ class MAG(BibDataBase):
         ----------
         dflist: list, default None
             The list of DataFrames to preprocess.  If None, all MAG DataFrames are preprocessed.
-
+        
+        combine_conferences: bool, default True,
+            combine the conference series into the Journals
+            
         show_progress: bool, default True
             Show progress with processing of the data.
 
@@ -99,7 +103,7 @@ class MAG(BibDataBase):
 
         affil_int_columns = [0, 7, 8]
         affil_str_columns = [3, 4, 5, 6]
-        affil_float_columns = [9, 10]
+        affil_float_columns = [10, 11]
 
         affil_column_names = ['AffiliationId', 'NumberPublications', 'NumberCitations', 'FullName', 'GridId', 'OfficialPage', 'WikiPage', 'Latitude', 'Longitude']
 
@@ -118,14 +122,14 @@ class MAG(BibDataBase):
                     # update progress bar
                     pbar.update(sys.getsizeof(line))
 
-        aff_df = pd.DataFrame(affiliation_info, columns = affil_column_names)
+        aff = pd.DataFrame(affiliation_info, columns = affil_column_names)
 
         if preprocess:
             if not os.path.exists(os.path.join(self.path2database, 'affiliation')):
                 os.mkdir(os.path.join(self.path2database, 'affiliation'))
-            aff_df.to_hdf(os.path.join(self.path2database, 'affiliation', 'affiliation0.hdf'), key = 'affiliation', mode = 'w')
+            aff.to_hdf(os.path.join(self.path2database, 'affiliation', 'affiliation0.hdf'), key = 'affiliation', mode = 'w')
 
-        return aff_df
+        return aff
 
     def parse_authors(self, preprocess = False, process_name = True, num_file_lines = 5*10**6, show_progress=True):
         """
@@ -197,14 +201,14 @@ class MAG(BibDataBase):
                         ifile += 1
                         authorinfo = []
 
-                author_df = pd.DataFrame(authorinfo, columns = author_column_names)
+                author = pd.DataFrame(authorinfo, columns = author_column_names)
                 if preprocess:
-                    author_df.to_hdf(os.path.join(self.path2database, 'author', 'author{}.hdf'.format(ifile)),
+                    author.to_hdf(os.path.join(self.path2database, 'author', 'author{}.hdf'.format(ifile)),
                                                                                 key = 'author', mode = 'w')
 
-        return author_df
+        return author
 
-    def parse_publications(self, preprocess = True, num_file_lines=5*10**6, preprocess_dicts = True, show_progress=True):
+    def parse_publications(self, preprocess = True, num_file_lines=2*10**6, preprocess_dicts = True, show_progress=True):
         """
         Parse the MAG Publication and Journal raw data.
 
@@ -250,17 +254,25 @@ class MAG(BibDataBase):
                     # update progress bar
                     pbar.update(sys.getsizeof(line))
 
-        journal_df = pd.DataFrame(journal_info, columns = journal_column_names)
+        journal = pd.DataFrame(journal_info, columns = journal_column_names)
         if preprocess:
-            journal_df.to_hdf(os.path.join(self.path2database, 'journal', 'journal0.hdf'), key = 'journal', mode = 'w')
+            journal.to_hdf(os.path.join(self.path2database, 'journal', 'journal0.hdf'), key = 'journal', mode = 'w')
 
         #now lets do the publication information
+        # we need to standardize the document types across the different databases
         # as of 7/2021: Book, BookChapter, Conference, Dataset, Journal, Patent, Repository, Thesis, NULL : unknown
-        doctype = {'Journal': 'j', 'Book':'b', '':'', 'BookChapter':'bc', 'Conference':'c', 'Dataset':'d', 'Patent':'p', 'Repository':'r', 'Thesis':'t'}
+        doctype = {'Article': 'j', 'Book Review':'br', 'Letter':"l", 'Review':"rev", 'Correction':"corr",
+       'Editorial Material':"editorial", 'News Item':"news", 'Bibliography':"bib",
+       'Biographical-Item':"bibi", 'Hardware Review':"hr", 'Meeting Abstract':"ma", 'Note':"note",
+       'Discussion':"disc", 'Item About an Individual':"indv", 'Correction, Addition':"corradd",
+       'Chronology':"chrono", 'Software Review':"sr", 'Reprint':"re", 'Database Review':"dr", 
+       "Journal":'j', 'Book':'b', '':'', 'BookChapter':'bc', 'Conference':'c', 'Dataset':'d', 'Patent':'p', 'Repository':'r', 'Thesis':'t',
+       'article': 'j', 'book':'b', '':'', 'phdthesis':'t', 'proceedings':'c', 'inproceedings':'c',
+        'mastersthesis':'mst', 'incollection':'coll'}
 
         pub_int_columns = [0, 7, 11, 22]
-        pub_str_columns = [2, 4, 8, 14, 15, 24]
-        pub_column_names = ['PublicationId', 'Year', 'JournalId', 'FamilyId',  'Doi', 'Title', 'Date', 'Volume', 'Issue','DocSubTypes', 'DocType']
+        pub_str_columns = [2, 4, 8, 14, 15, 16, 17, 24]
+        pub_column_names = ['PublicationId', 'Year', 'JournalId', 'FamilyId',  'Doi', 'Title', 'Date', 'Volume', 'Issue', 'FirstPage', 'LastPage', 'DocSubTypes', 'DocType']
 
         if preprocess:
             if not os.path.exists(os.path.join(self.path2database, 'publication')):
@@ -298,9 +310,9 @@ class MAG(BibDataBase):
                             ifile += 1
                             pubinfo = []
 
-            pub_df = pd.DataFrame(pubinfo, columns = pub_column_names)
+            pub = pd.DataFrame(pubinfo, columns = pub_column_names)
             if preprocess:
-                pub_df.to_hdf(os.path.join(self.path2database, 'publication', 'publication{}.hdf'.format(ifile)),
+                pub.to_hdf(os.path.join(self.path2database, 'publication', 'publication{}.hdf'.format(ifile)),
                                                                                 key = 'publication', mode = 'w')
 
                 if preprocess_dicts:
@@ -310,7 +322,7 @@ class MAG(BibDataBase):
                     with gzip.open(os.path.join(self.path2database, 'pub2doctype.json.gz'), 'w') as outfile:
                         outfile.write(json.dumps(pub2doctype).encode('utf8'))
 
-        return pub_df
+        return pub
 
 
     def parse_references(self, preprocess = False, num_file_lines=10**7, show_progress=True):
@@ -361,13 +373,13 @@ class MAG(BibDataBase):
                         ifile += 1
                         pub2ref_info = []
 
-        pub2ref_df = pd.DataFrame(pub2ref_info, columns = ['CitingPublicationId', 'CitedPublicationId'])
+        pub2ref = pd.DataFrame(pub2ref_info, columns = ['CitingPublicationId', 'CitedPublicationId'])
 
         if preprocess:
-            pub2ref_df.to_hdf(os.path.join(self.path2database, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)),
+            pub2ref.to_hdf(os.path.join(self.path2database, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)),
                                                                             key = 'pub2ref', mode = 'w')
 
-        return pub2ref_df
+        return pub2ref
 
     def parse_publicationauthoraffiliation(self, preprocess = False, num_file_lines=5*10**6, show_progress=True):
         """
@@ -421,13 +433,13 @@ class MAG(BibDataBase):
                         pubauthaff_info = []
 
 
-        paa_df = pd.DataFrame(pubauthaff_info, columns = pub_column_names)
+        paa = pd.DataFrame(pubauthaff_info, columns = pub_column_names)
         if preprocess:
-            paa_df.to_hdf(os.path.join(self.path2database, 'publicationauthoraffiliation', 'publicationauthoraffiliation{}.hdf'.format(ifile)),
+            paa.to_hdf(os.path.join(self.path2database, 'publicationauthoraffiliation', 'publicationauthoraffiliation{}.hdf'.format(ifile)),
                                                                         key = 'publicationauthoraffiliation', mode = 'w')
-        return paa_df
+        return paa
 
-    def parse_fields(self, preprocess = False, num_file_lines=10**7, show_progress=True):
+    def parse_fields(self, preprocess = False, num_file_lines=5*10**6, show_progress=True):
         """
         Parse the MAG Paper Field raw data.
 
@@ -462,9 +474,9 @@ class MAG(BibDataBase):
                 fielddata = [load_int(sline[ip]) for ip in field2get] + [sline[2]]
                 fieldinfo.append(fielddata)
 
-        field_df = pd.DataFrame(fieldinfo, columns = fieldnames)
+        field = pd.DataFrame(fieldinfo, columns = fieldnames)
         if preprocess:
-            field_df.to_hdf(os.path.join(self.path2database, 'fieldinfo', 'fieldinfo0.hdf'), key = 'field', mode = 'w')
+            field.to_hdf(os.path.join(self.path2database, 'fieldinfo', 'fieldinfo0.hdf'), key = 'field', mode = 'w')
 
 
         # and now do pub2field
@@ -500,10 +512,10 @@ class MAG(BibDataBase):
                         ifile += 1
                         fieldinfo = []
 
-        pub2field_df = pd.DataFrame(fieldinfo, columns = paperfieldnames)
+        pub2field = pd.DataFrame(fieldinfo, columns = paperfieldnames)
         if preprocess:
-            pub2field_df.to_hdf(os.path.join(self.path2database, 'pub2field', 'pub2field' + str(ifile) + '.hdf'),
+            pub2field.to_hdf(os.path.join(self.path2database, 'pub2field', 'pub2field' + str(ifile) + '.hdf'),
                                                                                 key = 'pub2field', mode = 'w')
-        return pub2field_df
+        return pub2field
 
 

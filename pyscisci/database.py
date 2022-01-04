@@ -13,11 +13,10 @@ from collections import defaultdict
 
 import pandas as pd
 import numpy as np
-from nameparser import HumanName
 
 from pyscisci.utils import isin_sorted, zip2dict, load_int, load_float, groupby_count
-from pyscisci.metrics import *
-from pyscisci.datasource.readwrite import load_preprocessed_data, append_to_preprocessed_df
+#from pyscisci.methods import *
+from pyscisci.datasource.readwrite import load_preprocessed_data, append_to_preprocessed
 from pyscisci.filter import *
 
 class BibDataBase(object):
@@ -66,60 +65,55 @@ class BibDataBase(object):
         self.global_filter = None
         self.show_progress = show_progress
 
-        self.path2author_df = 'author'
-        self.path2pub_df = 'publication'
-        self.path2affiliation_df = 'affiliation'
-        self.path2pub2ref_df = 'pub2ref'
-        self.path2paa_df = 'publicationauthoraffiliation'
-        self.path2pub2field_df = 'pub2field'
-        self.path2journal_df = 'journal'
-        self.path2fieldinfo_df = 'fieldinfo'
-        self.path2impact_df = 'impact'
+        self.path2author = 'author'
+        self.path2pub = 'publication'
+        self.path2affiliation = 'affiliation'
+        self.path2pub2ref = 'pub2ref'
+        self.path2paa = 'publicationauthoraffiliation'
+        self.path2pub2field = 'pub2field'
+        self.path2journal = 'journal'
+        self.path2fieldinfo = 'fieldinfo'
+        self.path2impact = 'impact'
 
-        self._affiliation_df = None
-        self._pub_df = None
-        self._journal_df = None
-        self._author_df = None
+        self._affiliation = None
+        self._pub = None
+        self._journal = None
+        self._author = None
         self._pub2year = None
         self._pub2doctype = None
-        self._pub2ref_df = None
-        self._author2pub_df = None
-        self._paa_df = None
-        self._pub2refnoself_df = None
-        self._pub2field_df=None
-        self._fieldinfo_df = None
+        self._pub2ref = None
+        self._author2pub = None
+        self._paa = None
+        self._pub2refnoself = None
+        self._pub2field=None
+        self._fieldinfo = None
 
         self.PublicationIdType = int
         self.AffiliationIdType = int
         self.AuthorIdType = int
+        self.JournalIdType = int
 
         if not global_filter is None:
             self.set_global_filters(global_filter)
 
     def set_new_data_path(self, dataframe_name='', new_path=''):
-        if dataframe_name == 'author_df':
-            self.path2author_df = new_path
-        elif dataframe_name == 'pub_df':
-            self.path2pub_df = new_path
-        elif dataframe_name == 'affiliation_df':
-            self.path2affiliation_df = new_path
-        elif dataframe_name == 'pub2ref_df':
-            self.path2pub2ref_df = new_path
-        elif dataframe_name == 'paa_df':
-            self.path2paa_df = new_path
-        elif dataframe_name == 'pub2field_df':
-            self.path2pub2field_df = new_path
-        elif dataframe_name == 'fieldinfo_df':
-            self.path2fieldinfo_df = new_path
-        elif dataframe_name == 'journal_df':
-            self.path2journal_df = new_path
-        elif dataframe_name == 'impact_df':
-            self.path2impact_df = new_path
-        else:
-            print("Unrecognized DataFrame {}".format(dataframe_name))
+        """
+        Override path to the dataframe collection.
+
+        Parameters
+        --------
+        dataframe_name : str
+            The dataframe name to override.  E.g. 'author', 'pub', 'paa', 'pub2field', etc.
+
+        new_path : str
+            The new dataframe path.
+
+        """
+        
+        setattr(self, 'path2' + dataframe_name, new_path)
 
     @property
-    def affiliation_df(self):
+    def affiliation(self):
         """
         The DataFrame keeping affiliation information. Columns may depend on the specific datasource.
 
@@ -131,17 +125,17 @@ class BibDataBase(object):
         |
 
         """
-        if self._affiliation_df is None:
+        if self._affiliation is None:
             if self.keep_in_memory:
-                self._affiliation_df = self.load_affiliations(show_progress=self.show_progress)
+                self._affiliation = self.load_affiliations(show_progress=self.show_progress)
             else:
                 return self.load_affiliations(show_progress=self.show_progress)
 
-        return self._affiliation_df
+        return self._affiliation
 
 
     @property
-    def author_df(self):
+    def author(self):
         """
         The DataFrame keeping author information. Columns may depend on the specific datasource.
 
@@ -153,16 +147,16 @@ class BibDataBase(object):
         |
 
         """
-        if self._author_df is None:
+        if self._author is None:
             if self.keep_in_memory:
-                self._author_df = self.load_authors(show_progress=self.show_progress)
+                self._author = self.load_authors(show_progress=self.show_progress)
             else:
                 return self.load_authors(show_progress=self.show_progress)
 
-        return self._author_df
+        return self._author
 
     @property
-    def pub_df(self):
+    def pub(self):
         """
         The DataFrame keeping publication information. Columns may depend on the specific datasource.
 
@@ -174,13 +168,13 @@ class BibDataBase(object):
         |
 
         """
-        if self._pub_df is None:
+        if self._pub is None:
             if self.keep_in_memory:
-                self._pub_df = self.load_publications(show_progress=self.show_progress)
+                self._pub = self.load_publications(show_progress=self.show_progress)
             else:
                 return self.load_publications(show_progress=self.show_progress)
 
-        return self._pub_df
+        return self._pub
 
     @property
     def pub2year(self):
@@ -217,7 +211,7 @@ class BibDataBase(object):
         return self._pub2doctype
 
     @property
-    def journal_df(self):
+    def journal(self):
         """
         The DataFrame keeping journal information.  Columns may depend on the specific datasource.
 
@@ -228,16 +222,16 @@ class BibDataBase(object):
         |
 
         """
-        if self._journal_df is None:
+        if self._journal is None:
             if self.keep_in_memory:
-                self._journal_df = self.load_journals(show_progress=self.show_progress)
+                self._journal = self.load_journals(show_progress=self.show_progress)
             else:
                 return self.load_journals(show_progress=self.show_progress)
 
-        return self._journal_df
+        return self._journal
 
     @property
-    def pub2ref_df(self):
+    def pub2ref(self):
         """
         The DataFrame keeping citing and cited PublicationId.
 
@@ -248,16 +242,16 @@ class BibDataBase(object):
         |
 
         """
-        if self._pub2ref_df is None:
+        if self._pub2ref is None:
             if self.keep_in_memory:
-                self._pub2ref_df = self.load_references(show_progress=self.show_progress)
+                self._pub2ref = self.load_references(show_progress=self.show_progress)
             else:
                 return self.load_references(show_progress=self.show_progress)
 
-        return self._pub2ref_df
+        return self._pub2ref
 
     @property
-    def pub2refnoself_df(self):
+    def pub2refnoself(self):
         """
         The DataFrame keeping citing and cited PublicationId after filtering out the self-citations.
 
@@ -268,16 +262,16 @@ class BibDataBase(object):
         |
 
         """
-        if self._pub2refnoself_df is None:
+        if self._pub2refnoself is None:
             if self.keep_in_memory:
-                self._pub2refnoself_df = self.load_references(noselfcite=True, show_progress=self.show_progress)
+                self._pub2refnoself = self.load_references(noselfcite=True, show_progress=self.show_progress)
             else:
                 return self.load_references(noselfcite=True, show_progress=self.show_progress)
 
-        return self._pub2refnoself_df
+        return self._pub2refnoself
 
     @property
-    def paa_df(self):
+    def paa(self):
         """
         The DataFrame keeping all publication, author, affiliation relationships.  Columns may depend on the specific datasource.
 
@@ -288,16 +282,16 @@ class BibDataBase(object):
         |
 
         """
-        if self._paa_df is None:
+        if self._paa is None:
             if self.keep_in_memory:
-                self._paa_df = self.load_publicationauthoraffiliation(show_progress=self.show_progress)
+                self._paa = self.load_publicationauthoraffiliation(show_progress=self.show_progress)
             else:
                 return self.load_publicationauthoraffiliation(show_progress=self.show_progress)
 
-        return self._paa_df
+        return self._paa
 
     @property
-    def author2pub_df(self):
+    def author2pub(self):
         """
         The DataFrame keeping all publication, author relationships.  Columns may depend on the specific datasource.
 
@@ -308,18 +302,18 @@ class BibDataBase(object):
         |
 
         """
-        if self._paa_df is None:
+        if self._paa is None:
             if self.keep_in_memory:
-                self._paa_df = self.load_publicationauthoraffiliation(columns = ['AuthorId', 'PublicationId'],
+                self._paa = self.load_publicationauthoraffiliation(columns = ['AuthorId', 'PublicationId'],
                     duplicate_subset = ['AuthorId', 'PublicationId'], dropna = ['AuthorId', 'PublicationId'], show_progress=self.show_progress)
             else:
                 return self.load_publicationauthoraffiliation(columns = ['AuthorId', 'PublicationId'],
                     duplicate_subset = ['AuthorId', 'PublicationId'], dropna = ['AuthorId', 'PublicationId'], show_progress=self.show_progress)
 
-        return self._paa_df
+        return self._paa
 
     @property
-    def pub2field_df(self):
+    def pub2field(self):
         """
         The DataFrame keeping all publication field relationships.  Columns may depend on the specific datasource.
 
@@ -331,16 +325,16 @@ class BibDataBase(object):
 
         """
 
-        if self._pub2field_df is None:
+        if self._pub2field is None:
             if self.keep_in_memory:
-                self._pub2field_df = self.load_pub2field(show_progress=self.show_progress)
+                self._pub2field = self.load_pub2field(show_progress=self.show_progress)
             else:
                 return self.load_pub2field(show_progress=self.show_progress)
 
-        return self._pub2field_df
+        return self._pub2field
 
     @property
-    def fieldinfo_df(self):
+    def fieldinfo(self):
         """
         The DataFrame keeping all publication field relationships.  Columns may depend on the specific datasource.
 
@@ -351,13 +345,13 @@ class BibDataBase(object):
         |
 
         """
-        if self._fieldinfo_df is None:
+        if self._fieldinfo is None:
             if self.keep_in_memory:
-                self._fieldinfo_df = self.load_fieldinfo(show_progress=self.show_progress)
+                self._fieldinfo = self.load_fieldinfo(show_progress=self.show_progress)
             else:
                 return self.load_fieldinfo(show_progress=self.show_progress)
 
-        return self._fieldinfo_df
+        return self._fieldinfo
 
     def publicationid_list(self):
         """
@@ -477,14 +471,14 @@ class BibDataBase(object):
         if show_progress or self.show_progress:
             show_progress='Loading Affiliations'
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2affiliation_df)):
-            return load_preprocessed_data(self.path2affiliation_df, path2database=self.path2database, columns=columns,
+        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2affiliation)):
+            return load_preprocessed_data(self.path2affiliation, path2database=self.path2database, columns=columns,
                 filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
                 prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
         else:
             return self.parse_affiliations()
 
-    def load_authors(self, preprocess = True, columns = None, filter_dict = None, duplicate_subset = None,
+    def load_authors(self, preprocess = True, columns = None, filter_dict = {}, duplicate_subset = None,
         duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, process_name = True, show_progress=True):
         """
         Load the Author DataFrame from a preprocessed directory, or parse from the raw files.
@@ -498,7 +492,7 @@ class BibDataBase(object):
         columns : list, default None, Optional
             Load only this subset of columns
 
-        filter_dict : dict, default None, Optional
+        filter_dict : dict, default {}, Optional
             Dictionary of format {"ColumnName":"ListofValues"} where "ColumnName" is a data column and "ListofValues" is a sorted list of valid values.  A DataFrame only containing rows that appear in
             "ListofValues" will be returned.
 
@@ -529,14 +523,14 @@ class BibDataBase(object):
         if show_progress or self.show_progress:
             show_progress='Loading Authors'
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2author_df)):
-            return load_preprocessed_data(self.path2author_df, path2database=self.path2database, columns=columns,
+        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2author)):
+            return load_preprocessed_data(self.path2author, path2database=self.path2database, columns=columns,
                 filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
                 prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
         else:
             return self.parse_authors(process_name=process_name)
 
-    def load_publications(self, preprocess = True, columns = None, filter_dict = None, duplicate_subset = None,
+    def load_publications(self, preprocess = True, columns = None, filter_dict = {}, duplicate_subset = None,
         duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
         """
         Load the Publication DataFrame from a preprocessed directory, or parse from the raw files.
@@ -550,7 +544,7 @@ class BibDataBase(object):
         columns : list, default None, Optional
             Load only this subset of columns
 
-        filter_dict : dict, default None, Optional
+        filter_dict : dict, default {}, Optional
             Dictionary of format {"ColumnName":"ListofValues"} where "ColumnName" is a data column
             and "ListofValues" is a sorted list of valid values.  A DataFrame only containing rows that appear in
             "ListofValues" will be returned.
@@ -579,13 +573,13 @@ class BibDataBase(object):
             show_progress='Loading Publications'
 
         if not self.global_filter is None:
-            if 'PublicationId' in filter_dict:
+            if not filter_dict is None and 'PublicationId' in filter_dict:
                 filter_dict['PublicationId'] = np.sort([pid for pid in filter_dict['PublicationId'] if pid in self.global_filter])
             else:
-                filter_dict['PublicationId'] = np.sort(list(self.global_filter))
+                filter_dict = {'PublicationId':np.sort(list(self.global_filter))}
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2pub_df)):
-            return load_preprocessed_data(dataname=self.path2pub_df, path2database=self.path2database, columns=columns,
+        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2pub)):
+            return load_preprocessed_data(dataname=self.path2pub, path2database=self.path2database, columns=columns,
                 filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
                 prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
         else:
@@ -604,7 +598,7 @@ class BibDataBase(object):
                 pub2doctype = json.loads(infile.read().decode('utf8'))
             return {self.PublicationIdType(k):dt for k,dt in pub2doctype.items() if not dt is None}
 
-    def load_journals(self, preprocess = True, columns = None, filter_dict = None, duplicate_subset = None,
+    def load_journals(self, preprocess = True, columns = None, filter_dict = {}, duplicate_subset = None,
         duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
         """
         Load the Journal DataFrame from a preprocessed directory, or parse from the raw files.
@@ -644,8 +638,8 @@ class BibDataBase(object):
         if show_progress or self.show_progress:
             show_progress='Loading Journals'
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2journal_df)):
-            return load_preprocessed_data(self.path2journal_df, path2database=self.path2database, columns=columns,
+        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2journal)):
+            return load_preprocessed_data(self.path2journal, path2database=self.path2database, columns=columns,
                 filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
                 prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
         else:
@@ -692,9 +686,12 @@ class BibDataBase(object):
 
         """
         if noselfcite:
-            fileprefix = self.path2pub2ref_df + 'noself'
+            fileprefix = self.path2pub2ref + 'noself'
         else:
-            fileprefix = self.path2pub2ref_df
+            fileprefix = self.path2pub2ref
+
+        if filter_dict is None:
+            filter_dict = {}
 
         if not self.global_filter is None:
             if 'CitingPublicationId' in filter_dict:
@@ -757,14 +754,17 @@ class BibDataBase(object):
         if show_progress or self.show_progress:
             show_progress='Loading Publication Author Affiliation'
 
+        if filter_dict is None:
+            filter_dict = {}
+
         if not self.global_filter is None:
             if 'PublicationId' in filter_dict:
                 filter_dict['PublicationId'] = np.sort([pid for pid in filter_dict['PublicationId'] if pid in self.global_filter])
             else:
                 filter_dict['PublicationId'] = np.sort(list(self.global_filter))
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2paa_df)):
-            return load_preprocessed_data(self.path2paa_df, path2database=self.path2database, columns=columns,
+        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2paa)):
+            return load_preprocessed_data(self.path2paa, path2database=self.path2database, columns=columns,
                 filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
                 prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
         else:
@@ -810,14 +810,17 @@ class BibDataBase(object):
         if show_progress or self.show_progress:
             show_progress='Loading Fields'
 
+        if filter_dict is None:
+            filter_dict = {}
+
         if not self.global_filter is None:
             if 'PublicationId' in filter_dict:
                 filter_dict['PublicationId'] = np.sort([pid for pid in filter_dict['PublicationId'] if pid in self.global_filter])
             else:
                 filter_dict['PublicationId'] = np.sort(list(self.global_filter))
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2pub2field_df)):
-            return load_preprocessed_data(self.path2pub2field_df, path2database=self.path2database, columns=columns,
+        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2pub2field)):
+            return load_preprocessed_data(self.path2pub2field, path2database=self.path2database, columns=columns,
                 filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
                 prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
         else:
@@ -862,8 +865,8 @@ class BibDataBase(object):
         if show_progress or self.show_progress:
             show_progress='Loading Field Info'
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2fieldinfo_df)):
-            return pd.read_hdf(os.path.join(self.path2database, self.path2fieldinfo_df, 'fieldinfo0.hdf'))
+        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2fieldinfo)):
+            return pd.read_hdf(os.path.join(self.path2database, self.path2fieldinfo, 'fieldinfo0.hdf'))
         else:
             return self.parse_fields()
 
@@ -910,6 +913,9 @@ class BibDataBase(object):
         if show_progress or self.show_progress:
             show_progress='Loading Impact'
 
+        if filter_dict is None:
+            filter_dict = {}
+
         if not self.global_filter is None:
             if 'PublicationId' in filter_dict:
                 filter_dict['PublicationId'] = np.sort([pid for pid in filter_dict['PublicationId'] if pid in self.global_filter])
@@ -926,12 +932,152 @@ class BibDataBase(object):
             def normfunc(impactdf):
                 return impactdf
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2impact_df)):
-            return load_preprocessed_data(self.path2impact_df, path2database=self.path2database, columns=columns,
+        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2impact)):
+            return load_preprocessed_data(self.path2impact, path2database=self.path2database, columns=columns,
                 filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
                 prefunc2apply=normfunc, show_progress=show_progress)
         else:
             raise self.compute_impact()
+
+
+    def get_publication_info(pub_ids = [], pub=True, columns = None):
+        """
+        Produce a DataFrame with the publication information.
+
+        Parameters
+        -----------
+        pub_ids : int, str, or list
+            A PublicationId or list of PublicationIds
+
+        pub : Bool, or DataFrame - default True, optional
+            A pre-loaded pub DataFrame or a bool indicating you should load the publicaiton dataframe.
+
+        columns : list, defualt None, optional
+            A list of specific columns from the pub DataFrame to return.
+
+
+        Returns
+        -----------
+        pub_info : DataFrame
+            The publication information.
+
+
+        """
+
+        if isinstance(pub_ids, self.PublicationIdType):
+            pub_ids = [pub_ids]
+        pub_ids = np.sort(pub_ids)
+
+        if isinstance(pub, pd.DataFrame) and 'PublicationId' in list(pub):
+            pub_info = pub[isin_sorted(pub['PublicationId'].values, pub_ids)]
+
+        elif pub and self._pub is None:
+            pub_info = self.load_publications(filter_dict={'PublicationId':pub_ids}, columns=columns)
+
+        elif pub:
+            pub_info = self._pub[isin_sorted(self._pub['PublicationId'].values, pub_ids)]
+
+        if not columns is None:
+            pub_info = pub_info[columns]
+
+        return pub_info
+
+    def get_author_publications(author_ids = [], paa=None, include_pub_info=None, include_impact=False):
+        """
+        Produce a DataFrame with the author(s) publication information.
+
+        Parameters
+        -----------
+        author_ids : int, str, or list
+            An AuthorId or list of AuthorIds
+
+        paa : None, or DataFrame - default None, optional
+            A pre-loaded paa DataFrame or defualt None indicates we should load the paa dataframe.
+
+        include_pub_info : bool or DataFrame, defualt None, optional
+            If DataFrame- used as the publication information.
+            If Bool and True - we load our own publication information.
+
+        include_impact : bool or DataFrame, defualt None, optional
+            If DataFrame- used as the impact or reference information.
+            If Bool and True - we load our own impact information.
+
+
+        Returns
+        -----------
+        author_paa : DataFrame
+            The author(s) publication information.
+        """
+
+        if isinstance(author_ids, self.AuthorIdType):
+            author_ids = [author_ids]
+        author_ids = np.sort(author_ids)
+
+        if paa is None and self._paa is None:
+            author_paa = self.load_publicationauthoraffiliation(columns = ['AuthorId', 'PublicationId', 'AffiliationId'], 
+                filter_dict={'AuthorId':author_ids})
+        elif paa is None:
+            author_paa = self._paa[isin_sorted(self._paa['AuthorId'].values, author_ids)]
+        else:
+            author_paa = paa[isin_sorted(paa['AuthorId'].values, author_ids)]
+
+        if include_pub_info:
+            author_pubs = self.get_publication_info(pub_ids=np.sort(author_paa['PublicationId'].unique()))
+            author_paa = author_paa.merge(author_pubs, how='left', on='PublicationId')
+            
+
+        return author_paa
+
+    def get_journal_publications(journal_ids = [], pub=None, include_pub_info=None, include_impact=False):
+        """
+        Produce a DataFrame with the journal(s) publication information.
+
+        Parameters
+        -----------
+        journal_ids : int, str, or list
+            A JournalId or list of JournalIds
+
+        pub : None, or DataFrame - default None, optional
+            A pre-loaded pub DataFrame or defualt None indicates we should load the pub dataframe.
+
+        include_pub_info : bool or DataFrame, defualt None, optional
+            If DataFrame- used as the publication information.
+            If Bool and True - we load our own publication information.
+
+        include_impact : bool or DataFrame, defualt None, optional
+            If DataFrame- used as the impact or reference information.
+            If Bool and True - we load our own impact information.
+
+
+        Returns
+        -----------
+        journal_pubs : DataFrame
+            The journal(s) publication information.
+        """
+
+        if isinstance(journal_ids, self.JournalIdType):
+            journal_ids = [journal_ids]
+        journal_ids = np.sort(journal_ids)
+
+        if isinstance(pub, pd.DataFrame) and 'JournalId' in list(pub):
+            journal_pubs = pub[isin_sorted(pub['JournalId'].values, journal_ids)]
+
+        elif pub and self._pub is None:
+            journal_pubs = self.load_publications(filter_dict={'JournalId':journal_ids}, columns=columns)
+
+        elif pub:
+            journal_pubs = self._pub[isin_sorted(self._pub['JournalId'].values, journal_ids)]
+
+        if not columns is None:
+            journal_pubs = journal_pubs[columns]
+
+        return journal_pubs
+
+
+    def publication_citations(pub_ids, imapct=None):
+        pass
+        
+
 
     """
     To be rewritten for each specific data source (MAG, WOS, etc.)
@@ -983,7 +1129,7 @@ class BibDataBase(object):
                 os.mkdir(os.path.join(self.path2database, 'pub2refnoself'))
 
         pub2authors = defaultdict(set)
-        for pid, aid in self.author2pub_df[['PublicationId', 'AuthorId']].values:
+        for pid, aid in self.author2pub[['PublicationId', 'AuthorId']].values:
             pub2authors[pid].add(aid)
 
         fullrefdf = []
@@ -1007,7 +1153,7 @@ class BibDataBase(object):
             return pd.concat(fullrefdf)
 
 
-    def compute_impact(self, preprocess=True, citation_horizons = [5,10], noselfcite = True):
+    def precompute_impact(self, preprocess=True, citation_horizons = [5,10], noselfcite = True):
         """
         Calculate several of the common citation indices.
             * 'Ctotal' : The total number of citations.
@@ -1040,14 +1186,14 @@ class BibDataBase(object):
         pub2year = self.load_pub2year()
 
         # now get the reference list and merge with year info
-        pub2ref = self.pub2ref_df
+        pub2ref = self.pub2ref
 
         # drop all citations that happend before the publication year
         pub2ref = pub2ref.loc[[pub2year.get(citingpid, 0) >= pub2year.get(citedpid, 0) for citingpid, citedpid in pub2ref[['CitingPublicationId', 'CitedPublicationId']].values]]
 
         # calcuate the total citations
-        citation_df = groupby_count(pub2ref, colgroupby='CitedPublicationId', colcountby='CitingPublicationId', count_unique=True )
-        citation_df.rename(columns={'CitingPublicationIdCount':'Ctotal', 'CitedPublicationId':'PublicationId'}, inplace=True)
+        citation = groupby_count(pub2ref, colgroupby='CitedPublicationId', colcountby='CitingPublicationId', count_unique=True )
+        citation.rename(columns={'CitingPublicationIdCount':'Ctotal', 'CitedPublicationId':'PublicationId'}, inplace=True)
 
         # go from the larest k down
         for k in np.sort(citation_horizons)[::-1]:
@@ -1057,25 +1203,25 @@ class BibDataBase(object):
             pub2ref = pub2ref.loc[[pub2year.get(citingpid, 0) <= pub2year.get(citedpid, 0) + k for citingpid, citedpid in pub2ref[['CitingPublicationId', 'CitedPublicationId']].values]]
 
             # recalculate the impact
-            k_citation_df = groupby_count(pub2ref, colgroupby='CitedPublicationId', colcountby='CitingPublicationId', count_unique=True )
-            k_citation_df.rename(columns={'CitingPublicationIdCount':'C{}'.format(k), 'CitedPublicationId':'PublicationId'}, inplace=True)
+            k_citation = groupby_count(pub2ref, colgroupby='CitedPublicationId', colcountby='CitingPublicationId', count_unique=True )
+            k_citation.rename(columns={'CitingPublicationIdCount':'C{}'.format(k), 'CitedPublicationId':'PublicationId'}, inplace=True)
 
-            citation_df = citation_df.merge(k_citation_df, how='left', on='PublicationId')
+            citation = citation.merge(k_citation, how='left', on='PublicationId')
 
         # get the Cited Year
-        citation_df['Year'] = [pub2year.get(pid, 0) for pid in citation_df['PublicationId'].values]
+        citation['Year'] = [pub2year.get(pid, 0) for pid in citation['PublicationId'].values]
 
 
         if noselfcite:
             del pub2ref
-            pub2ref = self.pub2refnoself_df
+            pub2ref = self.pub2refnoself
 
             # drop all citations that happend before the publication year
             pub2ref = pub2ref.loc[[pub2year.get(citingpid, 0) >= pub2year.get(citedpid, 0) for citingpid, citedpid in pub2ref[['CitingPublicationId', 'CitedPublicationId']].values]]
 
             # calcuate the total citations
-            citation_noself_df = groupby_count(pub2ref, colgroupby='CitedPublicationId', colcountby='CitingPublicationId', count_unique=True )
-            citation_noself_df.rename(columns={'CitingPublicationIdCount':'Ctotal_noself', 'CitedPublicationId':'PublicationId'}, inplace=True)
+            citation_noself = groupby_count(pub2ref, colgroupby='CitedPublicationId', colcountby='CitingPublicationId', count_unique=True )
+            citation_noself.rename(columns={'CitingPublicationIdCount':'Ctotal_noself', 'CitedPublicationId':'PublicationId'}, inplace=True)
 
             # go from the larest k down
             for k in np.sort(citation_horizons)[::-1]:
@@ -1085,31 +1231,31 @@ class BibDataBase(object):
                 pub2ref = pub2ref.loc[[pub2year.get(citingpid, 0) <= pub2year.get(citedpid, 0) + k for citingpid, citedpid in pub2ref[['CitingPublicationId', 'CitedPublicationId']].values]]
 
                 # recalculate the impact
-                k_citation_df = groupby_count(pub2ref, colgroupby='CitedPublicationId', colcountby='CitingPublicationId', count_unique=True )
-                k_citation_df.rename(columns={'CitingPublicationIdCount':'C{}_noself'.format(k), 'CitedPublicationId':'PublicationId'}, inplace=True)
+                k_citation = groupby_count(pub2ref, colgroupby='CitedPublicationId', colcountby='CitingPublicationId', count_unique=True )
+                k_citation.rename(columns={'CitingPublicationIdCount':'C{}_noself'.format(k), 'CitedPublicationId':'PublicationId'}, inplace=True)
 
-                citation_noself_df = citation_noself_df.merge(k_citation_df, how='left', on='PublicationId')
+                citation_noself = citation_noself.merge(k_citation, how='left', on='PublicationId')
 
-            citation_df = citation_df.merge(citation_noself_df, how='left', on='PublicationId')
+            citation = citation.merge(citation_noself, how='left', on='PublicationId')
 
         # set all nan to 0
-        citation_df.fillna(0, inplace=True)
+        citation.fillna(0, inplace=True)
 
         if preprocess:
 
             if not os.path.exists(os.path.join(self.path2database, 'impact')):
                 os.mkdir(os.path.join(self.path2database, 'impact'))
 
-            for y, cdf in citation_df.groupby('Year', sort=True):
+            for y, cdf in citation.groupby('Year', sort=True):
                 cdf.to_hdf(os.path.join(self.path2database, 'impact', 'impact{}.hdf'.format(y)), mode='w', key ='impact')
 
         else:
-            return citation_df
+            return citation
 
 
 
 
-    def compute_teamsize(self, save2pubdf = True, show_progress=False):
+    def precompute_teamsize(self, save2pubdf = True, show_progress=False):
         """
         Calculate the teamsize of publications, defined as the total number of Authors on the publication.
 
@@ -1133,22 +1279,22 @@ class BibDataBase(object):
         if show_progress or self.show_progress: 
             print("Starting TeamSize computation. \nLoading Data.")
 
-        pub2authorseq_df = self.load_publicationauthoraffiliation(columns = ['PublicationId', 'AuthorId', 'AuthorSequence'],
+        pub2authorseq = self.load_publicationauthoraffiliation(columns = ['PublicationId', 'AuthorId', 'AuthorSequence'],
             duplicate_subset = ['PublicationId', 'AuthorId'], dropna = ['PublicationId', 'AuthorId'])
 
         # register our pandas apply with tqdm for a progress bar
         tqdm.pandas(desc='TeamSize', disable= not show_progress)
 
-        pub2teamsize = pub2authorseq_df.groupby('PublicationId', sort=False)['AuthorSequence'].progress_apply(lambda x: x.max()).astype(int).to_frame().reset_index().rename(columns={'AuthorSequence':'TeamSize'})
+        pub2teamsize = pub2authorseq.groupby('PublicationId', sort=False)['AuthorSequence'].progress_apply(lambda x: x.max()).astype(int).to_frame().reset_index().rename(columns={'AuthorSequence':'TeamSize'})
 
         if save2pubdf:
             if show_progress: print("Saving Teamsize.")
-            append_to_preprocessed_df(pub2teamsize, self.path2database, 'publication')
+            append_to_preprocessed(pub2teamsize, self.path2database, 'publication')
 
         return pub2teamsize
 
 
-    def compute_yearly_citations(self, preprocess = True, show_progress=False):
+    def precompute_yearly_citations(self, preprocess = True, show_progress=False):
 
         if show_progress:
             print("Starting Computation of Yearly Citations")
@@ -1157,7 +1303,7 @@ class BibDataBase(object):
         pub2year = self.pub2year
 
         # now get the reference list and merge with year info
-        pub2ref = self.pub2ref_df
+        pub2ref = self.pub2ref
 
         pub2ref['CitingYear'] = [pub2year.get(citingpid, 0) for citingpid in pub2ref['CitingPublicationId'].values]
 
@@ -1168,13 +1314,13 @@ class BibDataBase(object):
             print("Yearly Citation Data Prepared")
 
         # calcuate the total citations
-        citation_df = groupby_count(pub2ref, colgroupby=['CitedPublicationId', 'CitingYear'], colcountby='CitingPublicationId', count_unique=True )
-        citation_df.rename(columns={'CitingPublicationIdCount':'YearlyCitations', 'CitedPublicationId':'PublicationId'}, inplace=True)
+        citation = groupby_count(pub2ref, colgroupby=['CitedPublicationId', 'CitingYear'], colcountby='CitingPublicationId', count_unique=True )
+        citation.rename(columns={'CitingPublicationIdCount':'YearlyCitations', 'CitedPublicationId':'PublicationId'}, inplace=True)
 
         # get the Cited Year
-        citation_df['CitedYear'] = [pub2year.get(pid, 0) for pid in citation_df['PublicationId'].values]
+        citation['CitedYear'] = [pub2year.get(pid, 0) for pid in citation['PublicationId'].values]
 
-        citation_df.sort_values(by=['CitedYear', 'CitedPublicationId', 'CitingYear'], inplace=True)
+        citation.sort_values(by=['CitedYear', 'CitedPublicationId', 'CitingYear'], inplace=True)
 
         if show_progress:
             print("Yearly Citations Found")
@@ -1183,12 +1329,12 @@ class BibDataBase(object):
             if not os.path.exists(os.path.join(self.path2database, 'temporalimpact')):
                 os.mkdir(os.path.join(self.path2database, 'temporalimpact'))
 
-            for y, cdf in citation_df.groupby('CitedYear', sort=True):
+            for y, cdf in citation.groupby('CitedYear', sort=True):
                 cdf.to_hdf(os.path.join(self.path2database, 'temporalimpact', 'temporalimpact{}.hdf'.format(y)), mode='w', key ='temporalimpact')
 
             if show_progress:
                 print("Yearly Citations Saved")
 
         else:
-            return citation_df
+            return citation
 

@@ -39,6 +39,7 @@ class APS(BibDataBase):
 
         self.PublicationIdType = str
         self.AffiliationIdType = str
+        self.JournalIdType = str
 
         
 
@@ -77,11 +78,11 @@ class APS(BibDataBase):
             if not os.path.exists(os.path.join(self.path2database, 'publicationauthoraffiliation_supp2010')):
                 os.mkdir(os.path.join(self.path2database, 'publicationauthoraffiliation_supp2010'))
 
-            filename = os.path.join(self.path2database, 'publicationauthoraffiliation_supp2010', 'publicationauthoraffiliation_supp20100.hdf')
+            filename = os.path.join(self.path2database, 'publicationauthoraffiliation_supp2010', 'publicationauthoraffiliation0.hdf')
             apsauthors_gzip = download_file_from_google_drive(file_id=aps_author_file_id, destination= filename)
             pd.read_csv(filename, sep='\t', compression='gzip').to_hdf(filename, mode='w', key='paa')
 
-            self.set_new_data_path(dataframe_name='paa_df', new_path='publicationauthoraffiliation_supp2010')
+            self.set_new_data_path(dataframe_name='paa', new_path='publicationauthoraffiliation_supp2010')
 
             print("New data saved to {}.".format('publicationauthoraffiliation_supp2010'))
 
@@ -106,7 +107,7 @@ class APS(BibDataBase):
 
             if preprocess:
 
-                for hier_dir_type in [self.path2pub_df, self.path2journal_df, self.path2affiliation_df, self.path2paa_df, self.path2pub2field_df, self.path2fieldinfo_df]:
+                for hier_dir_type in [self.path2pub, self.path2journal, self.path2affiliation, self.path2paa, self.path2pub2field, self.path2fieldinfo]:
 
                     if not os.path.exists(os.path.join(self.path2database, hier_dir_type)):
                         os.mkdir(os.path.join(self.path2database, hier_dir_type))
@@ -117,7 +118,7 @@ class APS(BibDataBase):
 
             pub_column_names = ['PublicationId', 'Title', 'Date', 'Year', 'Doi', 'JournalId', 'Volume', 'Issue', 'PageStart', 'PageEnd', 'DocType', 'TeamSize']
 
-            pub_df = []
+            pub = []
             pub2year = {}
             pub2doctype = {}
             pub2int = {}
@@ -130,10 +131,10 @@ class APS(BibDataBase):
 
             iaff = 0
             affil_dict = {}
-            paa_df = []
+            paa = []
 
             field_dict = {}
-            pub2field_df = []
+            pub2field = []
 
             for fname in tqdm(metadata_files, desc='aps-metadata', leave=True, disable=not show_progress):
                 # load pub json
@@ -176,7 +177,7 @@ class APS(BibDataBase):
                 pubinfo.append(len(pubjson.get('authors', [])))
 
                 # finish publication infor
-                pub_df.append(pubinfo)
+                pub.append(pubinfo)
 
                 # check if we need to save journal information
                 if journal_dict.get(journalid, None) is None:
@@ -199,7 +200,7 @@ class APS(BibDataBase):
                 # now start parsing author information
                 for authordict in pubjson.get('authors', []):
                     for affid in authordict.get('affiliationIds', [None]):
-                        paa_df.append([pubid, authordict.get('name', ''), pub_affid_map.get(affid, None), authorseq])
+                        paa.append([pubid, authordict.get('name', ''), pub_affid_map.get(affid, None), authorseq])
 
                     authorseq += 1
 
@@ -210,7 +211,7 @@ class APS(BibDataBase):
                     fid = subjectdict.get('id', None)
 
                     if not fid is None and len(fid) > 0:
-                        pub2field_df.append([pubid, fid])
+                        pub2field.append([pubid, fid])
 
                         if field_dict.get(fid, None) is None:
                             field_dict[fid] = [subjectdict.get('label', None), 'subjectAreas']
@@ -220,7 +221,7 @@ class APS(BibDataBase):
                     fid = subjectdict.get('id', None)
 
                     if not fid is None and len(fid) > 0:
-                        pub2field_df.append([pubid, fid])
+                        pub2field.append([pubid, fid])
 
                         if field_dict.get(fid, None) is None:
                             field_dict[fid] = [subjectdict.get('label', None), 'disciplines']
@@ -230,7 +231,7 @@ class APS(BibDataBase):
                     fid = subjectdict.get('id', None)
 
                     if not fid is None and len(fid) > 0:
-                        pub2field_df.append([pubid, fid])
+                        pub2field.append([pubid, fid])
 
                         if field_dict.get(fid, None) is None:
                             field_dict[fid] = [subjectdict.get('label', None), 'concepts']
@@ -242,27 +243,27 @@ class APS(BibDataBase):
             if show_progress:
                 print("Parsing Complete\nSaving Publication DataFrames")
 
-            pub_df = pd.DataFrame(pub_df, columns = pub_column_names)
+            pub = pd.DataFrame(pub, columns = pub_column_names)
             for intcol in pubintcol + ['Year']:
-                pub_df[intcol] = pub_df[intcol].astype(int)
+                pub[intcol] = pub[intcol].astype(int)
 
             journal_rename_dict = {'name':'FullName', 'id':'JournalId', 'abbreviatedName':'AbbreviatedName'}
-            journal_df = pd.DataFrame(journal_dict.values()).rename(columns=journal_rename_dict)
+            journal = pd.DataFrame(journal_dict.values()).rename(columns=journal_rename_dict)
 
-            affiliation_df = pd.DataFrame([[affid, name] for name, affid in affil_dict.items()], columns = ['AffiliationId', 'Address'])
+            affiliation = pd.DataFrame([[affid, name] for name, affid in affil_dict.items()], columns = ['AffiliationId', 'Address'])
 
-            paa_df = pd.DataFrame(paa_df, columns = ['PublicationId', 'OrigAuthorName', 'AffiliationId', 'AuthorSequence'])
+            paa = pd.DataFrame(paa, columns = ['PublicationId', 'OrigAuthorName', 'AffiliationId', 'AuthorSequence'])
             for intcol in pubintcol+['AuthorSequence']:
-                paa_df[intcol] = paa_df[intcol].astype(int)
+                paa[intcol] = paa[intcol].astype(int)
 
-            pub2field_df = pd.DataFrame(pub2field_df, columns = ['PublicationId', 'FieldId'])
+            pub2field = pd.DataFrame(pub2field, columns = ['PublicationId', 'FieldId'])
             for intcol in pubintcol:
-                pub2field_df[intcol] = pub2field_df[intcol].astype(int)
+                pub2field[intcol] = pub2field[intcol].astype(int)
 
-            field_df = pd.DataFrame([[fieldid] + fieldname for fieldid, fieldname in field_dict.items()], columns = ['FieldId', 'FullName', 'ClassificationType'])
+            field = pd.DataFrame([[fieldid] + fieldname for fieldid, fieldname in field_dict.items()], columns = ['FieldId', 'FullName', 'ClassificationType'])
 
             if preprocess:
-                pub_df.to_hdf(os.path.join(self.path2database, 'publication', 'publication0.hdf'), mode='w', key='publication')
+                pub.to_hdf(os.path.join(self.path2database, 'publication', 'publication0.hdf'), mode='w', key='publication')
 
                 if pubid2int:
                     with gzip.open(os.path.join(self.path2database, 'pub2int.json.gz'), 'w') as outfile:
@@ -276,23 +277,23 @@ class APS(BibDataBase):
                         outfile.write(json.dumps(pub2doctype).encode('utf8'))
 
 
-                journal_df.to_hdf(os.path.join(self.path2database, self.path2journal_df, 'journal0.hdf'), mode='w', key='journal')
+                journal.to_hdf(os.path.join(self.path2database, self.path2journal, 'journal0.hdf'), mode='w', key='journal')
 
-                affiliation_df.to_hdf(os.path.join(self.path2database, self.path2affiliation_df, 'affiliation0.hdf'), mode='w', key='affiliation')
+                affiliation.to_hdf(os.path.join(self.path2database, self.path2affiliation, 'affiliation0.hdf'), mode='w', key='affiliation')
 
-                paa_df.to_hdf(os.path.join(self.path2database, self.path2paa_df, 'publicationauthoraffiliation0.hdf'), mode='w', key='publicationauthoraffiliation')
+                paa.to_hdf(os.path.join(self.path2database, self.path2paa, 'publicationauthoraffiliation0.hdf'), mode='w', key='publicationauthoraffiliation')
 
-                pub2field_df.to_hdf( os.path.join(self.path2database, self.path2pub2field_df, 'pub2field0.hdf'), mode='w', key='pub2field')
+                pub2field.to_hdf( os.path.join(self.path2database, self.path2pub2field, 'pub2field0.hdf'), mode='w', key='pub2field')
 
-                field_df.to_hdf( os.path.join(self.path2database, self.path2fieldinfo_df, 'fieldinfo0.hdf'), mode='w', key='pub2field')
+                field.to_hdf( os.path.join(self.path2database, self.path2fieldinfo, 'fieldinfo0.hdf'), mode='w', key='pub2field')
 
         else:
             raise FileNotFoundError('The archive {0} does not contain a metadata directory: {1}.'.format(archive_name, 'aps-dataset-metadata'))
 
     def parse_references(self, preprocess=False, pubid2int=False, archive_name='aps-dataset-citations-2019.zip', show_progress=False):
 
-        if preprocess and not os.path.exists(os.path.join(self.path2database, self.path2pub2ref_df)):
-            os.mkdir(os.path.join(self.path2database, self.path2pub2ref_df))
+        if preprocess and not os.path.exists(os.path.join(self.path2database, self.path2pub2ref)):
+            os.mkdir(os.path.join(self.path2database, self.path2pub2ref))
 
         if pubid2int:
             with gzip.open(os.path.join(self.path2database, 'pub2int.json.gz'), 'r') as infile:
@@ -325,7 +326,7 @@ class APS(BibDataBase):
                         outfile.write(json.dumps(pub2int).encode('utf8'))
 
             if preprocess:
-                pub2ref.to_hdf(os.path.join(self.path2database, self.path2pub2ref_df, 'pub2ref0.hdf'), mode='w', key = 'pub2ref')
+                pub2ref.to_hdf(os.path.join(self.path2database, self.path2pub2ref, 'pub2ref0.hdf'), mode='w', key = 'pub2ref')
 
             return pub2ref
 
@@ -337,4 +338,9 @@ class APS(BibDataBase):
 
     def parse_fields(self, preprocess = False, num_file_lines=10**7, show_progress=False):
         raise NotImplementedError("APS is stored as a json archive.  Run preprocess to parse the archive.")
+
+    def load_journals(self, preprocess = True, columns = None, filter_dict = {}, duplicate_subset = None,
+        duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
+    
+        raise NotImplementedError("The APS does not have prespecified journal information.")
 

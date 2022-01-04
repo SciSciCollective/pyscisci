@@ -22,19 +22,19 @@ def groupby_count(df, colgroupby, colcountby, count_unique=True, show_progress=F
 
     Parameters
     ----------
-    :param df: DataFrame
+    df: DataFrame
         The DataFrame.
 
-    :param colgroupby: str
+    colgroupby: str
         The column to groupby.
 
-    :param colcountby: str
+    colcountby: str
         The column to count.
 
-    :param count_unique: bool, default True
+    count_unique: bool, default True
         If True, count unique items in the rows.  If False, just return the number of rows.
 
-    :param show_progress: bool or str, default False
+    show_progress: bool or str, default False
         If True, display a progress bar for the count.  If str, the name of the progress bar to display.
 
     Returns
@@ -51,11 +51,11 @@ def groupby_count(df, colgroupby, colcountby, count_unique=True, show_progress=F
 
     newname_dict = zip2dict([str(colcountby), '0'], [str(colcountby)+'Count']*2)
     if count_unique:
-        count_df = df.groupby(colgroupby, sort=False)[colcountby].progress_apply(lambda x: x.nunique())
+        count = df.groupby(colgroupby, sort=False)[colcountby].progress_apply(lambda x: x.nunique())
     else:
-        count_df = df.groupby(colgroupby, sort=False)[colcountby].progress_apply(lambda x: x.shape[0])
+        count = df.groupby(colgroupby, sort=False)[colcountby].progress_apply(lambda x: x.shape[0])
 
-    return count_df.to_frame().reset_index().rename(columns=newname_dict)
+    return count.to_frame().reset_index().rename(columns=newname_dict)
 
 def groupby_range(df, colgroupby, colrange, show_progress=False):
     """
@@ -63,16 +63,16 @@ def groupby_range(df, colgroupby, colrange, show_progress=False):
 
     Parameters
     ----------
-    :param df: DataFrame
+    df: DataFrame
         The DataFrame.
 
-    :param colgroupby: str
+    colgroupby: str
         The column to groupby.
 
-    :param colrange: str
+    colrange: str
         The column to find the range of values.
 
-    :param show_progress: bool or str, default False
+    show_progress: bool or str, default False
         If True, display a progress bar for the range.  If str, the name of the progress bar to display.
 
     Returns
@@ -95,16 +95,16 @@ def groupby_zero_col(df, colgroupby, colrange, show_progress=False):
 
     Parameters
     ----------
-    :param df: DataFrame
+    df: DataFrame
         The DataFrame.
 
-    :param colgroupby: str
+    colgroupby: str
         The column to groupby.
 
-    :param colrange: str
+    colrange: str
         The column to find the range of values.
 
-    :param show_progress: bool or str, default False
+    show_progress: bool or str, default False
         If True, display a progress bar.  If str, the name of the progress bar to display.
 
     Returns
@@ -126,16 +126,16 @@ def groupby_total(df, colgroupby, colcountby, show_progress=False):
 
     Parameters
     ----------
-    :param df: DataFrame
+    df: DataFrame
         The DataFrame.
 
-    :param colgroupby: str
+    colgroupby: str
         The column to groupby.
 
-    :param colcountby: str
+    colcountby: str
         The column to find the total of values.
 
-    :param show_progress: bool or str, default False
+    show_progress: bool or str, default False
         If True, display a progress bar for the summation.  If str, the name of the progress bar to display.
 
     Returns
@@ -158,16 +158,16 @@ def groupby_mean(df, colgroupby, colcountby, show_progress=False):
 
     Parameters
     ----------
-    :param df: DataFrame
+    df: DataFrame
         The DataFrame.
 
-    :param colgroupby: str
+    colgroupby: str
         The column to groupby.
 
-    :param colcountby: str
+    colcountby: str
         The column to find the mean of values.
 
-    :param show_progress: bool or str, default False
+    show_progress: bool or str, default False
         If True, display a progress bar for the summation.  If str, the name of the progress bar to display.
 
     Returns
@@ -182,7 +182,7 @@ def groupby_mean(df, colgroupby, colcountby, show_progress=False):
     tqdm.pandas(desc=desc, disable= not show_progress)
 
     newname_dict = zip2dict([str(colcountby), '0'], [str(colcountby)+'Mean']*2)
-    return df.groupby(colgroupby, sort=False)[colrange].progress_apply(lambda x: x.mean()).to_frame().reset_index().rename(columns=newname_dict)
+    return df.groupby(colgroupby, sort=False)[colcountby].progress_apply(lambda x: x.mean()).to_frame().reset_index().rename(columns=newname_dict)
 
 def isin_range(values2check, min_value, max_value):
     """
@@ -190,16 +190,16 @@ def isin_range(values2check, min_value, max_value):
 
     Parameters
     ----------
-    :param values2check: numpy array
+    values2check: numpy array
         The values to check.
 
-    :param min_value: float
+    min_value: float
         The lowest value of the range.
 
-    :param max_value: float
+    max_value: float
         The highest value of the range.
 
-    :param show_progress: bool or str, default False
+    show_progress: bool or str, default False
         If True, display a progress bar for the count.  If str, the name of the progress bar to display.
 
     Returns
@@ -215,10 +215,10 @@ def isin_sorted(values2check, masterlist):
 
     Parameters
     ----------
-    :param values2check: numpy array
+    values2check: numpy array
         The values to check.
 
-    :param masterlist: numpy array
+    masterlist: numpy array
         The sorted list of master values.
 
     Returns
@@ -245,13 +245,13 @@ def series2df(ser):
 def load_int(v):
     try:
         return int(v)
-    except ValueError:
+    except (ValueError, TypeError):
         return None
 
 def load_float(v):
     try:
         return float(v)
-    except ValueError:
+    except (ValueError, TypeError):
         return None
 
 def check4columns(df, column_list):
@@ -304,13 +304,13 @@ def rank_array(a, ascending=True, normed=False):
 
     Parameters
     ----------
-    :param a : numpy array or list
+    a : numpy array or list
         Object to rank
 
-    :param ascending : bool, default True
+    ascending : bool, default True
         Sort ascending vs. descending.
 
-    :param normed : bool, default False
+    normed : bool, default False
         False : rank is from 0 to N -1
         True : rank is from 0 to 1
 
@@ -337,10 +337,10 @@ def holder_mean(a, rho=1):
 
     Parameters
     ----------
-    :param a : numpy array or list
+    a : numpy array or list
         array of values
 
-    :param rho : float
+    rho : float
         holder parameter
         arithmetic mean (rho=1)
         geometric mean (rho=0)
@@ -352,6 +352,51 @@ def holder_mean(a, rho=1):
     """
     return (a**rho).sum()**(1.0/rho) / a.shape[0]
 
+def value_to_int(a, sort_values='value', ascending=False, return_map=True):
+    """
+    Map the values of an array to integers.
+
+    Parameters
+    ----------
+    a : numpy array or list
+        array of values
+
+    sort_values : str, default 'value'
+        'none' : dont sort
+        'value' : sort the array items based on their value
+        'freq' : sort the array items based on their frequency (see ascending)
+
+    ascending : bool, default False
+        Only when sort_values == 'freq':
+            False: larger counts dominate--map 0 to the most common
+            True: smaller counts dominate--map 0 to the least common
+
+    return_map: bool, default True
+    """
+    if sort_values == 'none':
+        unique_values = pd.unique(a)
+    
+    elif sort_values == 'value':
+        unique_values = np.sort(pd.unique(a))
+
+    elif sort_values == 'freq':
+        unique_values, freq = np.unique(a, return_counts=True)
+        if ascending:
+            unique_values = unique_values[np.argsort(freq)]
+        else:
+            unique_values = unique_values[np.argsort(freq)[::-1]]
+
+    else:
+        raise ValueError
+
+    value_to_int_dict = {v:i for i,v in enumerate(unique_values)}
+   
+    if return_map:
+        return [value_to_int_dict[v] for v in a], value_to_int_dict
+    else:
+        return [value_to_int_dict[v] for v in a]
+
+
 def uniquemap_by_frequency(df, colgroupby='PublicationId', colcountby='FieldId', ascending=False):
     """
     Reduce a one-to-many mapping to a selection based on frequency of occurence in the dataframe  
@@ -359,7 +404,7 @@ def uniquemap_by_frequency(df, colgroupby='PublicationId', colcountby='FieldId',
     
     Parameters
     ----------
-    :param ascending : bool, default False
+    ascending : bool, default False
         False: larger counts dominate--map defaults to the most common
         True: smaller counts dominate--map defaults to the least common
     """
@@ -371,6 +416,15 @@ def uniquemap_by_frequency(df, colgroupby='PublicationId', colcountby='FieldId',
             return countkeydict[a]
     return df.sort_values(by=[colcountby], key=countkey).drop_duplicates(subset=[colgroupby], keep='first')
 
+def welford_mean_m2(previous_count, previous_mean, previous_m2, new_value):
+    """
+    Welford's algorithm for online mean and variance.
+    """
+    new_count = previous_count + 1
+    new_mean = previous_mean + (new_value - previous_mean) / new_count
+    new_m2 = previous_m2 + (new_value - previous_mean)*(new_value - new_mean)
+    return (new_count, new_mean, new_m2)
+welford_mean_m2 = np.vectorize(welford_mean_m2)
 
 def download_file_from_google_drive(file_id, destination=None):
     """

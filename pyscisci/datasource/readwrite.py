@@ -115,7 +115,7 @@ def load_preprocessed_data(dataname, path2database, columns = None, filter_dict=
     if isinstance(show_progress, str):
         desc = show_progress
 
-    data_df = []
+    data = []
     for ifile in tqdm(FileNumbers, desc=desc, leave=True, disable=not show_progress):
         fname = os.path.join(path2files, dataname+"{}.hdf".format(ifile))
         subdf = pd.read_hdf(fname, mode = 'r')
@@ -140,20 +140,20 @@ def load_preprocessed_data(dataname, path2database, columns = None, filter_dict=
             subdf['filetag'] = ifile
 
         if callable(postfunc2apply):
-            postfunc2apply(subdf)
+            subdf = postfunc2apply(subdf)
 
-        data_df.append(subdf)
+        data.append(subdf)
 
-    data_df = pd.concat(data_df)
+    data = pd.concat(data)
 
     if isinstance(duplicate_subset, list):
-        data_df.drop_duplicates(subset = duplicate_subset, keep = duplicate_keep, inplace = True)
+        data.drop_duplicates(subset = duplicate_subset, keep = duplicate_keep, inplace = True)
 
-    data_df.name = dataname
+    data.name = dataname
     
-    return data_df
+    return data
 
-def append_to_preprocessed_df(newdf, path2database, preprocessname, startcount=0):
+def append_to_preprocessed(newdf, path2database, preprocessname, startcount=0):
     """
         Append the newdf to the preprocessed DataFrames from a preprocessed directory.
 
