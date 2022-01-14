@@ -593,7 +593,7 @@ class OpenAlex(BibDataBase):
 
 
                 
-                if ('publication' in dflist):
+                if ('publications' in dflist):
                     pub = pd.DataFrame(pubinfo, columns = pub_column_names)
                     if preprocess:
                         pub.to_hdf(
@@ -624,7 +624,6 @@ class OpenAlex(BibDataBase):
                         pub2field = []
 
                 if ('abstracts' in dflist):
-                    print(ifile, len(pub2abstract))
                     with gzip.open(os.path.join(self.path2database, 'pub2abstract', 'pub2abstract{}.gzip'.format(ifile)), 'w') as outfile:
                         for abentry in pub2abstract:
                             outfile.write((json.dumps({abentry[0]:abentry[1]}) + "\n").encode('utf-8'))
@@ -638,7 +637,7 @@ class OpenAlex(BibDataBase):
             with gzip.open(os.path.join(self.path2database, 'pub2doctype.json.gz'), 'w') as outfile:
                 outfile.write(json.dumps(pub2doctype).encode('utf8'))
 
-        return pub
+        return True
 
     def parse_concepts(self, preprocess = True, specific_update='', show_progress=True):
         """
