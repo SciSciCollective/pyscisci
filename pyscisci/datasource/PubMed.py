@@ -277,6 +277,9 @@ class PubMed(BibDataBase):
         dtd_url: str, default 'pubmed_190101.dtd'
             The url for the dtd file.
 
+        rewrite_existing: bool, default False
+            If True, overwrite existing files or if False, only download any missing files.
+
         show_progress: bool, default True
             Show progress with processing of the data.
 

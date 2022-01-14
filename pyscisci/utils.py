@@ -242,18 +242,6 @@ def zip2dict(keys, values):
 def series2df(ser):
     return ser.to_frame().reset_index()
 
-def load_int(v):
-    try:
-        return int(v)
-    except (ValueError, TypeError):
-        return None
-
-def load_float(v):
-    try:
-        return float(v)
-    except (ValueError, TypeError):
-        return None
-
 def check4columns(df, column_list):
     # TODO: make proper error messages
     for col in column_list:

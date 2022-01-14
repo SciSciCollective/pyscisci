@@ -18,13 +18,34 @@ from pyscisci.utils import isin_sorted
 def load_int(v):
     try:
         return int(v)
-    except ValueError:
+    except (ValueError, TypeError):
         return None
 
 def load_float(v):
     try:
         return float(v)
-    except ValueError:
+    except (ValueError, TypeError):
+        return None
+
+def load_bool(v):
+    try:
+        if isinstance(v, str):
+            if v == 'false' or v=='False' or v=='FALSE':
+                return False
+            elif v == 'true' or v=='True' or v=='TRUE':
+                return True
+            else:
+                return None
+        elif isinstance(v, int):
+            if v == 0 or v==False:
+                return False
+            elif v==1 or v==True:
+                return True
+            else:
+                return None
+        else:
+            return None
+    except (ValueError, TypeError):
         return None
 
 def load_html_str(s):
