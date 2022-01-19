@@ -206,22 +206,23 @@ class OpenAlex(BibDataBase):
                 with gzip.open(dest_pathname, 'r') as infile:
                     with gzip.open(dest_pathname.split('.')[0] + '_temp.gz', 'w') as outfile:
                         for line in infile:
-                            jline = json.loads(line)
+                            if line != '\n'.encode():
+                                jline = json.loads(line)
 
-                            if ( not ('fields' in dflist) ) and 'concepts' in jline:
-                                del jline['concepts']
+                                if ( not ('fields' in dflist) ) and 'concepts' in jline:
+                                    del jline['concepts']
 
-                            if ( not ('references' in dflist) ) and 'referenced_works' in jline:
-                                del jline['referenced_works']
+                                if ( not ('references' in dflist) ) and 'referenced_works' in jline:
+                                    del jline['referenced_works']
 
-                            if ( not ('publicationauthoraffiliation' in dflist) ) and 'authorships' in jline:
-                                del jline['authorships']
+                                if ( not ('publicationauthoraffiliation' in dflist) ) and 'authorships' in jline:
+                                    del jline['authorships']
 
-                            if ( not ('abstracts' in dflist) ) and 'abstract_inverted_index' in jline:
-                                del jline['abstract_inverted_index']
+                                if ( not ('abstracts' in dflist) ) and 'abstract_inverted_index' in jline:
+                                    del jline['abstract_inverted_index']
 
-                            newline = json.dumps(jline) + "\n"
-                            outfile.write(newline.encode('utf-8'))
+                                newline = json.dumps(jline) + "\n"
+                                outfile.write(newline.encode('utf-8'))
 
                 os.rename(dest_pathname.split('.')[0] + '_temp.gz', dest_pathname)
 
@@ -360,7 +361,10 @@ class OpenAlex(BibDataBase):
 
                         # process the first, middle, and last names for the author
                         if process_name:
-                            hname = HumanName(unicodedata.normalize('NFD', aline.get('display_name', '')))
+                            name = aline.get('display_name', '')
+                            if name is None:
+                                name = ''
+                            hname = HumanName(unicodedata.normalize('NFD', name))
                             authline += [hname.last, hname.first, hname.middle]
 
                         authorinfo.append(authline)
