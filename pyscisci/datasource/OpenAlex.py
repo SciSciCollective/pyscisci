@@ -19,6 +19,7 @@ from pyscisci.datasource.readwrite import load_preprocessed_data, load_int, load
 from pyscisci.database import BibDataBase
 
 openalex_works_dfset = {'publications', 'references', 'publicationauthoraffiliation', 'fields', 'abstracts'}
+openalex_dataframe_set = {'works', 'venues', 'authors', 'institutions', 'concepts'}
 
 class OpenAlex(BibDataBase):
     """
@@ -41,42 +42,41 @@ class OpenAlex(BibDataBase):
         self.AuthorIdType = int
         self.JournalIdType = int
 
-    def preprocess(self, dflist = None, show_progress=True):
+    def preprocess(self, dataframe_list = None, show_progress=True):
         """
         Bulk preprocess the MAG raw data.
 
         Parameters
         ----------
-        dflist: list, default None
+        dataframe_list: list, default None
             The list of DataFrames to preprocess.  If None, all MAG DataFrames are preprocessed.
             
         show_progress: bool, default True
             Show progress with processing of the data.
 
         """
-        if dflist is None or 'all' in dflist:
-            dflist = openalex_works_dfset.union(set(['affiliations', 'authors', 'venues', 'concepts']))
+        if dataframe_list is None or 'all' in dataframe_list:
+            dataframe_list = openalex_works_dfset.union(openalex_dataframe_set)
 
-        pubdflist = list(set(dflist).intersection(openalex_works_dfset))
+        pubdataframe_list = set(dataframe_list).intersection(openalex_works_dfset)
 
-        if 'affiliations' in dflist:
+        if 'affiliations' in dataframe_list or 'institutions' in dataframe_list:
             self.parse_affiliations(preprocess = True, show_progress=show_progress)
 
-        if 'authors' in dflist:
+        if 'authors' in dataframe_list:
             self.parse_authors(preprocess = True, show_progress=show_progress)
 
-        if 'publications' in dflist:
-            self.parse_publications(preprocess = True, dflist=pubdflist, show_progress=show_progress)
+        if 'publications' in dataframe_list or 'works' in dataframe_list:
+            self.parse_publications(preprocess = True, dataframe_list=pubdataframe_list, show_progress=show_progress)
 
-        if 'concepts' in dflist:
+        if 'concepts' in dataframe_list or 'fields' in dataframe_list:
             self.parse_fields(preprocess=True, show_progress=show_progress)
 
-        if 'venues' in dflist:
+        if 'venues' in dataframe_list or 'journals' in dataframe_list:
             self.parse_venues(preprocess=True, show_progress=show_progress)
 
-    def download_from_source(self, aws_access_key_id='', aws_secret_access_key='', specific_update='',
-        dflist = 'all',
-        rewrite_existing = False, show_progress=True):
+    def download_from_source(self, aws_access_key_id='', aws_secret_access_key='', specific_update='', aws_bucket = 'openalex',
+        dataframe_list = 'all', rewrite_existing = False, show_progress=True):
 
         """
         Download the OpenAlex files from Amazon Web Services.
@@ -97,7 +97,7 @@ class OpenAlex(BibDataBase):
             Download only a specific update date, specified by the date in Y-M-D format, 2022-01-01.  
             If empty the full data is downloaded.
 
-        dflist: list
+        dataframe_list: list
             The data types to download and save from OpenAlex.
                 'all'
                 'affiliations'
@@ -130,29 +130,24 @@ class OpenAlex(BibDataBase):
         else:
             s3_client = boto3.client('s3', config=Config(signature_version=UNSIGNED))
 
-        
-        bucket = 'openalex'
 
-        openalex_data2download = []
-        if 'all' in dflist:
-            openalex_data2download = ['authors', 'institutions', 'venues', 'works', 'concepts']
+        dataframe_list = set(dataframe_list)
+
+        if dataframe_list is None or 'all' in dataframe_list:
+            dataframe_list = dataframe_list.union(openalex_works_dfset).union(openalex_dataframe_set)
         else:
-            if 'affiliation' in dflist:
-                openalex_data2download.append('institutions')
-            if 'author' in dflist:
-                openalex_data2download.append('authors')
-            if 'publication' in dflist:
-                openalex_data2download.append('works')
-                openalex_data2download.append('venues')
-            if 'reference' in dflist or 'publicationauthoraffiliation' in dflist or 'abstracts' in dflist:
-                openalex_data2download.append('works')
-            if 'fields' in dflist:
-                openalex_data2download.append('works')
-                openalex_data2download.append('concepts')
+            # some dataframes have different names from those in pyscisci
+            if 'publications' in dataframe_list: dataframe_list.add('works')
+            if 'journals' in dataframe_list: dataframe_list.add('venues')
+            if 'fields' in dataframe_list: dataframe_list.add('concepts')
+            if 'affiliations' in dataframe_list: dataframe_list.add('institutions')
 
-        openalex_data2download = set(openalex_data2download)
-
-        edit_works = not all([df in dflist for df in ['references', 'publicationauthoraffiliation', 'fields', 'abstracts']])
+        # see if we have to do any editing
+        edit_works = False
+        if not 'references' in dataframe_list: edit_works = True
+        if not 'publicationauthoraffiliation' in dataframe_list: edit_works = True
+        if not 'concepts' in dataframe_list: edit_works = True
+        if not 'abstracts' in dataframe_list: edit_works = True
 
 
         if not rewrite_existing:
@@ -165,7 +160,7 @@ class OpenAlex(BibDataBase):
         dirs = []
         next_token = ''
         
-        base_kwargs = {'Bucket':bucket}
+        base_kwargs = {'Bucket':aws_bucket}
         while next_token is not None:
             kwargs = base_kwargs.copy()
             if next_token != '':
@@ -177,7 +172,7 @@ class OpenAlex(BibDataBase):
 
                 if not k in files_already_downloaded:
                     if 'data' in k: 
-                        if k.split('/')[1] in openalex_data2download and (specific_update=='' or k.split('/')[2] == 'updated_date={}'.format(specific_update)):
+                        if k.split('/')[1] in dataframe_list and (specific_update=='' or k.split('/')[2] == 'updated_date={}'.format(specific_update)):
                             if k[-1] != '/':
                                 keys.append(k)
                             else:
@@ -199,7 +194,7 @@ class OpenAlex(BibDataBase):
             if not os.path.exists(os.path.dirname(dest_pathname)):
                 os.makedirs(os.path.dirname(dest_pathname))
             
-            s3_client.download_file(bucket, k, dest_pathname)
+            s3_client.download_file(aws_bucket, k, dest_pathname)
 
             # the works contains references, concepts, and astracts, check if we keep these
             if edit_works and (len(k.split('/')) > 1 and k.split('/')[1] == 'works' and k[-3:]=='.gz'):
@@ -209,16 +204,16 @@ class OpenAlex(BibDataBase):
                             if line != '\n'.encode():
                                 jline = json.loads(line)
 
-                                if ( not ('fields' in dflist) ) and 'concepts' in jline:
+                                if ( not ('fields' in dataframe_list or 'concepts' in dataframe_list) ) and 'concepts' in jline:
                                     del jline['concepts']
 
-                                if ( not ('references' in dflist) ) and 'referenced_works' in jline:
+                                if ( not ('references' in dataframe_list) ) and 'referenced_works' in jline:
                                     del jline['referenced_works']
 
-                                if ( not ('publicationauthoraffiliation' in dflist) ) and 'authorships' in jline:
+                                if ( not ('publicationauthoraffiliation' in dataframe_list) ) and 'authorships' in jline:
                                     del jline['authorships']
 
-                                if ( not ('abstracts' in dflist) ) and 'abstract_inverted_index' in jline:
+                                if ( not ('abstracts' in dataframe_list) ) and 'abstract_inverted_index' in jline:
                                     del jline['abstract_inverted_index']
 
                                 newline = json.dumps(jline) + "\n"
@@ -440,7 +435,7 @@ class OpenAlex(BibDataBase):
 
 
     def parse_publications(self, preprocess = True, specific_update='', preprocess_dicts = True, 
-        dflist = ['publications', 'references', 'publicationauthoraffiliation', 'fields'],
+        dataframe_list = ['publications', 'references', 'publicationauthoraffiliation', 'fields'],
         show_progress=True):
         """
         Parse the OpenAlex Works raw data.
@@ -460,7 +455,7 @@ class OpenAlex(BibDataBase):
         preprocess_dicts: bool, default True
             Save the processed Year and DocType data as dictionaries.
 
-        dflist: list
+        dataframe_list: list
             The data types to download and save from OpenAlex.
                 'all'
                 'publication'
@@ -489,13 +484,13 @@ class OpenAlex(BibDataBase):
             files_to_parse = [os.path.join(dirpath, file) for (dirpath, dirnames, filenames) in os.walk(work_dir) for file in filenames if '.gz' in file]
 
 
-        if 'all' in dflist:
-            dflist = openalex_works_dfset
+        if 'all' in dataframe_list:
+            dataframe_list = openalex_works_dfset
 
 
         pub_column_names = ['PublicationId', 'JournalId', 'Year', 'NumberCitations', 'Doi', 'Title', 'Date', 'DocType', 'PMID', 'Volume', 'Issue', 'FirstPage', 'LastPage', 'IsRetracted', 'IsParaText']
 
-        if preprocess and ('publications' in dflist):
+        if preprocess and ('publications' in dataframe_list):
             if not os.path.exists(os.path.join(self.path2database, 'publication')):
                 os.mkdir(os.path.join(self.path2database, 'publication'))
 
@@ -503,7 +498,7 @@ class OpenAlex(BibDataBase):
             pub2year = {}
             pub2doctype = {}
 
-        if preprocess and ('references' in dflist):
+        if preprocess and ('references' in dataframe_list):
             if not os.path.exists(os.path.join(self.path2database, 'pub2ref')):
                 os.mkdir(os.path.join(self.path2database, 'pub2ref'))
 
@@ -511,7 +506,7 @@ class OpenAlex(BibDataBase):
 
         paa_column_names = ['PublicationId', 'AuthorId', 'AffiliationId', 'AuthorSequence', 'OrigAuthorName']
 
-        if preprocess and ('publicationauthoraffiliation' in dflist):
+        if preprocess and ('publicationauthoraffiliation' in dataframe_list):
             if not os.path.exists(os.path.join(self.path2database, 'paa')):
                 os.mkdir(os.path.join(self.path2database, 'paa'))
 
@@ -519,7 +514,7 @@ class OpenAlex(BibDataBase):
 
         pub2field_column_names = ['PublicationId', 'FieldId', 'FieldLevel', 'Score']
 
-        if preprocess and ('fields' in dflist):
+        if preprocess and ('fields' in dataframe_list):
             if not os.path.exists(os.path.join(self.path2database, 'pub2field')):
                 os.mkdir(os.path.join(self.path2database, 'pub2field'))
 
@@ -529,7 +524,7 @@ class OpenAlex(BibDataBase):
             fieldinfo = {}
             pub2field = []
 
-        if preprocess and ('abstracts' in dflist):
+        if preprocess and ('abstracts' in dataframe_list):
             if not os.path.exists(os.path.join(self.path2database, 'pub2abstract')):
                 os.mkdir(os.path.join(self.path2database, 'pub2abstract'))
 
@@ -544,7 +539,7 @@ class OpenAlex(BibDataBase):
                         
                         ownid = self.clean_openalex_ids(wline['id'])
 
-                        if ('all' in dflist or 'publication' in dflist):
+                        if ('all' in dataframe_list or 'publication' in dataframe_list):
                             wdata = [ownid, self.clean_openalex_ids(wline.get('host_venue', {}).get('id', None))]
                             wdata += [load_int(wline.get(idname, None)) for idname in ['publication_year', 'cited_by_count']]
                             wdata += [wline.get(idname, None) for idname in ['doi', 'title', 'publication_date', 'type']]
@@ -559,11 +554,11 @@ class OpenAlex(BibDataBase):
 
                             pubinfo.append(wdata)
 
-                        if ('references' in dflist):
+                        if ('references' in dataframe_list):
                             pub2ref.extend([[ownid, self.clean_openalex_ids(citedid)] for citedid in wline.get('referenced_works', [])])
 
 
-                        if ('publicationauthoraffiliation' in dflist):
+                        if ('publicationauthoraffiliation' in dataframe_list):
                             iauthor = 1
                             for authorinfo in wline.get('authorships', []):
                                 authorid = self.clean_openalex_ids(authorinfo.get('author', {}).get('id', None))
@@ -586,18 +581,18 @@ class OpenAlex(BibDataBase):
                                 if not iauthor is None:
                                     iauthor += 1
 
-                        if ('fields' in dflist):
+                        if ('fields' in dataframe_list):
                             pub_concepts = wline.get('concepts', [])
                             for con_dict in pub_concepts:
                                 pub2field.append([ownid, self.clean_openalex_ids(con_dict.get('id', None)), load_int(con_dict.get('level', None)), load_float(con_dict.get('score', None))])
                         
 
-                        if ('abstracts' in dflist) and 'abstract_inverted_index' in wline:
+                        if ('abstracts' in dataframe_list) and 'abstract_inverted_index' in wline:
                             pub2abstract.append([ownid, wline['abstract_inverted_index']])
 
 
                 
-                if ('publications' in dflist):
+                if ('publications' in dataframe_list):
                     pub = pd.DataFrame(pubinfo, columns = pub_column_names)
                     if preprocess:
                         pub.to_hdf(
@@ -606,35 +601,35 @@ class OpenAlex(BibDataBase):
                         
                         pubinfo = []
                 
-                if ('references' in dflist):
+                if ('references' in dataframe_list):
                     pub2refdf = pd.DataFrame(pub2ref, columns = ['CitingPublicationId', 'CitedPublicationId'])
                     if preprocess:
                         pub2refdf.to_hdf(os.path.join(self.path2database, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)),
                                                                             key = 'pub2ref', mode = 'w')
                         pub2ref = []
 
-                if ('publicationauthoraffiliation' in dflist):
+                if ('publicationauthoraffiliation' in dataframe_list):
                     paadf = pd.DataFrame(paa, columns = paa_column_names)
                     if preprocess:
                         paadf.to_hdf(os.path.join(self.path2database, 'publication', 'publication{}.hdf'.format(ifile)),
                                                                                     key = 'publication', mode = 'w')
                         paa = []
 
-                if ('fields' in dflist):
+                if ('fields' in dataframe_list):
                     pub2fielddf = pd.DataFrame(pub2field, columns = pub2field_column_names)
                     if preprocess:
                         pub2fielddf.to_hdf(os.path.join(self.path2database, 'pub2field', 'pub2field{}.hdf'.format(ifile)),
                                                                             key = 'pub2field', mode = 'w')
                         pub2field = []
 
-                if ('abstracts' in dflist):
+                if ('abstracts' in dataframe_list):
                     with gzip.open(os.path.join(self.path2database, 'pub2abstract', 'pub2abstract{}.gzip'.format(ifile)), 'w') as outfile:
                         for abentry in pub2abstract:
                             outfile.write((json.dumps({abentry[0]:abentry[1]}) + "\n").encode('utf-8'))
 
                 ifile += 1
 
-        if ('publications' in dflist) and preprocess_dicts:
+        if ('publications' in dataframe_list) and preprocess_dicts:
             with gzip.open(os.path.join(self.path2database, 'pub2year.json.gz'), 'w') as outfile:
                 outfile.write(json.dumps(pub2year).encode('utf8'))
 
