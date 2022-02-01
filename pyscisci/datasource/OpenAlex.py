@@ -149,12 +149,11 @@ class OpenAlex(BibDataBase):
         if not 'concepts' in dataframe_list: edit_works = True
         if not 'abstracts' in dataframe_list: edit_works = True
 
-
+        
         if not rewrite_existing:
-            files_already_downloaded = [os.path.join(dirpath, file) for (dirpath, dirnames, filenames) in os.walk(self.path2database) for file in filenames]
+            files_already_downloaded = [os.path.join(dirpath.replace(self.path2database, ''), file) for (dirpath, dirnames, filenames) in os.walk(self.path2database) for file in filenames]
         else:
             files_already_downloaded = []
-
 
         keys = []
         dirs = []
@@ -180,7 +179,7 @@ class OpenAlex(BibDataBase):
                     else:
                         keys.append(k)
             next_token = results.get('NextContinuationToken')
-        
+
         # make all of the directories
         for d in dirs:
             dest_pathname = os.path.join(self.path2database, d)
