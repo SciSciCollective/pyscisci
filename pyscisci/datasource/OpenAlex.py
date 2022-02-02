@@ -18,7 +18,7 @@ else:
 from pyscisci.datasource.readwrite import load_preprocessed_data, load_int, load_float, load_bool
 from pyscisci.database import BibDataBase
 
-openalex_works_dfset = {'publications', 'references', 'publicationauthoraffiliation', 'fields', 'abstracts'}
+openalex_works_dfset = {'publications', 'references', 'publicationauthoraffiliation', 'concepts', 'abstracts'}
 openalex_dataframe_set = {'works', 'venues', 'authors', 'institutions', 'concepts'}
 
 class OpenAlex(BibDataBase):
@@ -76,7 +76,7 @@ class OpenAlex(BibDataBase):
             self.parse_venues(preprocess=True, show_progress=show_progress)
 
     def download_from_source(self, aws_access_key_id='', aws_secret_access_key='', specific_update='', aws_bucket = 'openalex',
-        dataframe_list = 'all', rewrite_existing = False, show_progress=True):
+        dataframe_list = 'all', rewrite_existing = False, edit_works = True, show_progress=True):
 
         """
         Download the OpenAlex files from Amazon Web Services.
@@ -111,6 +111,9 @@ class OpenAlex(BibDataBase):
         rewrite_existing: bool, default False
             If True, overwrite existing files or if False, only download any missing files.
 
+        edit_works: bool, default True
+            If True, edit the works to remove pieces of data.  If False, force keeping all entries from the works file.
+
         show_progress: bool, default True
             Show progress with processing of the data.
         
@@ -143,11 +146,11 @@ class OpenAlex(BibDataBase):
             if 'affiliations' in dataframe_list: dataframe_list.add('institutions')
 
         # see if we have to do any editing
-        edit_works = False
-        if not 'references' in dataframe_list: edit_works = True
-        if not 'publicationauthoraffiliation' in dataframe_list: edit_works = True
-        if not 'concepts' in dataframe_list: edit_works = True
-        if not 'abstracts' in dataframe_list: edit_works = True
+        if edit_works and any(not pubsub in dataframe_list for pubsub in ['works', 'references', 'publicationauthoraffiliation', 'concepts', 'abstracts']):
+            edit_works = True
+        else:
+            edit_works = False
+        
 
         
         if not rewrite_existing:
@@ -218,6 +221,8 @@ class OpenAlex(BibDataBase):
                                 newline = json.dumps(jline) + "\n"
                                 outfile.write(newline.encode('utf-8'))
 
+                if os.path.exists(dest_pathname):
+                    os.remove(dest_pathname)
                 os.rename(dest_pathname.split('.')[0] + '_temp.gz', dest_pathname)
 
 
