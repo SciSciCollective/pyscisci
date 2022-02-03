@@ -462,8 +462,8 @@ class OpenAlex(BibDataBase):
         dataframe_list: list
             The data types to download and save from OpenAlex.
                 'all'
-                'publication'
-                'reference'
+                'publications'
+                'references'
                 'publicationauthoraffiliation'
                 'fields'
                 'abstracts'
@@ -615,8 +615,8 @@ class OpenAlex(BibDataBase):
                 if ('publicationauthoraffiliation' in dataframe_list):
                     paadf = pd.DataFrame(paa, columns = paa_column_names)
                     if preprocess:
-                        paadf.to_hdf(os.path.join(self.path2database, 'publication', 'publication{}.hdf'.format(ifile)),
-                                                                                    key = 'publication', mode = 'w')
+                        paadf.to_hdf(os.path.join(self.path2database, 'paa', 'paa{}.hdf'.format(ifile)),
+                                                                                    key = 'paa', mode = 'w')
                         paa = []
 
                 if ('fields' in dataframe_list):
