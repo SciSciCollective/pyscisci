@@ -70,7 +70,7 @@ class OpenAlex(BibDataBase):
             self.parse_publications(preprocess = True, dataframe_list=pubdataframe_list, show_progress=show_progress)
 
         if 'concepts' in dataframe_list or 'fields' in dataframe_list:
-            self.parse_fields(preprocess=True, show_progress=show_progress)
+            self.parse_concepts(preprocess=True, show_progress=show_progress)
 
         if 'venues' in dataframe_list or 'journals' in dataframe_list:
             self.parse_venues(preprocess=True, show_progress=show_progress)
