@@ -18,8 +18,8 @@ else:
 from pyscisci.datasource.readwrite import load_preprocessed_data, load_int, load_float, load_bool
 from pyscisci.database import BibDataBase
 
-openalex_works_dfset = {'publications', 'references', 'publicationauthoraffiliation', 'concepts', 'abstracts'}
-openalex_dataframe_set = {'works', 'venues', 'authors', 'institutions', 'concepts'}
+openalex_works_dfset = {'publications', 'references', 'publicationauthoraffiliation', 'concepts', 'fields', 'abstracts'}
+openalex_dataframe_set = {'publications', 'works', 'venues', 'authors', 'institutions', 'affiliations', 'concepts', 'fields'}
 
 class OpenAlex(BibDataBase):
     """
@@ -270,8 +270,8 @@ class OpenAlex(BibDataBase):
             files_to_parse = [os.path.join(dirpath, file) for (dirpath, dirnames, filenames) in os.walk(institution_dir) for file in filenames if '.gz' in file]
 
 
-        if not os.path.exists(os.path.join(self.path2database, 'affiliation')):
-            os.mkdir(os.path.join(self.path2database, 'affiliation'))
+        if not os.path.exists(os.path.join(self.path2database, self.path2affiliation)):
+            os.mkdir(os.path.join(self.path2database, self.path2affiliation))
 
         ifile = 0
         affiliation_info = []
@@ -292,8 +292,8 @@ class OpenAlex(BibDataBase):
 
             aff = pd.DataFrame(affiliation_info, columns = affil_column_names)
             if preprocess:
-                aff.to_hdf(os.path.join(self.path2database, 'affiliation', 'affiliation{}.hdf'.format(ifile)),
-                                                                            key = 'affiliation', mode = 'w')
+                aff.to_hdf(os.path.join(self.path2database, self.path2affiliation, '{}{}.hdf'.format(self.path2affiliation, ifile)),
+                                                                            key = self.path2affiliation , mode = 'w')
                 ifile += 1
                 affiliation_info = []
 
@@ -342,8 +342,8 @@ class OpenAlex(BibDataBase):
 
 
         if preprocess:
-            if not os.path.exists(os.path.join(self.path2database, 'author')):
-                os.mkdir(os.path.join(self.path2database, 'author'))
+            if not os.path.exists(os.path.join(self.path2database, self.path2author)):
+                os.mkdir(os.path.join(self.path2database, self.path2author))
 
         ifile = 0
         authorinfo = []
@@ -372,8 +372,8 @@ class OpenAlex(BibDataBase):
 
                 # time to save
                 if preprocess:
-                    author.to_hdf(os.path.join(self.path2database, 'author', 'author{}.hdf'.format(ifile)),
-                                                                                key = 'author', mode = 'w')
+                    author.to_hdf(os.path.join(self.path2database, self.path2author, '{}{}.hdf'.format(self.path2author, ifile)),
+                                                                                key = self.path2author, mode = 'w')
                     ifile += 1
                     authorinfo = []
 
@@ -412,8 +412,8 @@ class OpenAlex(BibDataBase):
 
 
         if preprocess:
-            if not os.path.exists(os.path.join(self.path2database, 'venue')):
-                os.mkdir(os.path.join(self.path2database, 'venue'))
+            if not os.path.exists(os.path.join(self.path2database, self.path2journal)):
+                os.mkdir(os.path.join(self.path2database, self.path2journal))
 
 
         venue_column_names = ['VenueId', 'FullName', 'ISSN', 'ISSN_l', 'HomePage', 'NumberPublications', 'NumberCitations']
@@ -431,7 +431,8 @@ class OpenAlex(BibDataBase):
 
                 venue = pd.DataFrame(venue_info, columns = venue_column_names)
                 if preprocess:
-                    venue.to_hdf(os.path.join(self.path2database, 'venue', 'venue{}.hdf'.format(ifile)), key = 'venue', mode = 'w')
+                    venue.to_hdf(os.path.join(self.path2database, self.path2journal, '{}{}.hdf'.format(self.path2journal, ifile)), 
+                        key = self.path2journal, mode = 'w')
                     ifile += 1
                     venue_info = []
         
@@ -494,43 +495,39 @@ class OpenAlex(BibDataBase):
 
         pub_column_names = ['PublicationId', 'JournalId', 'Year', 'NumberCitations', 'Doi', 'Title', 'Date', 'DocType', 'PMID', 'Volume', 'Issue', 'FirstPage', 'LastPage', 'IsRetracted', 'IsParaText']
 
-        if preprocess and ('publications' in dataframe_list):
-            if not os.path.exists(os.path.join(self.path2database, 'publication')):
-                os.mkdir(os.path.join(self.path2database, 'publication'))
+        if preprocess and (('publications' in dataframe_list) or ('works' in dataframe_list)):
+            if not os.path.exists(os.path.join(self.path2database, self.path2pub)):
+                os.mkdir(os.path.join(self.path2database, self.path2pub))
 
             pubinfo = []
             pub2year = {}
             pub2doctype = {}
 
         if preprocess and ('references' in dataframe_list):
-            if not os.path.exists(os.path.join(self.path2database, 'pub2ref')):
-                os.mkdir(os.path.join(self.path2database, 'pub2ref'))
+            if not os.path.exists(os.path.join(self.path2database, self.path2pub2ref)):
+                os.mkdir(os.path.join(self.path2database, self.path2pub2ref))
 
             pub2ref = []
 
         paa_column_names = ['PublicationId', 'AuthorId', 'AffiliationId', 'AuthorSequence', 'OrigAuthorName']
 
         if preprocess and ('publicationauthoraffiliation' in dataframe_list):
-            if not os.path.exists(os.path.join(self.path2database, 'paa')):
-                os.mkdir(os.path.join(self.path2database, 'paa'))
+            if not os.path.exists(os.path.join(self.path2database, self.path2paa)):
+                os.mkdir(os.path.join(self.path2database, self.path2paa))
 
             paa = []
 
         pub2field_column_names = ['PublicationId', 'FieldId', 'FieldLevel', 'Score']
 
-        if preprocess and ('fields' in dataframe_list):
-            if not os.path.exists(os.path.join(self.path2database, 'pub2field')):
-                os.mkdir(os.path.join(self.path2database, 'pub2field'))
+        if preprocess and (('fields' in dataframe_list) or ('concepts' in dataframe_list)):
+            if not os.path.exists(os.path.join(self.path2database, self.path2pub2field)):
+                os.mkdir(os.path.join(self.path2database, self.path2pub2field))
 
-            if not os.path.exists(os.path.join(self.path2database, 'fieldinfo')):
-                os.mkdir(os.path.join(self.path2database, 'fieldinfo'))
-
-            fieldinfo = {}
             pub2field = []
 
         if preprocess and ('abstracts' in dataframe_list):
-            if not os.path.exists(os.path.join(self.path2database, 'pub2abstract')):
-                os.mkdir(os.path.join(self.path2database, 'pub2abstract'))
+            if not os.path.exists(os.path.join(self.path2database, self.path2pub2abstract)):
+                os.mkdir(os.path.join(self.path2database, self.path2pub2abstract))
 
             pub2abstract = []
 
@@ -543,7 +540,7 @@ class OpenAlex(BibDataBase):
                         
                         ownid = self.clean_openalex_ids(wline['id'])
 
-                        if ('all' in dataframe_list or 'publication' in dataframe_list):
+                        if ('publication' in dataframe_list) or ('works' in dataframe_list):
                             wdata = [ownid, self.clean_openalex_ids(wline.get('host_venue', {}).get('id', None))]
                             wdata += [load_int(wline.get(idname, None)) for idname in ['publication_year', 'cited_by_count']]
                             wdata += [wline.get(idname, None) for idname in ['doi', 'title', 'publication_date', 'type']]
@@ -585,7 +582,7 @@ class OpenAlex(BibDataBase):
                                 if not iauthor is None:
                                     iauthor += 1
 
-                        if ('fields' in dataframe_list):
+                        if ('fields' in dataframe_list) or ('concepts' in dataframe_list):
                             pub_concepts = wline.get('concepts', [])
                             for con_dict in pub_concepts:
                                 pub2field.append([ownid, self.clean_openalex_ids(con_dict.get('id', None)), load_int(con_dict.get('level', None)), load_float(con_dict.get('score', None))])
@@ -596,44 +593,44 @@ class OpenAlex(BibDataBase):
 
 
                 
-                if ('publications' in dataframe_list):
+                if ('publications' in dataframe_list) or ('works' in dataframe_list):
                     pub = pd.DataFrame(pubinfo, columns = pub_column_names)
                     if preprocess:
                         pub.to_hdf(
-                            os.path.join(self.path2database, 'publication', 'publication{}.hdf'.format(ifile)),
-                                                                                    key = 'publication', mode = 'w')
+                            os.path.join(self.path2database, self.path2pub, '{}{}.hdf'.format(self.path2pub, ifile)),
+                                                                                    key = self.path2pub, mode = 'w')
                         
                         pubinfo = []
                 
                 if ('references' in dataframe_list):
                     pub2refdf = pd.DataFrame(pub2ref, columns = ['CitingPublicationId', 'CitedPublicationId'])
                     if preprocess:
-                        pub2refdf.to_hdf(os.path.join(self.path2database, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)),
-                                                                            key = 'pub2ref', mode = 'w')
+                        pub2refdf.to_hdf(os.path.join(self.path2database, self.path2pub2ref , '{}{}.hdf'.format(self.path2pub2ref, ifile)),
+                                                                            key = self.path2pub2ref , mode = 'w')
                         pub2ref = []
 
                 if ('publicationauthoraffiliation' in dataframe_list):
                     paadf = pd.DataFrame(paa, columns = paa_column_names)
                     if preprocess:
-                        paadf.to_hdf(os.path.join(self.path2database, 'paa', 'paa{}.hdf'.format(ifile)),
-                                                                                    key = 'paa', mode = 'w')
+                        paadf.to_hdf(os.path.join(self.path2database, self.path2paa, '{}{}.hdf'.format(self.path2paa, ifile)),
+                                                                                    key = self.path2paa, mode = 'w')
                         paa = []
 
-                if ('fields' in dataframe_list):
+                if ('fields' in dataframe_list) or ('concepts' in dataframe_list):
                     pub2fielddf = pd.DataFrame(pub2field, columns = pub2field_column_names)
                     if preprocess:
-                        pub2fielddf.to_hdf(os.path.join(self.path2database, 'pub2field', 'pub2field{}.hdf'.format(ifile)),
-                                                                            key = 'pub2field', mode = 'w')
+                        pub2fielddf.to_hdf(os.path.join(self.path2database, self.path2pub2field, '{}{}.hdf'.format(self.path2pub2field, ifile)),
+                                                                            key = self.path2pub2field, mode = 'w')
                         pub2field = []
 
                 if ('abstracts' in dataframe_list):
-                    with gzip.open(os.path.join(self.path2database, 'pub2abstract', 'pub2abstract{}.gzip'.format(ifile)), 'w') as outfile:
+                    with gzip.open(os.path.join(self.path2database, self.path2pub2abstract, '{}{}.gzip'.format(self.path2pub2abstract, ifile)), 'w') as outfile:
                         for abentry in pub2abstract:
                             outfile.write((json.dumps({abentry[0]:abentry[1]}) + "\n").encode('utf-8'))
 
                 ifile += 1
 
-        if ('publications' in dataframe_list) and preprocess_dicts:
+        if (('publications' in dataframe_list) or ('works' in dataframe_list)) and preprocess_dicts:
             with gzip.open(os.path.join(self.path2database, 'pub2year.json.gz'), 'w') as outfile:
                 outfile.write(json.dumps(pub2year).encode('utf8'))
 
@@ -678,8 +675,8 @@ class OpenAlex(BibDataBase):
         field_column_names = ['FieldId', 'FieldName', 'WikiData', 'FieldLevel', 'NumberPublications', 'NumberCitations']
 
         if preprocess:
-            if not os.path.exists(os.path.join(self.path2database, 'fieldinfo')):
-                os.mkdir(os.path.join(self.path2database, 'fieldinfo'))
+            if not os.path.exists(os.path.join(self.path2database, self.path2fieldinfo )):
+                os.mkdir(os.path.join(self.path2database, self.path2fieldinfo ))
 
         fieldinfo = []
         fieldhierarchy = []
@@ -702,9 +699,9 @@ class OpenAlex(BibDataBase):
 
         fieldinfo = pd.DataFrame(fieldinfo, columns = field_column_names)
         if preprocess:
-            fieldinfo.to_hdf(os.path.join(self.path2database, 'fieldinfo', 'fieldinfo0.hdf'), key = 'fieldinfo', mode = 'w')
+            fieldinfo.to_hdf(os.path.join(self.path2database, self.path2fieldinfo , 'fieldinfo0.hdf'), key = self.path2fieldinfo , mode = 'w')
             fieldhierarchy = pd.DataFrame(fieldhierarchy, columns = ['ParentFieldId', 'ChildFieldId'])
-            fieldhierarchy.to_hdf(os.path.join(self.path2database, 'fieldinfo', 'fieldhierarchy0.hdf'), key = 'fieldhierarchy', mode = 'w')
+            fieldhierarchy.to_hdf(os.path.join(self.path2database, self.path2fieldinfo , 'fieldhierarchy0.hdf'), key = 'fieldhierarchy', mode = 'w')
 
         return fieldinfo
 

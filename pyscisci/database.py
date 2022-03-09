@@ -74,6 +74,7 @@ class BibDataBase(object):
         self.path2journal = 'journal'
         self.path2fieldinfo = 'fieldinfo'
         self.path2impact = 'impact'
+        self.path2pub2abstract = 'pub2abstract'
 
         self._affiliation = None
         self._pub = None
