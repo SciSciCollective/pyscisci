@@ -35,6 +35,30 @@ else:
     from tqdm import tqdm
 
 
+def strip_accents(text):
+    try:
+        text = unicode(text, 'utf-8')
+    except (TypeError, NameError): # unicode is a default on python 3
+        pass
+    text = unicodedata.normalize('NFD', text)
+    text = text.encode('ascii', 'ignore')
+    text = text.decode("utf-8")
+    return str(text)
+
+def clean_names(name, remove_parentheses=True):
+    name = strip_accents(name)
+
+    if remove_parentheses:
+        name = re.sub("[\(\[].*?[\)\]]", "", name) # remove text between () and []
+        if '(' in name:
+            name=name[:name.index('(')]
+        for c in [')', ']','.']:
+            name=name.replace(c, '')
+    for c in [',', ' - ', '- ', ' -']:
+        name=name.replace(c, '-')
+    name = name.replace(' & ', '&')
+    return name.strip()
+
 def levenshtein_best_match(s1, options, lower_bound=0.75):
     """
     Uses Levenshtein distance to pick the best match from a list of options.

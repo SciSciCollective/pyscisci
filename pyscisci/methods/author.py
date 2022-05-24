@@ -17,7 +17,7 @@ if 'ipykernel' in sys.modules:
 else:
     from tqdm import tqdm
 
-from pyscisci.utils import zip2dict, check4columns, groupby_count, groupby_range
+from pyscisci.utils import zip2dict, check4columns, groupby_count, groupby_range, empty_mode
 from pyscisci.methods.hindex import compute_hindex
 from pyscisci.methods.qfactor import compute_qfactor
 from pyscisci.methods.productivitytrajectory import yearly_productivity_traj
@@ -313,8 +313,9 @@ def author_top_field(pub2author, colgroupby = 'AuthorId', colcountby = 'FieldId'
     tqdm.pandas(desc='Author Top Field', disable= not show_progress)
 
     if not fractional_field_counts:
-        author2field = pub2author.groupby(colgroupby)[colcountby].progress_apply(lambda x: np.random.choice(pd.Series.mode(x)))
-
+        print('Here')
+        author2field = pub2author.groupby(colgroupby)[colcountby].progress_apply(empty_mode)
+        print()
     else:
         # first calculate how many fields each publication maps too
         pub2nfields = groupby_count(pub2author, colgroupby='PublicationId', colcountby=colcountby)

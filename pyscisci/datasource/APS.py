@@ -75,16 +75,19 @@ class APS(BibDataBase):
 
             aps_author_file_id = '1U6f9AYQJUHQ_IzeiI-rADFsrg7LWH3WO'
 
-            if not os.path.exists(os.path.join(self.path2database, 'publicationauthoraffiliation_supp2010')):
-                os.mkdir(os.path.join(self.path2database, 'publicationauthoraffiliation_supp2010'))
+            if not os.path.exists(os.path.join(self.path2database, 'publicationauthoraffiliation2010supplement')):
+                os.mkdir(os.path.join(self.path2database, 'publicationauthoraffiliation2010supplement'))
 
-            filename = os.path.join(self.path2database, 'publicationauthoraffiliation_supp2010', 'publicationauthoraffiliation0.hdf')
+            filename = os.path.join(self.path2database, 'publicationauthoraffiliation2010supplement', 'publicationauthoraffiliation0.hdf')
+            if os.path.exists(filename): os.remove(filename)
+            filename = os.path.join(self.path2database, 'publicationauthoraffiliation2010supplement', 'publicationauthoraffiliation2010supplement0.hdf')
+
             apsauthors_gzip = download_file_from_google_drive(file_id=aps_author_file_id, destination= filename)
-            pd.read_csv(filename, sep='\t', compression='gzip').to_hdf(filename, mode='w', key='paa')
+            #pd.read_csv(filename, sep='\t', compression='gzip').to_hdf(newfilename, mode='w', key='paa')
 
-            self.set_new_data_path(dataframe_name='paa', new_path='publicationauthoraffiliation_supp2010')
+            self.set_new_data_path(dataframe_name='paa', new_path='publicationauthoraffiliation2010supplement')
 
-            print("New data saved to {}.".format('publicationauthoraffiliation_supp2010'))
+            print("New data saved to {}.".format('publicationauthoraffiliation2010supplement'))
 
         if not files_to_download in ['all', 'orig', 'paa_supplement']:
             print("Unrecognized file name.")

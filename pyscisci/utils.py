@@ -319,6 +319,22 @@ def rank_array(a, ascending=True, normed=False):
         ranks = ranks/(ranks.shape[0]-1)
     return ranks
 
+def empty_mode(a):
+    """
+    Mode of array when empty
+
+    Parameters
+    ----------
+    a : numpy array or list
+        array of values
+
+    """
+    values, counts = np.unique(a, return_counts=True)
+    if values.shape[0] == 0:
+        return None
+    else:
+        return np.random.choice(values[counts==counts.max()],1)[0]
+
 def holder_mean(a, rho=1):
     """
     Holder mean
@@ -421,6 +437,8 @@ def download_file_from_google_drive(file_id, destination=None):
     Modified from: from https://stackoverflow.com/questions/38511444/python-download-files-from-google-drive-using-url
     """
     CHUNK_SIZE = 32768
+
+    raise NotImplementedError("Google Drive changed their download policy and this function no longer works.  A fix will come.")
 
     URL = "https://docs.google.com/uc?export=download"
 
