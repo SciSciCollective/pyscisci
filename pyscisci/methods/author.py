@@ -313,9 +313,7 @@ def author_top_field(pub2author, colgroupby = 'AuthorId', colcountby = 'FieldId'
     tqdm.pandas(desc='Author Top Field', disable= not show_progress)
 
     if not fractional_field_counts:
-        print('Here')
         author2field = pub2author.groupby(colgroupby)[colcountby].progress_apply(empty_mode)
-        print()
     else:
         # first calculate how many fields each publication maps too
         pub2nfields = groupby_count(pub2author, colgroupby='PublicationId', colcountby=colcountby)
