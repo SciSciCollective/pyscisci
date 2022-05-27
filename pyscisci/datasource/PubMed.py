@@ -59,6 +59,7 @@ class PubMed(BibDataBase):
         record['Day'] = 1
         record['ISSN'] = ''
         record['Doi'] = ''
+        record['PMCID'] = ''
 
         return record
 
@@ -69,30 +70,51 @@ class PubMed(BibDataBase):
         record['FirstName'] = ''
         record['LastName'] = ''
         record['Affiliations'] = ''
+        record['ORCID'] = ''
         record['AuthorSequence'] = 0
+
         return record
 
-    def _save_dataframes(self, ifile, publication_df, paa_df, pub2ref_df, pub2field_df):
+    def _blank_pubmed_grant(self):
+        record = {}
+        record['PublicationId'] = ''
+        record['GrantID'] = ''
+        record['Acronym'] = ''
+        record['Agency'] = ''
+        record['Country'] = ''
 
-        publication_df = pd.DataFrame(publication_df)
-        publication_df['PublicationId'] = publication_df['PublicationId'].astype(int)
-        publication_df['Year'] = publication_df['Year'].astype(int)
-        publication_df['Month'] = publication_df['Month'].astype(int)
-        publication_df['Day'] = publication_df['Day'].astype(int)
-        publication_df['Volume'] = pd.to_numeric(publication_df['Volume'])
-        publication_df['TeamSize'] = publication_df['TeamSize'].astype(int)
-        publication_df.to_hdf( os.path.join(self.path2database, self.path2pub_df, 'publication{}.hdf'.format(ifile)), key = 'pub', mode='w')
+        return record
+
+    def _save_dataframes(self, ifile, publication, paa, pub2ref, pub2field, pub2abstract, pub2grant):
+
+        publication = pd.DataFrame(publication)
+        publication['PublicationId'] = publication['PublicationId'].astype(int)
+        publication['Year'] = publication['Year'].astype(int)
+        publication['Month'] = publication['Month'].astype(int)
+        publication['Day'] = publication['Day'].astype(int)
+        publication['Volume'] = pd.to_numeric(publication['Volume'])
+        publication['TeamSize'] = publication['TeamSize'].astype(int)
+        publication.to_hdf( os.path.join(self.path2database, self.path2pub, 'publication{}.hdf'.format(ifile)), key = 'pub', mode='w')
 
 
-        paa_df = pd.DataFrame(paa_df)
-        paa_df['AuthorSequence'] = paa_df['AuthorSequence'].astype(int)
-        paa_df.to_hdf( os.path.join(self.path2database, self.path2paa_df, 'publicationauthoraffiliation{}.hdf'.format(ifile)), key = 'paa', mode='w')
+        paa = pd.DataFrame(paa)
+        paa['AuthorSequence'] = paa['AuthorSequence'].astype(int)
+        paa.to_hdf( os.path.join(self.path2database, self.path2paa, 'publicationauthoraffiliation{}.hdf'.format(ifile)), key = 'paa', mode='w')
 
-        pub2field_df = pd.DataFrame(pub2field_df, columns = ['PublicationId', 'FieldId'], dtype=int)
-        pub2field_df.to_hdf( os.path.join(self.path2database, self.path2pub2field_df, 'pub2field{}.hdf'.format(ifile)), key = 'pub2field', mode='w')
+        pub2field = pd.DataFrame(pub2field, columns = ['PublicationId', 'FieldId'])
+        pub2field['PublicationId'] = pub2field['PublicationId'].astype(int)
+        pub2field.to_hdf( os.path.join(self.path2database, self.path2pub2field, 'pub2field{}.hdf'.format(ifile)), key = 'pub2field', mode='w')
 
-        pub2ref_df = pd.DataFrame(pub2ref_df, columns = ['CitedPublicationId', 'CitingPublicationId', 'Citation'], dtype=int)
-        pub2ref_df.to_hdf( os.path.join(self.path2database, self.path2pub2ref_df, 'pub2ref{}.hdf'.format(ifile)), key = 'pub2ref', mode='w')
+        pub2ref = pd.DataFrame(pub2ref, columns = ['CitedPublicationId', 'CitingPublicationId', 'Citation'])
+        pub2ref.to_hdf( os.path.join(self.path2database, self.path2pub2ref, 'pub2ref{}.hdf'.format(ifile)), key = 'pub2ref', mode='w')
+
+        pub2abstract = pd.DataFrame(pub2abstract, columns = ['PublicationId', 'Abstract'])
+        pub2abstract['PublicationId'] = pub2abstract['PublicationId'].astype(int)
+        pub2abstract.to_hdf( os.path.join(self.path2database, self.path2pub2abstract, 'pub2abstract{}.hdf'.format(ifile)), key = 'pub2abstract', mode='w')
+
+        pub2grant = pd.DataFrame(pub2grant)
+        #pub2grant['PublicationId'] = pub2grant['PublicationId'].astype(int)
+        pub2grant.to_hdf( os.path.join(self.path2database, 'pub2grant', 'pub2grant{}.hdf'.format(ifile)), key = 'pub2grant', mode='w')
 
     def preprocess(self, xml_directory = 'RawXML', process_name=True, num_file_lines=10**6, show_progress=True,rewrite_existing = False):
         """
@@ -117,7 +139,7 @@ class PubMed(BibDataBase):
         if show_progress:
             print("Starting to preprocess the PubMed database.")
 
-        for hier_dir_type in [self.path2pub_df, self.path2paa_df, self.path2pub2field_df, self.path2pub2ref_df, self.path2fieldinfo_df]:
+        for hier_dir_type in [self.path2pub, self.path2paa, self.path2pub2field, self.path2pub2ref, self.path2fieldinfo, self.path2pub2abstract, 'pub2grant']:
 
             if not os.path.exists(os.path.join(self.path2database, hier_dir_type)):
                 os.mkdir(os.path.join(self.path2database, hier_dir_type))
@@ -135,24 +157,28 @@ class PubMed(BibDataBase):
         pub2year = {}
         fieldinfo = {}
 
+        #xmlfiles = ['pubmed22n1114.xml.gz']
+        
         ifile = 0
         for xml_file_name in tqdm(xmlfiles, desc='PubMed xml files', leave=True, disable=not show_progress):
 
             # check if the xml file was already parsed
-            dest_file_name = os.path.join(self.path2database, self.path2pub_df,'publication{}.hdf'.format(ifile))
+            dest_file_name = os.path.join(self.path2database, self.path2pub,'publication{}.hdf'.format(ifile))
             if not rewrite_existing and os.path.isfile(dest_file_name):
                 ifile+=1
                 continue
 
-            publication_df = []
-            paa_df = []
-            pub2field_df = []
-            pub2ref_df = []
+            publication = []
+            paa = []
+            pub2field = []
+            pub2ref = []
+            pub2abstract = []
+            pub2grant = []
 
             xmltree = etree.parse(os.path.join(self.path2database, xml_directory, xml_file_name), parser)
 
             all_pubmed_articles = xmltree.findall("/PubmedArticle")
-
+            
             for article_bucket in all_pubmed_articles:
 
                 medline = article_bucket.find("MedlineCitation")
@@ -191,6 +217,25 @@ class PubMed(BibDataBase):
                     doi = article_ids.find('ArticleId[@IdType="doi"]')
                     pub_record['Doi'] = load_xml_text(doi)
 
+                    pmcid = article_ids.find('ArticleId[@IdType="pmc"]')
+                    pub_record['PMCID'] = load_xml_text(pmcid)
+
+
+                pub2abstract.append({'PublicationId':PublicationId, 'Abstract':load_xml_text(article.find("Abstract"))})
+
+                grant_list = article.find('GrantList')
+                if not grant_list is None:
+                    for grant in grant_list:
+                        grant_record = self._blank_pubmed_grant()
+                        grant_record['PublicationId'] = PublicationId
+
+                        grant_record['GrantID'] = load_xml_text(grant.find("GrantID"))
+                        grant_record['Acronym'] = load_xml_text(grant.find("Acronym"))
+                        grant_record['Agency'] = load_xml_text(grant.find("Agency"))
+                        grant_record['Country'] = load_xml_text(grant.find("Country"))
+
+                        pub2grant.append(grant_record)
+
 
                 author_list = article.find('AuthorList')
 
@@ -202,14 +247,15 @@ class PubMed(BibDataBase):
                         author_record['FirstName'] = load_html_str(load_xml_text(author.find("ForeName")))
                         author_record['LastName'] = load_html_str(load_xml_text(author.find("LastName")))
                         author_record['FullName'] = author_record['FirstName'] + ' ' + author_record['LastName']
-
+                        author_record['ORCID'] = load_xml_text(author.find('Identifier[@Source="ORCID"]'))
+                        
                         if author.find("AffiliationInfo/Affiliation") is not None:
                             author_record['Affiliations'] = load_html_str(load_xml_text(author.find("AffiliationInfo/Affiliation")))
                             author_record['Affiliations'] = author_record['Affiliations'].replace("For a full list of the authors' affiliations please see the Acknowledgements section.","")
 
                         author_record['AuthorSequence'] = seq+1
 
-                        paa_df.append(author_record)
+                        paa.append(author_record)
 
                     pub_record['TeamSize'] = seq + 1
 
@@ -219,7 +265,7 @@ class PubMed(BibDataBase):
                     for term in meshterms.getchildren():
                         ui = term.find("DescriptorName").attrib.get("UI", "")
                         if len(ui)>0:
-                            pub2field_df.append([PublicationId, ui])
+                            pub2field.append([PublicationId, ui])
                             fieldinfo[ui] = [load_xml_text(term.find("DescriptorName")), 'mesh']
 
                 chemicals = medline.find("ChemicalList")
@@ -227,7 +273,7 @@ class PubMed(BibDataBase):
                     for chemical in chemicals.findall("Chemical"):
                         ui = chemical.find("NameOfSubstance").attrib.get("UI", "")
                         if len(ui)>0:
-                            pub2field_df.append([PublicationId, ui])
+                            pub2field.append([PublicationId, ui])
                             fieldinfo[ui] = [load_xml_text(chemical.find("NameOfSubstance")), 'chem']
 
                 references = article_bucket.find("PubmedData/ReferenceList")
@@ -238,23 +284,23 @@ class PubMed(BibDataBase):
                             pmid = load_int(load_xml_text(ref.find('ArticleIdList').find('ArticleId[@IdType="pubmed"]')))
                         else:
                             pmid = ""
-                        pub2ref_df.append([PublicationId, pmid, citation])
+                        pub2ref.append([PublicationId, pmid, citation])
 
-                publication_df.append(pub_record)
+                publication.append(pub_record)
 
-            self._save_dataframes(ifile, publication_df, paa_df, pub2ref_df, pub2field_df)
+            self._save_dataframes(ifile, publication, paa, pub2ref, pub2field, pub2abstract, pub2grant)
             ifile += 1
 
         # if rewriting
-        dest_file_name = os.path.join(self.path2database, self.path2fieldinfo,'fieldinfo.hdf')
+        #dest_file_name = os.path.join(self.path2database, self.path2fieldinfo,'fieldinfo0.hdf')
         if rewrite_existing:
             # save field info dictionary
-            mesh_id_df_list = list(fieldinfo.values())
+            mesh_id_list = list(fieldinfo.values())
             for i, j in enumerate(fieldinfo.keys()):
-                mesh_id_df_list[i].insert(0, j)
+                mesh_id_list[i].insert(0, j)
 
-            fieldinfo = pd.DataFrame(mesh_id_df_list, columns = ['FieldId', 'FieldName', 'FieldType'], dtype=int)
-            fieldinfo.to_hdf( os.path.join(self.path2database, self.path2fieldinfo, 'fieldinfo.hdf'), key = 'fieldinfo', mode='w')
+            fieldinfo = pd.DataFrame(mesh_id_list, columns = ['FieldId', 'FieldName', 'FieldType'], dtype=int)
+            fieldinfo.to_hdf( os.path.join(self.path2database, self.path2fieldinfo, 'fieldinfo0.hdf'), key = 'fieldinfo', mode='w')
 
         with gzip.open(os.path.join(self.path2database, 'pub2year.json.gz'), 'w') as outfile:
             outfile.write(json.dumps(pub2year).encode('utf8'))
@@ -355,12 +401,12 @@ class PubMed(BibDataBase):
             for xml_file_name in tqdm(xmlfiles, desc='PubMed publication xml files', leave=True, disable=not show_progress):
 
                 # check if the xml file was already parsed
-                dest_file_name = os.path.join(self.path2database, self.path2paa_df,'publication{}.hdf'.format(ifile))
+                dest_file_name = os.path.join(self.path2database, self.path2paa,'publication{}.hdf'.format(ifile))
                 if not rewrite_existing and os.path.isfile(dest_file_name):
                     ifile+=1
                     continue
 
-                publication_df = []
+                publication = []
 
                 all_pubmed_articles = xmltree.findall("/PubmedArticle")
 
@@ -405,28 +451,28 @@ class PubMed(BibDataBase):
                     if not author_list is None:
                         pub_record['TeamSize'] = len(author_list.findall('Author'))
 
-                    publication_df.append(pub_record)
+                    publication.append(pub_record)
 
                 # save publication dataframe
-                publication_df = pd.DataFrame(publication_df)
-                publication_df['PublicationId'] = publication_df['PublicationId'].astype(int)
-                publication_df['Year'] = publication_df['Year'].astype(int)
-                publication_df['Month'] = publication_df['Month'].astype(int)
-                publication_df['Day'] = publication_df['Day'].astype(int)
-                publication_df['Volume'] = pd.to_numeric(publication_df['Volume'])
-                publication_df['TeamSize'] = publication_df['TeamSize'].astype(int)
-                publication_df.to_hdf( os.path.join(self.path2database, self.path2pub_df, 'publication{}.hdf'.format(ifile)), key = 'pub', mode='w')
+                publication = pd.DataFrame(publication)
+                publication['PublicationId'] = publication['PublicationId'].astype(int)
+                publication['Year'] = publication['Year'].astype(int)
+                publication['Month'] = publication['Month'].astype(int)
+                publication['Day'] = publication['Day'].astype(int)
+                publication['Volume'] = pd.to_numeric(publication['Volume'])
+                publication['TeamSize'] = publication['TeamSize'].astype(int)
+                publication.to_hdf( os.path.join(self.path2database, self.path2pub, 'publication{}.hdf'.format(ifile)), key = 'pub', mode='w')
 
         ## load publication dataframe into a large file
-        pub_files_list = glob.glob(os.path.join(self.path2database, self.path2pub_df) + 'publication*.hdf')
+        pub_files_list = glob.glob(os.path.join(self.path2database, self.path2pub) + 'publication*.hdf')
 
-        pub_df = pd.DataFrame()
+        pub = pd.DataFrame()
 
         print("Parsing files...")
-        for tmp_pub_df in tqdm(paa_files_list, desc='PubMed author files', leave=True, disable=not show_progress):
-            pub_df = pub_df.append(pd.read_hdf(tmp_pub_df), ignore_index = True)
+        for tmp_pub in tqdm(paa_files_list, desc='PubMed author files', leave=True, disable=not show_progress):
+            pub = pub.append(pd.read_hdf(tmp_pub), ignore_index = True)
 
-        return pub_df
+        return pub
 
     def parse_references(self, xml_directory='RawXML',preprocess = True, num_file_lines=10**7, rewrite_existing=False,show_progress=True):
         """
@@ -471,12 +517,12 @@ class PubMed(BibDataBase):
                 xmltree = etree.parse(os.path.join(self.path2database, xml_directory, xml_file_name), parser)
 
                 # check if the xml file was already parsed
-                dest_file_name = os.path.join(self.path2database, self.path2pub2ref_df,'pub2ref{}.hdf'.format(ifile))
+                dest_file_name = os.path.join(self.path2database, self.path2pub2ref,'pub2ref{}.hdf'.format(ifile))
                 if not rewrite_existing and os.path.isfile(dest_file_name):
                     ifile+=1
                     continue
 
-                pub2ref_df = []
+                pub2ref = []
 
                 all_pubmed_articles = xmltree.findall("/PubmedArticle")
 
@@ -496,24 +542,24 @@ class PubMed(BibDataBase):
                                 pmid = load_int(load_xml_text(ref.find('ArticleIdList').find('ArticleId[@IdType="pubmed"]')))
                             else:
                                 pmid = ""
-                            pub2ref_df.append([PublicationId, pmid, citation])
+                            pub2ref.append([PublicationId, pmid, citation])
 
                 # save file
-                pub2ref_df = pd.DataFrame(pub2ref_df, columns = ['CitedPublicationId', 'CitingPublicationId', 'Citation'], dtype=int)
-                pub2ref_df.to_hdf( os.path.join(self.path2database, self.path2pub2ref_df, 'pub2ref{}.hdf'.format(ifile)), key = 'pub2ref', mode='w')
+                pub2ref = pd.DataFrame(pub2ref, columns = ['CitedPublicationId', 'CitingPublicationId', 'Citation'], dtype=int)
+                pub2ref.to_hdf( os.path.join(self.path2database, self.path2pub2ref, 'pub2ref{}.hdf'.format(ifile)), key = 'pub2ref', mode='w')
 
 
         # load the citations into a large dataframe
 
-        pub2ref_files = glob.glob(os.path.join(self.path2database, self.path2pub2ref_df)+ 'pub2ref*.hdf')
+        pub2ref_files = glob.glob(os.path.join(self.path2database, self.path2pub2ref)+ 'pub2ref*.hdf')
 
-        pub2ref_df = pd.DataFrame()
+        pub2ref = pd.DataFrame()
 
         print("parsing citation data...")
         for pub2ref_tmp in tqdm(pub2ref_files,desc='PubMed citation xml files', leave=True, disable=not show_progress):
-            pub2ref_df = pub2ref_df.append(pd.read_hdf(pub2ref_tmp), ignore_indexTrue)
+            pub2ref = pub2ref.append(pd.read_hdf(pub2ref_tmp), ignore_indexTrue)
 
-        return pub2ref_df
+        return pub2ref
 
     def parse_publicationauthoraffiliation(self, xml_directory = 'RawXML',preprocess = True, num_file_lines=10**7, rewrite_existing = False):
         """
@@ -556,12 +602,12 @@ class PubMed(BibDataBase):
             for xml_file_name in tqdm(xmlfiles, desc='PubMed author xml files', leave=True, disable=not show_progress):
 
                 # check if the xml file was already parsed
-                dest_file_name = os.path.join(self.path2database, self.path2paa_df,'publicationauthoraffiliation{}.hdf'.format(ifile))
+                dest_file_name = os.path.join(self.path2database, self.path2paa,'publicationauthoraffiliation{}.hdf'.format(ifile))
                 if not rewrite_existing and os.path.isfile(dest_file_name):
                     ifile+=1
                     continue
 
-                paa_df = []
+                paa = []
 
                 all_pubmed_articles = xmltree.findall("/PubmedArticle")
 
@@ -589,22 +635,22 @@ class PubMed(BibDataBase):
 
                             author_record['AuthorSequence'] = seq+1
 
-                            paa_df.append(author_record)
-                paa_df = pd.DataFrame(paa_df)
-            paa_df['AuthorSequence'] = paa_df['AuthorSequence'].astype(int)
-            paa_df.to_hdf( os.path.join(self.path2database, self.path2paa_df, 'publicationauthoraffiliation{}.hdf'.format(ifile)), key = 'paa', mode='w')
+                            paa.append(author_record)
+                paa = pd.DataFrame(paa)
+            paa['AuthorSequence'] = paa['AuthorSequence'].astype(int)
+            paa.to_hdf( os.path.join(self.path2database, self.path2paa, 'publicationauthoraffiliation{}.hdf'.format(ifile)), key = 'paa', mode='w')
 
 
         ## load publication author dataframe into a large file
-        paa_files_list = glob.glob(os.path.join(self.path2database, self.path2paa_df) + 'publicationauthoraffiliation*.hdf')
+        paa_files_list = glob.glob(os.path.join(self.path2database, self.path2paa) + 'publicationauthoraffiliation*.hdf')
 
-        paa_df = pd.DataFrame()
+        paa = pd.DataFrame()
 
         print("Parsing files...")
-        for tmp_paa_df in tqdm(paa_files_list, desc='PubMed author files', leave=True, disable=not show_progress):
-            paa_df = paa_df.append(pd.read_hdf(tmp_paa_df), ignore_index = True)
+        for tmp_paa in tqdm(paa_files_list, desc='PubMed author files', leave=True, disable=not show_progress):
+            paa = paa.append(pd.read_hdf(tmp_paa), ignore_index = True)
 
-        return paa_df
+        return paa
 
     def parse_fields(self, preprocess = True, num_file_lines=10**7, rewrite_existing=False,xml_directory = 'RawXML'):
         """
@@ -629,7 +675,7 @@ class PubMed(BibDataBase):
         """
 
         if preprocess:
-            for hier_dir_type in [self.path2pub2field_df, self.path2fieldinfo_df]:
+            for hier_dir_type in [self.path2pub2field, self.path2fieldinfo]:
                 if not os.path.exists(os.path.join(self.path2database, hier_dir_type)):
                     os.mkdir(os.path.join(self.path2database, hier_dir_type))
 
@@ -649,12 +695,12 @@ class PubMed(BibDataBase):
             for xml_file_name in tqdm(xmlfiles, desc='PubMed xml files', leave=True, disable=not show_progress):
 
                 # check if the xml file was already parsed
-                dest_file_name = os.path.join(self.path2database, self.path2pub2field_df,'pub2field{}.hdf'.format(ifile))
+                dest_file_name = os.path.join(self.path2database, self.path2pub2field,'pub2field{}.hdf'.format(ifile))
                 if not rewrite_existing and os.path.isfile(dest_file_name):
                     ifile+=1
                     continue
 
-                pub2field_df = []
+                pub2field = []
                 all_pubmed_articles = xmltree.findall("/PubmedArticle")
 
                 for article_bucket in all_pubmed_articles:
@@ -670,7 +716,7 @@ class PubMed(BibDataBase):
                         for term in meshterms.getchildren():
                             ui = term.find("DescriptorName").attrib.get("UI", "")
                             if len(ui)>0:
-                                pub2field_df.append([PublicationId, ui])
+                                pub2field.append([PublicationId, ui])
                                 fieldinfo[ui] = [load_xml_text(term.find("DescriptorName")), 'mesh']
 
                     chemicals = medline.find("ChemicalList")
@@ -678,34 +724,34 @@ class PubMed(BibDataBase):
                         for chemical in chemicals.findall("Chemical"):
                             ui = chemical.find("NameOfSubstance").attrib.get("UI", "")
                             if len(ui)>0:
-                                pub2field_df.append([PublicationId, ui])
+                                pub2field.append([PublicationId, ui])
                                 fieldinfo[ui] = [load_xml_text(chemical.find("NameOfSubstance")), 'chem']
 
                     # save the pub-field id
-                    pub2field_df = pd.DataFrame(pub2field_df, columns = ['PublicationId', 'FieldId'], dtype=int)
-                    pub2field_df.to_hdf( os.path.join(self.path2database, self.path2pub2field_df, 'pub2field{}.hdf'.format(ifile)), key = 'pub2field', mode='w')
+                    pub2field = pd.DataFrame(pub2field, columns = ['PublicationId', 'FieldId'], dtype=int)
+                    pub2field.to_hdf( os.path.join(self.path2database, self.path2pub2field, 'pub2field{}.hdf'.format(ifile)), key = 'pub2field', mode='w')
 
 
             # if rewriting
             dest_file_name = os.path.join(self.path2database, self.path2fieldinfo,'fieldinfo.hdf')
             if rewrite_existing:
                 # save field info dictionary
-                mesh_id_df_list = list(fieldinfo.values())
+                mesh_id_list = list(fieldinfo.values())
                 for i, j in enumerate(fieldinfo.keys()):
-                    mesh_id_df_list[i].insert(0, j)
+                    mesh_id_list[i].insert(0, j)
 
-                fieldinfo = pd.DataFrame(mesh_id_df_list, columns = ['FieldId', 'FieldName', 'FieldType'], dtype=int)
+                fieldinfo = pd.DataFrame(mesh_id_list, columns = ['FieldId', 'FieldName', 'FieldType'], dtype=int)
                 fieldinfo.to_hdf( os.path.join(self.path2database, self.path2fieldinfo, 'fieldinfo.hdf'), key = 'fieldinfo', mode='w')
 
         # load the dataframes
         # pub2field
-        pub2field_files = glob.glob(os.path.join(self.path2database, self.path2pub2field_df) + 'pub2field*.hdf')
-        pub2field_df = pd.DataFrame()
+        pub2field_files = glob.glob(os.path.join(self.path2database, self.path2pub2field) + 'pub2field*.hdf')
+        pub2field = pd.DataFrame()
 
         for pub2field_tmp_file in tqdm(pub2field_files, desc='PubMed pub2field files', leave=True, disable=not show_progress):
-            pub2field_df = pub2field_df.append(pd.read_hdf(pub2field_tmp_file), ignore_index=True)
+            pub2field = pub2field.append(pd.read_hdf(pub2field_tmp_file), ignore_index=True)
 
         # field info map
-        fieldinfo_df = pd.read_hdf(os.path.join(self.path2database, self.path2fieldinfo, 'fieldinfo.hdf'))
+        fieldinfo = pd.read_hdf(os.path.join(self.path2database, self.path2fieldinfo, 'fieldinfo.hdf'))
 
-        return pub2field_df, fieldinfo_df
+        return pub2field, fieldinfo

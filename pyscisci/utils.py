@@ -356,6 +356,34 @@ def holder_mean(a, rho=1):
     """
     return (a**rho).sum()**(1.0/rho) / a.shape[0]
 
+def simpson(p):
+    """
+    Simpson diversity
+
+    Parameters
+    ----------
+    p : numpy array or list
+        array of values
+
+    """
+    un, counts = np.unique(p, return_counts=True)
+    return np.square(counts/counts.sum()).sum()
+
+def simpson_finite(p):
+    """
+    Simpson diversity with finite size correction
+
+    Parameters
+    ----------
+    p : numpy array or list
+        array of values
+
+    """
+    un, counts = np.unique(p, return_counts=True)
+    N = counts.sum()
+    return (counts * (counts - 1)).sum() / (N * (N - 1))
+
+
 def value_to_int(a, sort_values='value', ascending=False, return_map=True):
     """
     Map the values of an array to integers.
