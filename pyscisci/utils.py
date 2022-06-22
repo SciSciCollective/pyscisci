@@ -381,7 +381,10 @@ def simpson_finite(p):
     """
     un, counts = np.unique(p, return_counts=True)
     N = counts.sum()
-    return (counts * (counts - 1)).sum() / (N * (N - 1))
+    if N > 1:
+        return (counts * (counts - 1)).sum() / (N * (N - 1))
+    else:
+        return None
 
 
 def value_to_int(a, sort_values='value', ascending=False, return_map=True):
