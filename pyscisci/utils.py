@@ -64,7 +64,7 @@ def groupby_count(df, colgroupby, colcountby, count_unique=True, show_progress=F
         else:
             count = df.groupby(colgroupby, sort=False, as_index=False)[colcountby].progress_apply(lambda x: x.shape[0])
 
-        return count.rename(columns=newname_dict)
+    return count.rename(columns=newname_dict)
 
 def groupby_range(df, colgroupby, colrange, show_progress=False):
     """
