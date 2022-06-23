@@ -42,20 +42,29 @@ def groupby_count(df, colgroupby, colcountby, count_unique=True, show_progress=F
     DataFrame
         DataFrame with two columns: colgroupby, colcountby+`Count`
     """
-
-    desc = ''
-    if isinstance(show_progress, str):
-        desc = show_progress
-    # register our pandas apply with tqdm for a progress bar
-    tqdm.pandas(desc=desc, disable= not show_progress)
-
+    
     newname_dict = zip2dict([str(colcountby), '0'], [str(colcountby)+'Count']*2)
-    if count_unique:
-        count = df.groupby(colgroupby, sort=False)[colcountby].progress_apply(lambda x: x.nunique())
-    else:
-        count = df.groupby(colgroupby, sort=False)[colcountby].progress_apply(lambda x: x.shape[0])
 
-    return count.to_frame().reset_index().rename(columns=newname_dict)
+    if not show_progress:
+        if count_unique:
+            count = df.groupby(colgroupby, sort=False, as_index=False)[colcountby].nunique()
+        else:
+            count = df.groupby(colgroupby, sort=False, as_index=False)[colcountby].count()
+
+    else:
+        desc = ''
+        if isinstance(show_progress, str):
+            desc = show_progress
+        # register our pandas apply with tqdm for a progress bar
+        tqdm.pandas(desc=desc, disable= not show_progress)
+
+        
+        if count_unique:
+            count = df.groupby(colgroupby, sort=False, as_index=False)[colcountby].progress_apply(lambda x: x.nunique())
+        else:
+            count = df.groupby(colgroupby, sort=False, as_index=False)[colcountby].progress_apply(lambda x: x.shape[0])
+
+        return count.rename(columns=newname_dict)
 
 def groupby_range(df, colgroupby, colrange, show_progress=False):
     """
