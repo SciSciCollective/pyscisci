@@ -257,6 +257,15 @@ def check4columns(df, column_list):
         if not col in list(df):
             print("Must pass column {0}".format(col))
 
+def pandas_cosine_similarity(df1, df2, col_keys, col_values):
+    search_index = np.searchsorted(df2[col_keys].values, df1[col_keys].values, side = 'left')
+    search_index[search_index >= df2.shape[0]] = df2.shape[0] - 1
+    isin = df1[col_keys].values == df2[col_keys].values[search_index]
+    cosine_num = np.inner(df1[col_values].values[isin], df2[col_values].values[search_index[isin]])
+    cosine_denom = np.linalg.norm(df1[col_values].values) * np.linalg.norm(df2[col_values].values)
+    return 1.0 - cosine_num/cosine_denom
+    
+
 def rolling_window(a, window, step_size = 1):
     shape = a.shape[:-1] + (a.shape[-1] - window + 1 - step_size, window)
     strides = a.strides + (a.strides[-1] * step_size,)
