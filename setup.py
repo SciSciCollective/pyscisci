@@ -32,7 +32,9 @@ setup(name=__package__,
             'requests',
             'unidecode',
             'tqdm',
-            'tables'
+            'tables',
+            'sparse_dot_topn',
+            'python-Levenshtein'
       ],
       include_package_data=True,
       zip_safe=False
