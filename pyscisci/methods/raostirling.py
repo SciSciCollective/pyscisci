@@ -18,7 +18,7 @@ from sklearn.preprocessing import normalize
 
 from ..utils import isin_sorted, zip2dict, check4columns
 from ..network import dataframe2bipartite
-from referencestrength import field_citation_vectors
+from .referencestrength import field_citation_vectors
 
 def field_citation_distance(pub2ref, pub2field, pub2field_norm=True, temporal=True,citation_direction='references', 
     field_distance_metric='cosine', show_progress=False):
