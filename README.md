@@ -8,6 +8,7 @@ The ``pySciSci`` package offers a unified interface to analyze several of the mo
 - [DBLP](https://dblp.uni-trier.de)
 - [American Physical Society](https://journals.aps.org/datasets) (APS)
 - [PubMed](https://www.nlm.nih.gov/databases/download/pubmed_medline.html)
+- [OpenAlex](https://openalex.org/)
 
 The ``pySciSci`` also provides efficient implemntations of recent metrics developed to study scientific publications and authors, including:
 - H-index
@@ -19,6 +20,8 @@ The ``pySciSci`` also provides efficient implemntations of recent metrics develo
 - Sleeping Beauty Coefficient
 - Q-factor
 - Career Topic Switching
+- Field Reference Share
+- Field Reference Strength
 - Novelty & Conventionality, ToDo
 ...
 
@@ -29,9 +32,11 @@ Advanced tools for constructing and analyzing network objects (both static and t
 - Graph2vec network embedding
 
 Natural Language Processing
+- Publication matching
 - Author matching
 
-
+Visualization
+- Career Timelines
 
 
 ## Installation

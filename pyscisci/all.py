@@ -10,6 +10,7 @@ from pyscisci.utils import *
 from pyscisci.methods.publication import *
 from pyscisci.methods.journal import *
 from pyscisci.methods.author import *
+from pyscisci.methods.referencestrength import *
 from pyscisci.datasource.readwrite import load_preprocessed_data, append_to_preprocessed
 from pyscisci.network import *
 from pyscisci.sparsenetworkutils import *

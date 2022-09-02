@@ -16,9 +16,9 @@ from collections import defaultdict
 from sklearn.metrics import pairwise_distances
 from sklearn.preprocessing import normalize
 
-from pyscisci.utils import isin_sorted, zip2dict, check4columns
-from pyscisci.network import dataframe2bipartite
-
+from ..utils import isin_sorted, zip2dict, check4columns
+from ..network import dataframe2bipartite
+from referencestrength import field_citation_vectors
 
 def field_citation_distance(pub2ref, pub2field, pub2field_norm=True, temporal=True,citation_direction='references', 
     field_distance_metric='cosine', show_progress=False):
@@ -100,27 +100,7 @@ def field_citation_distance(pub2ref, pub2field, pub2field_norm=True, temporal=Tr
 
         for y, ydf in pub2ref.groupby(year_col):
             # merge the references to the fields for the source fields
-            ydf = ydf.merge(pub2field, how='left', left_on='SourceId', right_on='PublicationId').rename(
-            columns={'FieldId':'SourceFieldId', 'PubFieldContribution':'SourcePubFieldContribution'})
-            del ydf['PublicationId']
-
-            ydf = ydf.merge(pub2field, how='left', left_on='TargetId', right_on='PublicationId').rename(
-            columns={'FieldId':'TargetFieldId', 'PubFieldContribution':'TargetPubFieldContribution'})
-            del ydf['PublicationId']
-
-            # drop any citation relationships for which we dont have field information
-            ydf.dropna(inplace=True)
-
-            # we need to use integer ids to map to the matrix
-            ydf[['SourceFieldId', 'TargetFieldId']] = ydf[['SourceFieldId', 'TargetFieldId']].astype(int)
-
-            # in the field2field distance matrix, the weighted contribution from a source publication in multiple fields
-            # is the product of the source and target contributions
-            ydf['SourcePubFieldContribution'] = ydf['SourcePubFieldContribution'] * ydf['TargetPubFieldContribution']
-
-            # calculate the field representation vectors for this year only
-            yfield2field_mat = dataframe2bipartite(df=ydf, rowname='SourceFieldId', colname='TargetFieldId',
-                    shape=(Nfields, Nfields), weightname='SourcePubFieldContribution')
+            yfield2field_mat = field_citation_vectors(ydf, pub2field, count_normalize=None)
 
             # now compute the distance matrix for this year only
             distance_matrix = pairwise_distances(yfield2field_mat, metric=field_distance_metric)
@@ -137,30 +117,10 @@ def field_citation_distance(pub2ref, pub2field, pub2field_norm=True, temporal=Tr
         
         nref = int(pub2ref.shape[0] / 10.0**6) + 1
         for itab in range(nref):
-            tabdf = pub2ref.loc[0*10**6:(0+1)*10**6]
-            
-            tabdf = tabdf.merge(pub2field, how='left', left_on='SourceId', right_on='PublicationId').rename(
-            columns={'FieldId':'SourceFieldId', 'PubFieldContribution':'SourcePubFieldContribution'})
-            del tabdf['PublicationId']
-
-            tabdf = tabdf.merge(pub2field, how='left', left_on='TargetId', right_on='PublicationId').rename(
-            columns={'FieldId':'TargetFieldId', 'PubFieldContribution':'TargetPubFieldContribution'})
-            del tabdf['PublicationId']
-
-            # drop any citation relationships for which we dont have field information
-            tabdf.dropna(inplace=True)
-
-            # we need to use integer ids to map to the matrix
-            tabdf[['SourceFieldId', 'TargetFieldId']] = tabdf[['SourceFieldId', 'TargetFieldId']].astype(int)
-
-            # in the field2field distance matrix, the weighted contribution from a source publication in multiple fields
-            # is the product of the source and target contributions
-            tabdf['SourcePubFieldContribution'] = tabdf['SourcePubFieldContribution'] * tabdf['TargetPubFieldContribution']
-
+            tabdf = pub2ref.loc[itab*10**6:(itab+1)*10**6]
 
             # calculate the field representation vectors
-            field2field_mat += dataframe2bipartite(df=tabdf, rowname='SourceFieldId', colname='TargetFieldId',
-                    shape=(Nfields, Nfields), weightname='SourcePubFieldContribution')
+            field2field_mat += field_citation_vectors(tabdf, pub2field, count_normalize=None)
 
         # now compute the distance matrix
         distance_matrix = pairwise_distances(field2field_mat, metric=field_distance_metric)
