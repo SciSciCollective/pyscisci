@@ -9,6 +9,8 @@
 import pandas as pd
 import numpy as np
 
+from collections import defaultdict
+
 import scipy.sparse as spsparse
 
 from sklearn.preprocessing import normalize
@@ -42,11 +44,13 @@ def field_citation_vectors(source2target, pub2field, count_normalize=None, citat
 
     """
 
-    source2target = source2target.merge(pub2field[['PublicationId', 'FieldId']], how='left', left_on='SourceId', right_on='PublicationId').rename(
+    Nfields = int(pub2field['FieldId'].max()) + 1
+
+    source2target = source2target.merge(pub2field[['PublicationId', 'FieldId', 'PubFieldContribution']], how='left', left_on='SourceId', right_on='PublicationId').rename(
             columns={'FieldId':'SourceFieldId', 'PubFieldContribution':'SourcePubFieldContribution'})
     del source2target['PublicationId']
 
-    source2target = source2target.merge(pub2field[['PublicationId', 'FieldId']], how='left', left_on='TargetId', right_on='PublicationId').rename(
+    source2target = source2target.merge(pub2field[['PublicationId', 'FieldId', 'PubFieldContribution']], how='left', left_on='TargetId', right_on='PublicationId').rename(
     columns={'FieldId':'TargetFieldId', 'PubFieldContribution':'TargetPubFieldContribution'})
     del source2target['PublicationId']
 
@@ -93,7 +97,7 @@ def field_citation_share(pub2ref, pub2field, count_normalize=None, pub2field_nor
         vector so it sums to 1 for each publication.
 
     :param temporal : bool, default False
-        If True, compute the distance matrix using only publications for each year.
+        If True, compute the Share matrix using only publications for each year.
 
     :param citation_direction : str, default `references`
         `references` : the fields are defined by a publication's references.
@@ -104,11 +108,11 @@ def field_citation_share(pub2ref, pub2field, count_normalize=None, pub2field_nor
 
     Returns
     -------
-    Distance DataFrame
+    CitationShare DataFrame
         if temporal is True
-            DataFrame with 4 columns: iFieldId, jFieldId, Year, and FieldDistance
+            DataFrame with 4 columns: iFieldId, jFieldId, Year, and Share
         if temporal is False
-            DataFrame with 3 columns: iFieldId, jFieldId, FieldDistance
+            DataFrame with 3 columns: iFieldId, jFieldId, Share
 
     """
 
@@ -158,7 +162,7 @@ def field_citation_share(pub2ref, pub2field, count_normalize=None, pub2field_nor
                 if isource < itarget:
                     citation_share.append([int2field[isource], int2field[itarget], y, yfield2field_mat[isource, itarget]])
 
-        citation_share = pd.DataFrame(distance, columns = ['SourceFieldId', 'TargetFieldId', year_col, 'Share'])
+        citation_share = pd.DataFrame(citation_share, columns = ['SourceFieldId', 'TargetFieldId', year_col, 'Share'])
 
     else:
 
@@ -174,13 +178,13 @@ def field_citation_share(pub2ref, pub2field, count_normalize=None, pub2field_nor
         if not count_normalize is None:
             field2field_mat = normalize(field2field_mat, norm='l1', axis=count_normalize)
 
-        # now compute the distance matrix
+        # now compute the citation_share matrix
         sources, targets = np.nonzero(field2field_mat)
         for isource, itarget in zip(sources, targets):
             if isource < itarget:
-                distance.append([int2field[isource], int2field[itarget], field2field_mat[isource, itarget]])
+                citation_share.append([int2field[isource], int2field[itarget], field2field_mat[isource, itarget]])
 
-        citation_share = pd.DataFrame(distance, columns = ['SourceFieldId', 'TargetFieldId', 'Share'])
+        citation_share = pd.DataFrame(citation_share, columns = ['SourceFieldId', 'TargetFieldId', 'Share'])
 
     return citation_share
     
@@ -207,7 +211,7 @@ def field_citation_strength(pub2ref, pub2field, count_normalize=None, pub2field_
         vector so it sums to 1 for each publication.
 
     :param temporal : bool, default False
-        If True, compute the distance matrix using only publications for each year.
+        If True, compute the Strength matrix using only publications for each year.
 
     :param citation_direction : str, default `references`
         `references` : the fields are defined by a publication's references.
@@ -218,11 +222,11 @@ def field_citation_strength(pub2ref, pub2field, count_normalize=None, pub2field_
 
     Returns
     -------
-    Distance DataFrame
+    Strength DataFrame
         if temporal is True
-            DataFrame with 4 columns: iFieldId, jFieldId, Year, and FieldDistance
+            DataFrame with 4 columns: iFieldId, jFieldId, Year, and Strength
         if temporal is False
-            DataFrame with 3 columns: iFieldId, jFieldId, FieldDistance
+            DataFrame with 3 columns: iFieldId, jFieldId, Strength
 
     """
 
