@@ -158,7 +158,7 @@ def field_citation_share(pub2ref, pub2field, count_normalize=None, pub2field_nor
             yfield2field_mat = field_citation_vectors(ydf, pub2field, count_normalize=count_normalize)
 
             nnzrow, nnzcol = np.nonzero(yfield2field_mat)
-            for isource, itarget in zip(nnzrow, nnzcol):
+            for isource, itarget in zip(nnzrow, nnzcol): 
                 if isource < itarget:
                     citation_share.append([int2field[isource], int2field[itarget], y, yfield2field_mat[isource, itarget]])
 
@@ -181,8 +181,7 @@ def field_citation_share(pub2ref, pub2field, count_normalize=None, pub2field_nor
         # now compute the citation_share matrix
         sources, targets = np.nonzero(field2field_mat)
         for isource, itarget in zip(sources, targets):
-            if isource < itarget:
-                citation_share.append([int2field[isource], int2field[itarget], field2field_mat[isource, itarget]])
+            citation_share.append([int2field[isource], int2field[itarget], field2field_mat[isource, itarget]])
 
         citation_share = pd.DataFrame(citation_share, columns = ['SourceFieldId', 'TargetFieldId', 'Share'])
 
@@ -231,10 +230,10 @@ def field_citation_strength(pub2ref, pub2field, count_normalize=None, pub2field_
     """
 
     if citation_direction == 'references':
-        strength_denom = 'TargetId'
+        strength_denom = 'TargetFieldId'
         year_col = 'CitingYear'
-    elif citation_direction == 'TargetId':
-        pub2ref_rename_dict = {'CitedPublicationId':'SourceId', 'CitingPublicationId':'TargetId'}
+    elif citation_direction == 'citations':
+        strength_denom = 'SourceFieldId'
         year_col = 'CitedYear'
 
     citation_strength = field_citation_share(pub2ref, pub2field, count_normalize=count_normalize, pub2field_norm=pub2field_norm, 
