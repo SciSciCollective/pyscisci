@@ -113,6 +113,7 @@ let us know if you'd like something modified or corrected.
 
 ``pySciSci`` was developed with full support from the following:
 
+- [School of Data Science](https://datascience.virginia.edu/), University of Virginia, Charlottesville, VA; PI: Alexander Gates
 - [Network Science Institute](https://www.networkscienceinstitute.org), Northeastern University, Boston, MA; PI: Albert-Laszlo Barabasi
 
 **Funding**
