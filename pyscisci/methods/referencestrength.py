@@ -19,7 +19,7 @@ from ..utils import isin_sorted, zip2dict, check4columns
 from ..network import dataframe2bipartite
 
 
-def field_citation_vectors(source2target, pub2field, count_normalize=None, citation_direction='references'):
+def field_citation_vectors(source2target, pub2field, count_normalize=None, n_fields = None, citation_direction='references'):
     """
     Calculate the citation vector of reference/citation counts from a field to another field.
 
@@ -44,7 +44,10 @@ def field_citation_vectors(source2target, pub2field, count_normalize=None, citat
 
     """
 
-    Nfields = int(pub2field['FieldId'].max()) + 1
+    if n_fields is None:
+        Nfields = int(pub2field['FieldId'].max()) + 1
+    else:
+        Nfields = n_fields
 
     source2target = source2target.merge(pub2field[['PublicationId', 'FieldId', 'PubFieldContribution']], how='left', left_on='SourceId', right_on='PublicationId').rename(
             columns={'FieldId':'SourceFieldId', 'PubFieldContribution':'SourcePubFieldContribution'})
@@ -155,7 +158,7 @@ def field_citation_share(pub2ref, pub2field, count_normalize=None, pub2field_nor
 
         for y, ydf in pub2ref.groupby(year_col):
             
-            yfield2field_mat = field_citation_vectors(ydf, pub2field, count_normalize=count_normalize)
+            yfield2field_mat = field_citation_vectors(ydf, pub2field, n_fields=Nfields, count_normalize=count_normalize)
 
             nnzrow, nnzcol = np.nonzero(yfield2field_mat)
             for isource, itarget in zip(nnzrow, nnzcol): 
@@ -172,7 +175,7 @@ def field_citation_share(pub2ref, pub2field, count_normalize=None, pub2field_nor
         for itab in range(nref):
             tabdf = pub2ref.loc[itab*10**6:(itab+1)*10**6]
             
-            field2field_mat += field_citation_vectors(tabdf, pub2field, count_normalize=None)
+            field2field_mat += field_citation_vectors(tabdf, pub2field, n_fields=Nfields, count_normalize=None)
 
         # now normalize the vectors by the source/target counts
         if not count_normalize is None:

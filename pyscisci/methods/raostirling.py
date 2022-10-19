@@ -100,7 +100,7 @@ def field_citation_distance(pub2ref, pub2field, pub2field_norm=True, temporal=Tr
 
         for y, ydf in pub2ref.groupby(year_col):
             # merge the references to the fields for the source fields
-            yfield2field_mat = field_citation_vectors(ydf, pub2field, count_normalize=None)
+            yfield2field_mat = field_citation_vectors(ydf, pub2field, n_fields=Nfields, count_normalize=None)
 
             # now compute the distance matrix for this year only
             distance_matrix = pairwise_distances(yfield2field_mat, metric=field_distance_metric)
@@ -120,7 +120,7 @@ def field_citation_distance(pub2ref, pub2field, pub2field_norm=True, temporal=Tr
             tabdf = pub2ref.loc[itab*10**6:(itab+1)*10**6]
 
             # calculate the field representation vectors
-            field2field_mat += field_citation_vectors(tabdf, pub2field, count_normalize=None)
+            field2field_mat += field_citation_vectors(tabdf, pub2field, n_fields=Nfields, count_normalize=None)
 
         # now compute the distance matrix
         distance_matrix = pairwise_distances(field2field_mat, metric=field_distance_metric)
