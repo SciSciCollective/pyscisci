@@ -267,7 +267,7 @@ class MAG(BibDataBase):
        'Discussion':"disc", 'Item About an Individual':"indv", 'Correction, Addition':"corradd",
        'Chronology':"chrono", 'Software Review':"sr", 'Reprint':"re", 'Database Review':"dr", 
        "Journal":'j', 'Book':'b', '':'', 'BookChapter':'bc', 'Conference':'c', 'Dataset':'d', 'Patent':'p', 'Repository':'r', 'Thesis':'t',
-       'article': 'j', 'book':'b', '':'', 'phdthesis':'t', 'proceedings':'c', 'inproceedings':'c',
+       'article': 'j', 'book':'b', 'phdthesis':'t', 'proceedings':'c', 'inproceedings':'c',
         'mastersthesis':'mst', 'incollection':'coll'}
 
         pub_int_columns = [0, 7, 11, 22]
