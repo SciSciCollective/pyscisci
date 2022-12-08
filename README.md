@@ -16,7 +16,7 @@ The ``pySciSci`` package offers a unified interface to analyze several of the mo
 - [OpenAlex](https://openalex.org/)
   see [Getting Started with OpenAlex](/examples/Getting_Started/Getting%20Started%20with%20OpenAlex.ipynb)
 
-The ``pySciSci`` also provides efficient implemntations of recent metrics developed to study scientific publications and authors, including:
+The ``pySciSci`` package also provides efficient implementations of recent metrics developed to study scientific publications and authors, including:
 - H-index
 - Disruption Index
 - Author Pagerank
