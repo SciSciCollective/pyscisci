@@ -4,6 +4,7 @@
 
 The ``pySciSci`` package offers a unified interface to analyze several of the most common Bibliometric DataBases used in the Science of Science, including:
 - [Microsoft Academic Graph](https://docs.microsoft.com/en-us/academic-services/graph/) (MAG)
+  see [Getting Started with MAG](/examples/Getting_Started/Getting Started with MAG.ipynb)
 - [Clarivate Web of Science](https://clarivate.com/webofsciencegroup/solutions/web-of-science/) (WoS)
 - [DBLP](https://dblp.uni-trier.de)
 - [American Physical Society](https://journals.aps.org/datasets) (APS)
