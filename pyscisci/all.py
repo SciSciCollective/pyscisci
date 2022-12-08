@@ -21,5 +21,6 @@ from pyscisci.datasource.DBLP import DBLP
 from pyscisci.datasource.APS import APS
 from pyscisci.datasource.PubMed import PubMed
 from pyscisci.datasource.OpenAlex import OpenAlex
+from pyscisci.datasource.CustomDB import CustomDB
 from pyscisci.filter import *
 from pyscisci.visualization import *

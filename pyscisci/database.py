@@ -7,6 +7,7 @@
  """
 
 import os
+import errno
 import json
 import gzip
 from collections import defaultdict
@@ -54,12 +55,14 @@ class BibDataBase(object):
 
     """
 
-    def __init__(self, path2database = '', keep_in_memory = False, global_filter = None, show_progress=True):
+    def __init__(self, path2database = '', database_extension='csv.gz', keep_in_memory = False, global_filter = None, show_progress=True):
 
-        self._default_init(path2database, keep_in_memory, global_filter, show_progress)
+        self._default_init(path2database, database_extension, keep_in_memory, global_filter, show_progress)
         
 
-    def _default_init(self, path2database = '', keep_in_memory = False, global_filter = None, show_progress=True):
+    def _default_init(self, path2database = '', database_extension='csv.gz', keep_in_memory = False, 
+        global_filter = None, show_progress=True):
+
         self.path2database = path2database
         self.keep_in_memory = keep_in_memory
         self.global_filter = None
@@ -75,6 +78,8 @@ class BibDataBase(object):
         self.path2fieldinfo = 'fieldinfo'
         self.path2impact = 'impact'
         self.path2pub2abstract = 'pub2abstract'
+
+        self.database_extension = database_extension
 
         self._affiliation = None
         self._pub = None
@@ -305,10 +310,10 @@ class BibDataBase(object):
         """
         if self._paa is None:
             if self.keep_in_memory:
-                self._paa = self.load_publicationauthoraffiliation(columns = ['AuthorId', 'PublicationId'],
+                self._paa = self.load_publicationauthoraffiliation(columns = ['AuthorId', 'PublicationId'], database_extension=self.database_extension,
                     duplicate_subset = ['AuthorId', 'PublicationId'], dropna = ['AuthorId', 'PublicationId'], show_progress=self.show_progress)
             else:
-                return self.load_publicationauthoraffiliation(columns = ['AuthorId', 'PublicationId'],
+                return self.load_publicationauthoraffiliation(columns = ['AuthorId', 'PublicationId'], database_extension=self.database_extension,
                     duplicate_subset = ['AuthorId', 'PublicationId'], dropna = ['AuthorId', 'PublicationId'], show_progress=self.show_progress)
 
         return self._paa
@@ -472,10 +477,13 @@ class BibDataBase(object):
         if show_progress or self.show_progress:
             show_progress='Loading Affiliations'
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2affiliation)):
-            return load_preprocessed_data(self.path2affiliation, path2database=self.path2database, columns=columns,
-                filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
-                prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
+        if preprocess:
+            if os.path.exists(os.path.join(self.path2database, self.path2affiliation)):
+                return load_preprocessed_data(self.path2affiliation, path2database=self.path2database, database_extension=self.database_extension,
+                    columns=columns, filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
+                    prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
+            else:
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), os.path.join(self.path2database, self.path2affiliation))
         else:
             return self.parse_affiliations()
 
@@ -524,10 +532,13 @@ class BibDataBase(object):
         if show_progress or self.show_progress:
             show_progress='Loading Authors'
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2author)):
-            return load_preprocessed_data(self.path2author, path2database=self.path2database, columns=columns,
-                filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
-                prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
+        if preprocess:
+            if os.path.exists(os.path.join(self.path2database, self.path2author)):
+                return load_preprocessed_data(self.path2author, path2database=self.path2database, database_extension=self.database_extension, 
+                    columns=columns, filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
+                    prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
+            else:
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), os.path.join(self.path2database, self.path2author))
         else:
             return self.parse_authors(process_name=process_name)
 
@@ -579,10 +590,13 @@ class BibDataBase(object):
             else:
                 filter_dict = {'PublicationId':np.sort(list(self.global_filter))}
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2pub)):
-            return load_preprocessed_data(dataname=self.path2pub, path2database=self.path2database, columns=columns,
-                filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
-                prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
+        if preprocess:
+            if os.path.exists(os.path.join(self.path2database, self.path2pub)):
+                return load_preprocessed_data(dataname=self.path2pub, path2database=self.path2database, database_extension=self.database_extension,
+                    columns=columns, filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
+                    prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
+            else:
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), os.path.join(self.path2database, self.path2pub))
         else:
             return self.parse_publications()
 
@@ -592,12 +606,16 @@ class BibDataBase(object):
             with gzip.open(os.path.join(self.path2database, 'pub2year.json.gz'), 'r') as infile:
                 pub2year = json.loads(infile.read().decode('utf8'))
             return {self.PublicationIdType(k):int(y) for k,y in pub2year.items() if not y is None}
+        else:
+            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), 'pub2year.json.gz')
 
     def load_pub2doctype(self):
         if os.path.exists(os.path.join(self.path2database, 'pub2doctype.json.gz')):
             with gzip.open(os.path.join(self.path2database, 'pub2doctype.json.gz'), 'r') as infile:
                 pub2doctype = json.loads(infile.read().decode('utf8'))
             return {self.PublicationIdType(k):dt for k,dt in pub2doctype.items() if not dt is None}
+        else:
+            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), 'pub2doctype.json.gz')
 
     def load_journals(self, preprocess = True, columns = None, filter_dict = {}, duplicate_subset = None,
         duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
@@ -639,10 +657,13 @@ class BibDataBase(object):
         if show_progress or self.show_progress:
             show_progress='Loading Journals'
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2journal)):
-            return load_preprocessed_data(self.path2journal, path2database=self.path2database, columns=columns,
-                filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
-                prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
+        if preprocess:
+            if os.path.exists(os.path.join(self.path2database, self.path2journal)):
+                return load_preprocessed_data(self.path2journal, path2database=self.path2database, database_extension=self.database_extension,
+                    columns=columns, filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
+                    prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
+            else:
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), os.path.join(self.path2database, self.path2journal))
         else:
             return self.parse_publications()
 
@@ -708,10 +729,13 @@ class BibDataBase(object):
         if show_progress or self.show_progress:
             show_progress='Loading {}'.format(fileprefix)
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, fileprefix)):
-            return load_preprocessed_data(fileprefix, path2database=self.path2database, columns=columns,
-                filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
-                prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
+        if preprocess:
+            if os.path.exists(os.path.join(self.path2database, fileprefix)):
+                return load_preprocessed_data(fileprefix, path2database=self.path2database, database_extension=self.database_extension,
+                    columns=columns, filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
+                    prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
+            else:
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), os.path.join(self.path2database, fileprefix))
         else:
             return self.parse_references()
 
@@ -764,10 +788,13 @@ class BibDataBase(object):
             else:
                 filter_dict['PublicationId'] = np.sort(list(self.global_filter))
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2paa)):
-            return load_preprocessed_data(self.path2paa, path2database=self.path2database, columns=columns,
-                filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
-                prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
+        if preprocess:
+            if os.path.exists(os.path.join(self.path2database, self.path2paa)):
+                return load_preprocessed_data(self.path2paa, path2database=self.path2database, database_extension=self.database_extension,
+                    columns=columns, filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
+                    prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
+            else:
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), os.path.join(self.path2database, self.path2paa))
         else:
             return self.parse_publicationauthoraffiliation()
 
@@ -820,10 +847,13 @@ class BibDataBase(object):
             else:
                 filter_dict['PublicationId'] = np.sort(list(self.global_filter))
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2pub2field)):
-            return load_preprocessed_data(self.path2pub2field, path2database=self.path2database, columns=columns,
-                filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
-                prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
+        if preprocess:
+            if os.path.exists(os.path.join(self.path2database, self.path2pub2field)):
+                return load_preprocessed_data(self.path2pub2field, path2database=self.path2database, database_extension=self.database_extension,
+                    columns=columns, filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
+                    prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
+            else:
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), os.path.join(self.path2database, self.path2pub2field))
         else:
             return self.parse_fields()
 
@@ -866,8 +896,12 @@ class BibDataBase(object):
         if show_progress or self.show_progress:
             show_progress='Loading Field Info'
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2fieldinfo)):
-            return pd.read_hdf(os.path.join(self.path2database, self.path2fieldinfo, 'fieldinfo0.hdf'))
+        if preprocess:
+            if os.path.exists(os.path.join(self.path2database, self.path2fieldinfo)):
+                return load_preprocessed_data(self.path2fieldinfo, path2database=self.path2database, database_extension=self.database_extension)
+
+            else:
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), os.path.join(self.path2database, self.path2fieldinfo))
         else:
             return self.parse_fields()
 
@@ -933,10 +967,13 @@ class BibDataBase(object):
             def normfunc(impactdf):
                 return impactdf
 
-        if preprocess and os.path.exists(os.path.join(self.path2database, self.path2impact)):
-            return load_preprocessed_data(self.path2impact, path2database=self.path2database, columns=columns,
-                filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
+        if preprocess:
+            if os.path.exists(os.path.join(self.path2database, self.path2impact)):
+                return load_preprocessed_data(self.path2impact, path2database=self.path2database, database_extension=self.database_extension,
+                    columns=columns, filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
                 prefunc2apply=normfunc, show_progress=show_progress)
+            else:
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), os.path.join(self.path2database, self.path2impact))
         else:
             raise self.compute_impact()
 
@@ -1079,6 +1116,66 @@ class BibDataBase(object):
         pass
         
 
+    def save_data_file(self, df, fname, key=''):
+        """
+        Save the DataFrame to a file.
+
+        Parameters
+        -----------
+        df : DataFrame
+            A pandas DataFrame
+
+        fname : std,
+            The filename
+
+        key : str
+            For hdf files, the table key.
+
+
+        Returns
+        -----------
+        journal_pubs : DataFrame
+            The journal(s) publication information.
+        """
+        if self.database_extension == 'hdf':
+            df.to_hdf(fname, mode = 'w', key=key)
+        elif self.database_extension == 'csv':
+            df.to_csv(fname, mode='w', header=True, index=False)
+        elif self.database_extension == 'csv.gz':
+            df.to_csv(fname, mode='w', header=True, index=False, compression='gzip')
+        else:
+            df.to_csv(fname, mode='w', header=True, index=False, compression=database_extension)
+
+    def read_data_file(self, fname):
+        """
+        Read the DataFrame from a file.
+
+        Parameters
+        -----------
+        df : DataFrame
+            A pandas DataFrame
+
+        fname : std,
+            The filename
+
+
+        Returns
+        -----------
+        df : DataFrame
+            The DataFrame.
+        """
+        if self.database_extension == 'hdf':
+            return pd.read_hdf(fname, mode = 'r')
+
+        elif self.database_extension == 'csv':
+            return pd.read_csv(fname, mode='r')
+
+        elif self.database_extension == 'csv.gz':
+            return pd.read_csv(fname, mode='r', compression='gzip')
+
+        else:
+            return pd.read_csv(fname, mode='r', compression=database_extension)
+
 
     """
     To be rewritten for each specific data source (MAG, WOS, etc.)
@@ -1125,9 +1222,14 @@ class BibDataBase(object):
         if self.show_progress:
             show_progress=True
 
+        fileprefix = self.path2pub2ref + 'noself'
+
         if preprocess:
-            if not os.path.exists(os.path.join(self.path2database, 'pub2refnoself')):
-                os.mkdir(os.path.join(self.path2database, 'pub2refnoself'))
+            if not os.path.exists(os.path.join(self.path2database, fileprefix)):
+                os.mkdir(os.path.join(self.path2database, fileprefix))
+
+            if not os.path.exists(os.path.join(self.path2database, self.path2pub2ref)):
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), os.path.join(self.path2database, self.path2pub2ref))
 
         pub2authors = defaultdict(set)
         for pid, aid in self.author2pub[['PublicationId', 'AuthorId']].values:
@@ -1137,7 +1239,9 @@ class BibDataBase(object):
         # loop through all pub2ref files
         Nreffiles = sum('pub2ref' in fname for fname in os.listdir(os.path.join(self.path2database, 'pub2ref')))
         for ifile in tqdm(range(Nreffiles), desc='Removing Self-citations', disable= not show_progress):
-            refdf = pd.read_hdf(os.path.join(self.path2database, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)))
+
+            fname = os.path.join(self.path2database, 'pub2ref', "pub2ref{}.".format(ifile)+self.database_extension)
+            refdf = self.read_file(fname)
 
             # get citing cited pairs with no common authors
             noselfcite = np.array([len(pub2authors[citingpid] & pub2authors[citedpid]) == 0 for citingpid, citedpid in refdf.values])
@@ -1146,7 +1250,8 @@ class BibDataBase(object):
             refdf = refdf.loc[noselfcite]
 
             if preprocess:
-                refdf.to_hdf(os.path.join(self.path2database, 'pub2refnoself', 'pub2refnoself{}.hdf'.format(ifile)), key = 'pub2ref')
+                fname = os.path.join(self.path2database, fileprefix, fileprefix + '{}.'.format(ifile) + self.database_extension)
+                self.save_data_file(refdf, fname, key = 'pub2ref')
             else:
                 fullrefdf.append(refdf)
 
@@ -1248,7 +1353,8 @@ class BibDataBase(object):
                 os.mkdir(os.path.join(self.path2database, 'impact'))
 
             for y, cdf in citation.groupby('Year', sort=True):
-                cdf.to_hdf(os.path.join(self.path2database, 'impact', 'impact{}.hdf'.format(y)), mode='w', key ='impact')
+                fname = os.path.join(self.path2database, 'impact', 'impact{}.'.format(y) + self.database_extension)
+                self.save_data_file(cdf, fname, key ='impact')
 
         else:
             return citation
@@ -1331,7 +1437,8 @@ class BibDataBase(object):
                 os.mkdir(os.path.join(self.path2database, 'temporalimpact'))
 
             for y, cdf in citation.groupby('CitedYear', sort=True):
-                cdf.to_hdf(os.path.join(self.path2database, 'temporalimpact', 'temporalimpact{}.hdf'.format(y)), mode='w', key ='temporalimpact')
+                fname = os.path.join(self.path2database, 'temporalimpact', 'temporalimpact{}.'.format(y) + self.database_extension)
+                self.save_data_file(cdf, fname, key ='temporalimpact')
 
             if show_progress:
                 print("Yearly Citations Saved")

@@ -33,9 +33,9 @@ class OpenAlex(BibDataBase):
 
     """
 
-    def __init__(self, path2database = '', keep_in_memory = False, global_filter = None, show_progress=True):
+    def __init__(self, path2database = '', database_extension='csv.gz', keep_in_memory = False, global_filter=None, show_progress=True):
 
-        self._default_init(path2database, keep_in_memory, global_filter, show_progress)
+        self._default_init(path2database, database_extension, keep_in_memory, global_filter, show_progress)
 
         self.PublicationIdType = int
         self.AffiliationIdType = int
@@ -117,7 +117,7 @@ class OpenAlex(BibDataBase):
         show_progress: bool, default True
             Show progress with processing of the data.
         
-        # taken from https://stackoverflow.com/questions/31918960/boto3-to-download-all-files-from-a-s3-bucket
+        # edited from https://stackoverflow.com/questions/31918960/boto3-to-download-all-files-from-a-s3-bucket
         """
 
         try:
@@ -292,8 +292,9 @@ class OpenAlex(BibDataBase):
 
             aff = pd.DataFrame(affiliation_info, columns = affil_column_names)
             if preprocess:
-                aff.to_hdf(os.path.join(self.path2database, self.path2affiliation, '{}{}.hdf'.format(self.path2affiliation, ifile)),
-                                                                            key = self.path2affiliation , mode = 'w')
+                fname = os.path.join(self.path2database, self.path2affiliation, '{}{}.{}'.format(self.path2affiliation, ifile, self.database_extension))
+                self.save_data_file(aff, fname, key =self.path2affiliation)
+
                 ifile += 1
                 affiliation_info = []
 
@@ -372,8 +373,9 @@ class OpenAlex(BibDataBase):
 
                 # time to save
                 if preprocess:
-                    author.to_hdf(os.path.join(self.path2database, self.path2author, '{}{}.hdf'.format(self.path2author, ifile)),
-                                                                                key = self.path2author, mode = 'w')
+                    fname = os.path.join(self.path2database, self.path2author, '{}{}.{}'.format(self.path2author, ifile, self.database_extension))
+                    self.save_data_file(author, fname, key =self.path2author)
+
                     ifile += 1
                     authorinfo = []
 
@@ -431,8 +433,9 @@ class OpenAlex(BibDataBase):
 
                 venue = pd.DataFrame(venue_info, columns = venue_column_names)
                 if preprocess:
-                    venue.to_hdf(os.path.join(self.path2database, self.path2journal, '{}{}.hdf'.format(self.path2journal, ifile)), 
-                        key = self.path2journal, mode = 'w')
+                    fname = os.path.join(self.path2database, self.path2journal, '{}{}.{}'.format(self.path2journal, ifile, self.database_extension))
+                    self.save_data_file(venue, fname, key =self.path2journal)
+
                     ifile += 1
                     venue_info = []
         
@@ -596,31 +599,33 @@ class OpenAlex(BibDataBase):
                 if ('publications' in dataframe_list) or ('works' in dataframe_list):
                     pub = pd.DataFrame(pubinfo, columns = pub_column_names)
                     if preprocess:
-                        pub.to_hdf(
-                            os.path.join(self.path2database, self.path2pub, '{}{}.hdf'.format(self.path2pub, ifile)),
-                                                                                    key = self.path2pub, mode = 'w')
+                        fname = os.path.join(self.path2database, self.path2pub, '{}{}.{}'.format(self.path2pub, ifile, self.database_extension))
+                        self.save_data_file(pub, fname, key =self.path2pub)
                         
                         pubinfo = []
                 
                 if ('references' in dataframe_list):
                     pub2refdf = pd.DataFrame(pub2ref, columns = ['CitingPublicationId', 'CitedPublicationId'])
                     if preprocess:
-                        pub2refdf.to_hdf(os.path.join(self.path2database, self.path2pub2ref , '{}{}.hdf'.format(self.path2pub2ref, ifile)),
-                                                                            key = self.path2pub2ref , mode = 'w')
+                        fname = os.path.join(self.path2database, self.path2pub2ref, '{}{}.{}'.format(self.path2pub2ref, ifile, self.database_extension))
+                        self.save_data_file(pub2refdf, fname, key =self.path2pub2ref)
+
                         pub2ref = []
 
                 if ('publicationauthoraffiliation' in dataframe_list):
                     paadf = pd.DataFrame(paa, columns = paa_column_names)
                     if preprocess:
-                        paadf.to_hdf(os.path.join(self.path2database, self.path2paa, '{}{}.hdf'.format(self.path2paa, ifile)),
-                                                                                    key = self.path2paa, mode = 'w')
+                        fname = os.path.join(self.path2database, self.path2paa, '{}{}.{}'.format(self.path2paa, ifile, self.database_extension))
+                        self.save_data_file(paadf, fname, key =self.path2paa)
+
                         paa = []
 
                 if ('fields' in dataframe_list) or ('concepts' in dataframe_list):
                     pub2fielddf = pd.DataFrame(pub2field, columns = pub2field_column_names)
                     if preprocess:
-                        pub2fielddf.to_hdf(os.path.join(self.path2database, self.path2pub2field, '{}{}.hdf'.format(self.path2pub2field, ifile)),
-                                                                            key = self.path2pub2field, mode = 'w')
+                        fname = os.path.join(self.path2database, self.path2pub2field, '{}{}.{}'.format(self.path2pub2field, ifile, self.database_extension))
+                        self.save_data_file(pub2fielddf, fname, key =self.path2pub2field)
+
                         pub2field = []
 
                 if ('abstracts' in dataframe_list):
@@ -699,9 +704,12 @@ class OpenAlex(BibDataBase):
 
         fieldinfo = pd.DataFrame(fieldinfo, columns = field_column_names)
         if preprocess:
-            fieldinfo.to_hdf(os.path.join(self.path2database, self.path2fieldinfo , 'fieldinfo0.hdf'), key = self.path2fieldinfo , mode = 'w')
+            fname = os.path.join(self.path2database, self.path2fieldinfo, '{}{}.{}'.format(self.path2fieldinfo, 0, self.database_extension))
+            self.save_data_file(fieldinfo, fname, key =self.path2fieldinfo)
+
             fieldhierarchy = pd.DataFrame(fieldhierarchy, columns = ['ParentFieldId', 'ChildFieldId'])
-            fieldhierarchy.to_hdf(os.path.join(self.path2database, self.path2fieldinfo , 'fieldhierarchy0.hdf'), key = 'fieldhierarchy', mode = 'w')
+            fname = os.path.join(self.path2database, self.path2fieldinfo, '{}{}.{}'.format('fieldhierarchy', 0, self.database_extension))
+            self.save_data_file(fieldhierarchy, fname, key ='fieldhierarchy')
 
         return fieldinfo
 

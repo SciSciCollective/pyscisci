@@ -255,7 +255,7 @@ def check4columns(df, column_list):
     # TODO: make proper error messages
     for col in column_list:
         if not col in list(df):
-            print("Must pass column {0}".format(col))
+            raise KeyError("{} not in dataframe".format(col))
 
 def pandas_cosine_similarity(df1, df2, col_keys, col_values):
     search_index = np.searchsorted(df2[col_keys].values, df1[col_keys].values, side = 'left')

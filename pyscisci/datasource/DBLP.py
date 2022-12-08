@@ -31,9 +31,9 @@ class DBLP(BibDataBase):
     """
 
 
-    def __init__(self, path2database='', keep_in_memory=False, global_filter=None, show_progress=True):
+    def __init__(self, path2database = '', database_extension='csv.gz', keep_in_memory = False, global_filter=None, show_progress=True):
 
-        self._default_init(path2database, keep_in_memory, global_filter, show_progress)
+        self._default_init(path2database, database_extension, keep_in_memory, global_filter, show_progress)
 
         self.PublicationIdType = int
         self.AffiliationIdType = int
@@ -41,7 +41,7 @@ class DBLP(BibDataBase):
         self.JournalIdType=str
 
         self.path2journal = self.path2pub
-
+        self.path2paa = 'publicationauthor'
 
     def _blank_dblp_publication(self, PublicationId = 0):
         record = {}
@@ -65,15 +65,18 @@ class DBLP(BibDataBase):
         publication['Year'] = publication['Year'].astype(int)
         publication['Volume'] = pd.to_numeric(publication['Volume'])
         publication['TeamSize'] = publication['TeamSize'].astype(int)
-        publication.to_hdf( os.path.join(self.path2database, self.path2pub, 'publication{}.hdf'.format(ifile)), key = 'pub', mode='w')
+        fname = os.path.join(self.path2database, self.path2pub, '{}{}.{}'.format(self.path2pub, ifile, self.database_extension))
+        self.save_data_file(publication, fname, key =self.path2pub)
 
 
         author = pd.DataFrame(author, columns = author_columns)
         author['AuthorId'] = author['AuthorId'].astype(int)
-        author.to_hdf( os.path.join(self.path2database, self.path2author, 'author{}.hdf'.format(ifile)), key = 'author', mode='w')
+        fname = os.path.join(self.path2database, self.path2author, '{}{}.{}'.format(self.path2author, ifile, self.database_extension))
+        self.save_data_file(author, fname, key =self.path2author)
 
         author2pub = pd.DataFrame(author2pub, columns = ['PublicationId', 'AuthorId', 'AuthorSequence'], dtype=int)
-        author2pub.to_hdf( os.path.join(self.path2database, self.path2paa, 'publicationauthor{}.hdf'.format(ifile)), key = 'pa', mode='w')
+        fname = os.path.join(self.path2database, self.path2paa, '{}{}.{}'.format(self.path2paa, ifile, self.database_extension))
+        self.save_data_file(author2pub, fname, key =self.path2paa)
 
     def preprocess(self, xml_file_name = 'dblp.xml.gz', process_name=True, num_file_lines=10**6, show_progress=True):
         """

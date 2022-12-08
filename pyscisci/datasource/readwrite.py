@@ -1,5 +1,6 @@
 import os
 import sys
+import pathlib
 import pandas as pd
 import numpy as np
 
@@ -64,7 +65,7 @@ def load_xml_text(root_element, default=''):
         return root_element[0].text
 
 
-def load_preprocessed_data(dataname, path2database, columns = None, filter_dict=None, duplicate_subset=None,
+def load_preprocessed_data(dataname, path2database, database_extension = 'hdf', columns = None, filter_dict=None, duplicate_subset=None,
     duplicate_keep='last', dropna=None, keep_source_file=False, prefunc2apply=None, postfunc2apply=None, show_progress=False):
     """
         Load the preprocessed DataFrame from a preprocessed directory.
@@ -130,17 +131,29 @@ def load_preprocessed_data(dataname, path2database, columns = None, filter_dict=
         filter_dict = {isinkey:np.sort(isinlist) for isinkey, isinlist in filter_dict.items()}
 
 
-    FileNumbers = sorted([int(fname.replace(dataname, '').split('.')[0]) for fname in os.listdir(path2files) if dataname in fname])
+    FileNumbers = sorted([int(fname.replace(dataname, '').split('.')[0]) for fname in os.listdir(path2files) if dataname in fname and database_extension in fname])
 
     desc=''
     if isinstance(show_progress, str):
         desc = show_progress
 
+    if database_extension == 'hdf':
+        def read_file(fname):
+            return pd.read_hdf(fname, mode = 'r')
+    elif database_extension == 'csv':
+        def read_file(fname):
+            return pd.read_csv(fname, mode='r')
+    elif database_extension == 'csv.gz':
+        def read_file(fname):
+            return pd.read_csv(fname, mode='r', compression='gzip')
+
     data = []
     #print(FileNumbers)
     for ifile in tqdm(FileNumbers, desc=desc, leave=True, disable=not show_progress):
-        fname = os.path.join(path2files, dataname+"{}.hdf".format(ifile))
-        subdf = pd.read_hdf(fname, mode = 'r')
+        
+        fname = os.path.join(path2files, dataname+"{}.".format(ifile)+database_extension)
+        if os.path.exists(fname):
+            subdf = read_file(fname)
 
         if callable(prefunc2apply):
             subdf = prefunc2apply(subdf)

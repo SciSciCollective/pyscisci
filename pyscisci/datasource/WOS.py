@@ -26,9 +26,9 @@ class WOS(BibDataBase):
 
     """
 
-    def __init__(self, path2database='', keep_in_memory=False, global_filter=None, show_progress=True):
+    def __init__(self, path2database = '', database_extension='csv.gz', keep_in_memory = False, global_filter=None, show_progress=True):
 
-        self._default_init(path2database, keep_in_memory, global_filter, show_progress)
+        self._default_init(path2database, database_extension, keep_in_memory, global_filter, show_progress)
 
         self.PublicationIdType = str
         self.AffiliationIdType = str
@@ -89,24 +89,29 @@ class WOS(BibDataBase):
         publication['Year'] = publication['Year'].astype(int)
         publication['Volume'] = pd.to_numeric(publication['Volume'])
         publication['TeamSize'] = publication['TeamSize'].astype(int)
-        publication.to_hdf( os.path.join(self.path2database, 'publication', 'publication{}.hdf'.format(ifile)), key = 'pub', mode='w')
-
+        fname = os.path.join(self.path2database, 'publication', 'publication{}.'.format(ifile) + self.database_extension)
+        self.save_data_file(publication, fname, key ='publication')
 
         author = pd.DataFrame(author, columns = author_columns)
         author['AuthorId'] = author['AuthorId'].astype(int)
-        author.to_hdf( os.path.join(self.path2database, 'author', 'author{}.hdf'.format(ifile)), key = 'author', mode='w')
+        fname = os.path.join(self.path2database, 'author', 'author{}.'.format(ifile) + self.database_extension)
+        self.save_data_file(author, fname, key ='author')
 
         paa = pd.DataFrame(paa, columns = ['PublicationId', 'AuthorId', 'AuthorSequence', 'OrigAuthorName'])
-        paa.to_hdf( os.path.join(self.path2database, 'publicationauthoraffiliation', 'publicationauthoraffiliation{}.hdf'.format(ifile)), key = 'pa', mode='w')
+        fname = os.path.join(self.path2database, 'publicationauthoraffiliation', 'publicationauthoraffiliation{}.'.format(ifile) + self.database_extension)
+        self.save_data_file(paa, fname, key ='publicationauthoraffiliation')
 
         pub2ref = pd.DataFrame(pub2ref, columns = ['CitingPublicationId', 'CitedPubliationId'])
-        pub2ref.to_hdf(os.path.join(self.path2database, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)), key = 'pub2ref', mode='w')
+        fname = os.path.join(self.path2database, 'pub2ref', 'pub2ref{}.'.format(ifile) + self.database_extension)
+        self.save_data_file(pub2ref, fname, key ='pub2ref')
 
         affiliation = pd.DataFrame(affiliation, columns = ['PublicationId', 'AffiliationId', 'AffiliationString'])
-        affiliation.to_hdf(os.path.join(self.path2database, 'affiliation', 'affiliation{}.hdf'.format(ifile)), key = 'affiliation', mode='w')
-
+        fname = os.path.join(self.path2database, 'affiliation', 'affiliation{}.'.format(ifile) + self.database_extension)
+        self.save_data_file(affiliation, fname, key ='affiliation')
+        
         field = pd.DataFrame(field, columns = ['PublicationId', 'FieldId', 'FieldType'])
-        field.to_hdf(os.path.join(self.path2database, 'pub2field', 'pub2field{}.hdf'.format(ifile)), key = 'pub2field', mode='w')
+        fname = os.path.join(self.path2database, 'pub2field', 'pub2field{}.'.format(ifile) + self.database_extension)
+        self.save_data_file(field, fname, key ='pub2field')
 
     def preprocess(self, xml_directory = 'RawXML', name_space = 'http://scientific.thomsonreuters.com/schema/wok5.4/public/FullRecord',
         process_name=True, num_file_lines=10**6, show_progress=True):

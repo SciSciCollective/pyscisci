@@ -32,9 +32,9 @@ class MAG(BibDataBase):
 
     """
 
-    def __init__(self, path2database = '', keep_in_memory = False, global_filter = None, show_progress=True):
+    def __init__(self, path2database = '', database_extension='csv.gz', keep_in_memory = False, global_filter = None, show_progress=True):
 
-        self._default_init(path2database, keep_in_memory, global_filter, show_progress)
+        self._default_init(path2database, database_extension, keep_in_memory, global_filter, show_progress)
 
         self.PublicationIdType = int
         self.AffiliationIdType = int
@@ -125,9 +125,11 @@ class MAG(BibDataBase):
         aff = pd.DataFrame(affiliation_info, columns = affil_column_names)
 
         if preprocess:
-            if not os.path.exists(os.path.join(self.path2database, 'affiliation')):
-                os.mkdir(os.path.join(self.path2database, 'affiliation'))
-            aff.to_hdf(os.path.join(self.path2database, 'affiliation', 'affiliation0.hdf'), key = 'affiliation', mode = 'w')
+            if not os.path.exists(os.path.join(self.path2database, self.path2affiliation)):
+                os.mkdir(os.path.join(self.path2database, self.path2affiliation))
+                
+            fname = os.path.join(self.path2database, self.path2affiliation, '{}{}.{}'.format(self.path2affiliation, 0, self.database_extension))
+            self.save_data_file(aff, fname, key =self.path2affiliation)
 
         return aff
 
@@ -164,8 +166,8 @@ class MAG(BibDataBase):
 
 
         if preprocess:
-            if not os.path.exists(os.path.join(self.path2database, 'author')):
-                os.mkdir(os.path.join(self.path2database, 'author'))
+            if not os.path.exists(os.path.join(self.path2database, self.path2author)):
+                os.mkdir(os.path.join(self.path2database, self.path2author))
 
         file_name = os.path.join(self.path2database, 'mag', 'Authors.txt')
 
@@ -194,17 +196,16 @@ class MAG(BibDataBase):
 
                     # time to save
                     if preprocess and iauthor % num_file_lines == 0:
-                        pd.DataFrame(authorinfo, columns = author_column_names).to_hdf(
-                            os.path.join(self.path2database, 'author', 'author{}.hdf'.format(ifile)),
-                                                                                    key = 'author', mode = 'w')
+                        fname = os.path.join(self.path2database, self.path2author, '{}{}.{}'.format(self.path2author, ifile, self.database_extension))
+                        self.save_data_file(pd.DataFrame(authorinfo, columns = author_column_names), fname, key =self.path2author)
 
                         ifile += 1
                         authorinfo = []
 
                 author = pd.DataFrame(authorinfo, columns = author_column_names)
                 if preprocess:
-                    author.to_hdf(os.path.join(self.path2database, 'author', 'author{}.hdf'.format(ifile)),
-                                                                                key = 'author', mode = 'w')
+                    fname = os.path.join(self.path2database, self.path2author, '{}{}.{}'.format(self.path2author, ifile, self.database_extension))
+                    self.save_data_file(author, fname, key =self.path2author)
 
         return author
 
@@ -237,8 +238,8 @@ class MAG(BibDataBase):
         journal_column_names = ['JournalId', 'FullName', 'Issn', 'Publisher', 'Webpage']
 
         if preprocess:
-            if not os.path.exists(os.path.join(self.path2database, 'journal')):
-                os.mkdir(os.path.join(self.path2database, 'journal'))
+            if not os.path.exists(os.path.join(self.path2database, self.path2journal)):
+                os.mkdir(os.path.join(self.path2database, self.path2journal))
 
         file_name = os.path.join(self.path2database, 'mag', 'Journals.txt')
 
@@ -256,7 +257,8 @@ class MAG(BibDataBase):
 
         journal = pd.DataFrame(journal_info, columns = journal_column_names)
         if preprocess:
-            journal.to_hdf(os.path.join(self.path2database, 'journal', 'journal0.hdf'), key = 'journal', mode = 'w')
+            fname = os.path.join(self.path2database, self.path2journal, '{}{}.{}'.format(self.path2journal, 0, self.database_extension))
+            self.save_data_file(journal, fname, key =self.path2journal)
 
         #now lets do the publication information
         # we need to standardize the document types across the different databases
@@ -275,8 +277,8 @@ class MAG(BibDataBase):
         pub_column_names = ['PublicationId', 'Year', 'JournalId', 'FamilyId',  'Doi', 'Title', 'Date', 'Volume', 'Issue', 'FirstPage', 'LastPage', 'DocSubTypes', 'DocType']
 
         if preprocess:
-            if not os.path.exists(os.path.join(self.path2database, 'publication')):
-                os.mkdir(os.path.join(self.path2database, 'publication'))
+            if not os.path.exists(os.path.join(self.path2database, self.path2pub)):
+                os.mkdir(os.path.join(self.path2database, self.path2pub))
 
         file_name = os.path.join(self.path2database, 'mag', 'Papers.txt')
 
@@ -303,17 +305,16 @@ class MAG(BibDataBase):
                     pbar.update(sys.getsizeof(line))
 
                     if preprocess and ipub % num_file_lines == 0:
-                            pd.DataFrame(pubinfo, columns = pub_column_names).to_hdf(
-                                os.path.join(self.path2database, 'publication', 'publication{}.hdf'.format(ifile)),
-                                                                                        key = 'publication', mode = 'w')
+                        fname = os.path.join(self.path2database, self.path2pub, '{}{}.{}'.format(self.path2pub, ifile, self.database_extension))
+                        self.save_data_file(pd.DataFrame(pubinfo, columns = pub_column_names), fname, key =self.path2pub)
 
-                            ifile += 1
-                            pubinfo = []
+                        ifile += 1
+                        pubinfo = []
 
             pub = pd.DataFrame(pubinfo, columns = pub_column_names)
             if preprocess:
-                pub.to_hdf(os.path.join(self.path2database, 'publication', 'publication{}.hdf'.format(ifile)),
-                                                                                key = 'publication', mode = 'w')
+                fname = os.path.join(self.path2database, self.path2pub, '{}{}.{}'.format(self.path2pub, ifile, self.database_extension))
+                self.save_data_file(pub, fname, key =self.path2pub)
 
                 if preprocess_dicts:
                     with gzip.open(os.path.join(self.path2database, 'pub2year.json.gz'), 'w') as outfile:
@@ -346,8 +347,8 @@ class MAG(BibDataBase):
             Pub2Ref DataFrame.
         """
         if preprocess:
-            if not os.path.exists(os.path.join(self.path2database, 'pub2ref')):
-                os.mkdir(os.path.join(self.path2database, 'pub2ref'))
+            if not os.path.exists(os.path.join(self.path2database, self.path2pub2ref)):
+                os.mkdir(os.path.join(self.path2database, self.path2pub2ref))
 
         file_name = os.path.join(self.path2database, 'mag', 'PaperReferences.txt')
 
@@ -366,9 +367,9 @@ class MAG(BibDataBase):
                     pbar.update(sys.getsizeof(line))
 
                     if preprocess and iref % num_file_lines == 0:
-                        pd.DataFrame(pub2ref_info, columns = ['CitingPublicationId', 'CitedPublicationId']).to_hdf(
-                            os.path.join(self.path2database, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)),
-                                                                                    key = 'pub2ref', mode = 'w')
+                        fname = os.path.join(self.path2database, self.path2pub2ref, '{}{}.{}'.format(self.path2pub2ref, ifile, self.database_extension))
+                        self.save_data_file(pd.DataFrame(pub2ref_info, columns = ['CitingPublicationId', 'CitedPublicationId']), 
+                            fname, key =self.path2pub2ref)
 
                         ifile += 1
                         pub2ref_info = []
@@ -376,8 +377,8 @@ class MAG(BibDataBase):
         pub2ref = pd.DataFrame(pub2ref_info, columns = ['CitingPublicationId', 'CitedPublicationId'])
 
         if preprocess:
-            pub2ref.to_hdf(os.path.join(self.path2database, 'pub2ref', 'pub2ref{}.hdf'.format(ifile)),
-                                                                            key = 'pub2ref', mode = 'w')
+            fname = os.path.join(self.path2database, self.path2pub2ref, '{}{}.{}'.format(self.path2pub2ref, ifile, self.database_extension))
+            self.save_data_file(pub2ref, fname, key =self.path2pub2ref)
 
         return pub2ref
 
@@ -406,8 +407,8 @@ class MAG(BibDataBase):
         pub_column_names = ['PublicationId', 'AuthorId', 'AffiliationId', 'AuthorSequence',  'OrigAuthorName', 'OrigAffiliationName']
 
         if preprocess:
-            if not os.path.exists(os.path.join(self.path2database, 'publicationauthoraffiliation')):
-                os.mkdir(os.path.join(self.path2database, 'publicationauthoraffiliation'))
+            if not os.path.exists(os.path.join(self.path2database, self.path2paa)):
+                os.mkdir(os.path.join(self.path2database, self.path2paa))
 
         file_name = os.path.join(self.path2database, 'mag', 'PaperAuthorAffiliations.txt')
 
@@ -425,9 +426,9 @@ class MAG(BibDataBase):
                     pbar.update(sys.getsizeof(line))
 
                     if preprocess and iref % num_file_lines == 0:
-                        pd.DataFrame(pubauthaff_info, columns = pub_column_names).to_hdf(
-                            os.path.join(self.path2database, 'publicationauthoraffiliation', 'publicationauthoraffiliation{}.hdf'.format(ifile)),
-                                                                                    key = 'publicationauthoraffiliation', mode = 'w')
+
+                        fname = os.path.join(self.path2database, self.path2paa, '{}{}.{}'.format(self.path2paa, ifile, self.database_extension))
+                        self.save_data_file(pd.DataFrame(pubauthaff_info, columns = pub_column_names), fname, key =self.path2paa)
 
                         ifile += 1
                         pubauthaff_info = []
@@ -435,8 +436,9 @@ class MAG(BibDataBase):
 
         paa = pd.DataFrame(pubauthaff_info, columns = pub_column_names)
         if preprocess:
-            paa.to_hdf(os.path.join(self.path2database, 'publicationauthoraffiliation', 'publicationauthoraffiliation{}.hdf'.format(ifile)),
-                                                                        key = 'publicationauthoraffiliation', mode = 'w')
+            fname = os.path.join(self.path2database, self.path2paa, '{}{}.{}'.format(self.path2paa, ifile, self.database_extension))
+            self.save_data_file(paa, fname, key =self.path2paa)
+
         return paa
 
     def parse_fields(self, preprocess = False, num_file_lines=5*10**6, show_progress=True):
@@ -476,7 +478,8 @@ class MAG(BibDataBase):
 
         field = pd.DataFrame(fieldinfo, columns = fieldnames)
         if preprocess:
-            field.to_hdf(os.path.join(self.path2database, 'fieldinfo', 'fieldinfo0.hdf'), key = 'field', mode = 'w')
+            fname = os.path.join(self.path2database, self.path2fieldinfo, '{}{}.{}'.format(self.path2fieldinfo, 0, self.database_extension))
+            self.save_data_file(field, fname, key =self.path2fieldinfo)
 
 
         # and now do pub2field
@@ -484,8 +487,8 @@ class MAG(BibDataBase):
         paperfieldnames = ['PublicationId', 'FieldId']
 
         if preprocess:
-            if not os.path.exists(os.path.join(self.path2database, 'pub2field')):
-                os.mkdir(os.path.join(self.path2database, 'pub2field'))
+            if not os.path.exists(os.path.join(self.path2database, self.path2pub2field)):
+                os.mkdir(os.path.join(self.path2database, self.path2pub2field))
 
         file_name = os.path.join(self.path2database, 'advanced', 'PaperFieldsOfStudy.txt')
 
@@ -505,17 +508,17 @@ class MAG(BibDataBase):
                     pbar.update(sys.getsizeof(line))
 
                     if preprocess and ipaper % num_file_lines == 0:
-                        pd.DataFrame(fieldinfo, columns = paperfieldnames).to_hdf(
-                            os.path.join(self.path2database, 'pub2field', 'pub2field' + str(ifile) + '.hdf'),
-                                                                                    key = 'pub2field', mode = 'w')
+                        fname = os.path.join(self.path2database, self.path2pub2field, '{}{}.{}'.format(self.path2pub2field, ifile, self.database_extension))
+                        self.save_data_file(pd.DataFrame(fieldinfo, columns = paperfieldnames), fname, key =self.path2pub2field)
 
                         ifile += 1
                         fieldinfo = []
 
         pub2field = pd.DataFrame(fieldinfo, columns = paperfieldnames)
         if preprocess:
-            pub2field.to_hdf(os.path.join(self.path2database, 'pub2field', 'pub2field' + str(ifile) + '.hdf'),
-                                                                                key = 'pub2field', mode = 'w')
+            fname = os.path.join(self.path2database, self.path2pub2field, '{}{}.{}'.format(self.path2pub2field, ifile, self.database_extension))
+            self.save_data_file(pub2field, fname, key =self.path2pub2field)
+
         return pub2field
 
 

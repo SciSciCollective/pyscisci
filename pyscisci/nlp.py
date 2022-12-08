@@ -13,6 +13,9 @@ from collections import defaultdict, Counter
 import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+
+from pyscisci.sparsenetworkutils import project_bipartite_mat
+
 import unicodedata
 from unidecode import  unidecode
 from nameparser import HumanName
@@ -167,4 +170,65 @@ def align_publications(df1, df2=None, columns2match_exact=['Year'], column2match
             df1.groupby(columns2match_exact, group_keys=True).progress_apply(subgroup_match)
 
         return matches
+
+def coword_network(df, text_column='Title', stop_words= 'english', strip_accents='ascii', lowercase=True, threshold=1, vocabulary=None, show_progress=False):
+    """
+    Create the co-word network.
+
+    Parameters
+    ----------
+    df : DataFrame
+        A DataFrame with the text snippits (typically titles or abstracts).
+
+    text_column : str, default "Title"
+        The column of text snippits
+
+    stop_words : str or list of str, default 'english'
+        The stopword dictionary to employ.
+            - 'english' : sklearn english stopwords
+            - list of str : a list specifying the exact stopwords to remove
+            - None : no stopword dictionary (use all stopwords)
+
+    strip_accents : str, default 'ascii'
+        Remove accents and perform other character normalization during the preprocessing step.  None does nothing.
+
+    lowercase : bool, default True
+        Convert all characters to lowercase before tokenizing.
+
+    threshold : int, default 1
+        The minimum number of times two words should appear together.
+
+    vocabulary : list, default None
+        List of focus terms to limit. If not given, a vocabulary is determined from the input text. 
+
+    show_progress : bool, default False
+        If True, show a progress bar tracking the calculation.
+
+ 
+
+    Returns
+    -------
+    coo_matrix or dict of coo_matrix
+        The adjacency matrix for the co-authorship network
+
+    word2int, dict
+        A mapping of words to the row/column of the adjacency matrix.
+
+
+    """
+    required_columns = ['PublicationId', text_column]
+    check4columns(df, required_columns)
+    df = df[required_columns].dropna()
+
+    df.drop_duplicates(subset=required_columns, inplace=True)
+
+    cv = CountVectorizer(stop_words=stop_words, analyzer='word', min_df=threshold, lowercase=lowercase, strip_accents=strip_accents,
+        vocabulary=vocabulary)
+    x_train = cv.fit_transform(df[text_column].values)
+
+    word2int = cv.vocabulary_
+
+    adj_mat = project_bipartite_mat(bipartite_adj, project_to = 'column')
+
+    return adj_mat, word2int
 

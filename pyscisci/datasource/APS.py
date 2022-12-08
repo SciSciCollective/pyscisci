@@ -33,9 +33,9 @@ class APS(BibDataBase):
 
     """
 
-    def __init__(self, path2database = '', keep_in_memory = False, global_filter=None, show_progress=True):
+    def __init__(self, path2database = '', database_extension='csv.gz', keep_in_memory = False, global_filter=None, show_progress=True):
 
-        self._default_init(path2database, keep_in_memory, global_filter, show_progress)
+        self._default_init(path2database, database_extension, keep_in_memory, global_filter, show_progress)
 
         self.PublicationIdType = str
         self.AffiliationIdType = str
@@ -83,7 +83,6 @@ class APS(BibDataBase):
             filename = os.path.join(self.path2database, 'publicationauthoraffiliation2010supplement', 'publicationauthoraffiliation2010supplement0.hdf')
 
             apsauthors_gzip = download_file_from_google_drive(file_id=aps_author_file_id, destination= filename)
-            #pd.read_csv(filename, sep='\t', compression='gzip').to_hdf(newfilename, mode='w', key='paa')
 
             self.set_new_data_path(dataframe_name='paa', new_path='publicationauthoraffiliation2010supplement')
 
@@ -266,7 +265,8 @@ class APS(BibDataBase):
             field = pd.DataFrame([[fieldid] + fieldname for fieldid, fieldname in field_dict.items()], columns = ['FieldId', 'FullName', 'ClassificationType'])
 
             if preprocess:
-                pub.to_hdf(os.path.join(self.path2database, 'publication', 'publication0.hdf'), mode='w', key='publication')
+                fname = os.path.join(self.path2database, self.path2pub, '{}{}.{}'.format(self.path2pub, 0, self.database_extension))
+                self.save_data_file(pub, fname, key =self.path2pub)
 
                 if pubid2int:
                     with gzip.open(os.path.join(self.path2database, 'pub2int.json.gz'), 'w') as outfile:
@@ -279,16 +279,20 @@ class APS(BibDataBase):
                     with gzip.open(os.path.join(self.path2database, 'pub2doctype.json.gz'), 'w') as outfile:
                         outfile.write(json.dumps(pub2doctype).encode('utf8'))
 
+                fname = os.path.join(self.path2database, self.path2journal, '{}{}.{}'.format(self.path2journal, 0, self.database_extension))
+                self.save_data_file(journal, fname, key =self.path2journal)
 
-                journal.to_hdf(os.path.join(self.path2database, self.path2journal, 'journal0.hdf'), mode='w', key='journal')
+                fname = os.path.join(self.path2database, self.path2affiliation, '{}{}.{}'.format(self.path2affiliation, 0, self.database_extension))
+                self.save_data_file(affiliation, fname, key =self.path2affiliation)
 
-                affiliation.to_hdf(os.path.join(self.path2database, self.path2affiliation, 'affiliation0.hdf'), mode='w', key='affiliation')
+                fname = os.path.join(self.path2database, self.path2paa, '{}{}.{}'.format(self.path2paa, 0, self.database_extension))
+                self.save_data_file(paa, fname, key =self.path2paa)
 
-                paa.to_hdf(os.path.join(self.path2database, self.path2paa, 'publicationauthoraffiliation0.hdf'), mode='w', key='publicationauthoraffiliation')
+                fname = os.path.join(self.path2database, self.path2pub2field, '{}{}.{}'.format(self.path2pub2field, 0, self.database_extension))
+                self.save_data_file(pub2field, fname, key =self.path2pub2field)
 
-                pub2field.to_hdf( os.path.join(self.path2database, self.path2pub2field, 'pub2field0.hdf'), mode='w', key='pub2field')
-
-                field.to_hdf( os.path.join(self.path2database, self.path2fieldinfo, 'fieldinfo0.hdf'), mode='w', key='pub2field')
+                fname = os.path.join(self.path2database, self.path2fieldinfo, '{}{}.{}'.format(self.path2fieldinfo, 0, self.database_extension))
+                self.save_data_file(field, fname, key =self.path2fieldinfo)
 
         else:
             raise FileNotFoundError('The archive {0} does not contain a metadata directory: {1}.'.format(archive_name, 'aps-dataset-metadata'))
@@ -329,7 +333,8 @@ class APS(BibDataBase):
                         outfile.write(json.dumps(pub2int).encode('utf8'))
 
             if preprocess:
-                pub2ref.to_hdf(os.path.join(self.path2database, self.path2pub2ref, 'pub2ref0.hdf'), mode='w', key = 'pub2ref')
+                fname = os.path.join(self.path2database, self.path2pub2ref, '{}{}.{}'.format(self.path2pub2ref, 0, self.database_extension))
+                self.save_data_file(pub2ref, fname, key =self.path2pub2ref)
 
             return pub2ref
 
