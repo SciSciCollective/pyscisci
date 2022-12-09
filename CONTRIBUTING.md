@@ -41,9 +41,7 @@ For more information about using a codespace for working on GitHub documentation
 
 #### Make changes locally
 
-1. [Install Git LFS](https://docs.github.com/en/github/managing-large-files/versioning-large-files/installing-git-large-file-storage).
-
-2. Fork the repository.
+1. Fork the repository.
 - Using GitHub Desktop:
   - [Getting started with GitHub Desktop](https://docs.github.com/en/desktop/installing-and-configuring-github-desktop/getting-started-with-github-desktop) will guide you through setting up Desktop.
   - Once Desktop is set up, you can use it to [fork the repo](https://docs.github.com/en/desktop/contributing-and-collaborating-using-github-desktop/cloning-and-forking-repositories-from-github-desktop)!
@@ -51,7 +49,7 @@ For more information about using a codespace for working on GitHub documentation
 - Using the command line:
   - [Fork the repo](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo#fork-an-example-repository) so that you can make your changes without affecting the original project until you're ready to merge them.
 
-3. Create a working branch and start with your changes!
+2. Create a working branch and start with your changes!
 
 ### Commit your update
 
