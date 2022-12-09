@@ -78,7 +78,7 @@ def field_citation_vectors(source2target, pub2field, count_normalize=None, n_fie
     return field2field_mat
 
 def field_citation_share(pub2ref, pub2field, count_normalize=None, pub2field_norm=True, temporal=True, 
-    citation_direction='references', show_progress=False):
+    citation_direction='references', blocksize = 10**6, show_progress=False):
     """
     Calculate the field citation share based on references or citations.
 
@@ -171,9 +171,9 @@ def field_citation_share(pub2ref, pub2field, count_normalize=None, pub2field_nor
 
         field2field_mat = spsparse.coo_matrix( (Nfields, Nfields) )
         
-        nref = int(pub2ref.shape[0] / 10.0**6) + 1
+        nref = int(pub2ref.shape[0] / float(blocksize)) + 1
         for itab in range(nref):
-            tabdf = pub2ref.loc[itab*10**6:(itab+1)*10**6]
+            tabdf = pub2ref.loc[itab*int(blocksize):(itab+1)*int(blocksize)]
             
             field2field_mat += field_citation_vectors(tabdf, pub2field, n_fields=Nfields, count_normalize=None)
 

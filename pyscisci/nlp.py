@@ -14,7 +14,8 @@ import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
-from pyscisci.sparsenetworkutils import project_bipartite_mat
+from pyscisci.sparsenetworkutils import project_bipartite_mat, threshold_network
+from pyscisci.utils import *
 
 import unicodedata
 from unidecode import  unidecode
@@ -224,11 +225,12 @@ def coword_network(df, text_column='Title', stop_words= 'english', strip_accents
 
     cv = CountVectorizer(stop_words=stop_words, analyzer='word', min_df=threshold, lowercase=lowercase, strip_accents=strip_accents,
         vocabulary=vocabulary)
-    x_train = cv.fit_transform(df[text_column].values)
+    bipartite_adj = cv.fit_transform(df[text_column].values)
 
     word2int = cv.vocabulary_
 
-    adj_mat = project_bipartite_mat(bipartite_adj, project_to = 'column')
+    adj_mat = project_bipartite_mat(bipartite_adj, project_to = 'col')
+    adj_mat = threshold_network(adj_mat)
 
     return adj_mat, word2int
 
