@@ -65,6 +65,9 @@ Currently, the ``pySciSci`` is built ontop of pandas, and keeps entire dataframe
 
 ToDo: explore Dask and pySpark implemenations for multiprocessing.
 
+## Contributing
+See the [contributing guide](/CONTRIBUTING.md) for detailed instructions on how to get started with our project.
+
 ## Help and Support
 
 ### Documentation
