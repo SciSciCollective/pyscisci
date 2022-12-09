@@ -1,4 +1,4 @@
-# pySciSci
+# ``pySciSci``
 
 "The Science of Science (SciSci) is based on a transdisciplinary approach that uses large data sets to study the mechanisms underlying the doing of science—from the choice of a research problem to career trajectories and progress within a field"[[1]](#1).
 
@@ -64,6 +64,9 @@ ToDo
 Currently, the ``pySciSci`` is built ontop of pandas, and keeps entire dataframes in working memory.  We have found that most large-scale analyzes require more computational power and RAM than available on a typical personal computer.   Consider running on a cloud computing platform (Google Cloud, Microsoft Azure, Amazon Web Services, etc).
 
 ToDo: explore Dask and pySpark implemenations for multiprocessing.
+
+## Contributing
+See the [contributing guide](/CONTRIBUTING.md) for detailed instructions on how to get started with our project.
 
 ## Help and Support
 
