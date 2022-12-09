@@ -1,4 +1,4 @@
-# Welcome to pySciSci contributing guide
+# Welcome to ``pySciSci`` contributing guide
 
 Thank you for investing your time in contributing to our project!
 
@@ -70,6 +70,6 @@ Once you submit your PR, a Docs team member will review your proposal. We may as
 
 ### Your PR is merged!
 
-Congratulations :tada::tada: The pySciSci team thanks you :sparkles:. 
+Congratulations :tada::tada: The ``pySciSci`` team thanks you :sparkles:. 
 
-Now that you are part of the GitHub docs community, add yourself to the pySciSci readme.
+Now that you are part of the GitHub docs community, add yourself to the ``pySciSci`` readme.
