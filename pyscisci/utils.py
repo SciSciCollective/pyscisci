@@ -10,6 +10,8 @@ import pandas as pd
 import numpy as np
 import requests
 
+from numba import jit
+
 # determine if we are loading from a jupyter notebook (to make pretty progress bars)
 if 'ipykernel' in sys.modules:
     from tqdm.notebook import tqdm
@@ -353,6 +355,7 @@ def empty_mode(a):
     else:
         return np.random.choice(values[counts==counts.max()],1)[0]
 
+@jit
 def holder_mean(a, rho=1):
     """
     Holder mean
@@ -469,6 +472,7 @@ def uniquemap_by_frequency(df, colgroupby='PublicationId', colcountby='FieldId',
             return countkeydict[a]
     return df.sort_values(by=[colcountby], key=countkey).drop_duplicates(subset=[colgroupby], keep='first')
 
+@jit
 def welford_mean_m2(previous_count, previous_mean, previous_m2, new_value):
     """
     Welford's algorithm for online mean and variance.
@@ -477,15 +481,17 @@ def welford_mean_m2(previous_count, previous_mean, previous_m2, new_value):
     new_mean = previous_mean + (new_value - previous_mean) / new_count
     new_m2 = previous_m2 + (new_value - previous_mean)*(new_value - new_mean)
     return (new_count, new_mean, new_m2)
-welford_mean_m2 = np.vectorize(welford_mean_m2)
 
-def download_file_from_google_drive(file_id, destination=None):
+@jit
+def zscore_var(obs, m, var):
+    return (obs-m) / np.sqrt(var)
+
+def download_file_from_google_drive(file_id, destination=None, CHUNK_SIZE = 32768):
     """
     Download data files from the google Drive.
 
     Modified from: from https://stackoverflow.com/questions/38511444/python-download-files-from-google-drive-using-url
     """
-    CHUNK_SIZE = 32768
 
     raise NotImplementedError("Google Drive changed their download policy and this function no longer works.  A fix will come.")
 

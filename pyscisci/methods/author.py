@@ -279,6 +279,40 @@ def author_qfactor(pub2author, impact=None, colgroupby = 'AuthorId', colcountby 
 
     return compute_qfactor(df, colgroupby = colgroupby, colcountby = colcountby, show_progress=show_progress)
 
+def author_cindex(pub2author, impact=None, colgroupby = 'AuthorId', colcountby = 'Ctotal', show_progress=False):
+    """
+    Calculate the author c-index.  See :cite:`Waltman2008index` for the derivation.
+
+    The number of citations for an author's most cited work.
+
+    Parameters
+    ----------
+    df : DataFrame, default None, Optional
+        A DataFrame with the author2publication information.  If None then the database 'author2pub' is used.
+
+    colgroupby : str, default 'AuthorId', Optional
+        The DataFrame column with Author Ids.  If None then the database 'AuthorId' is used.
+
+    colcountby : str, default 'Ctotal', Optional
+        The DataFrame column with Citation counts for each publication.  If None then the database 'Ctotal' is used.
+
+    Returns
+    -------
+    DataFrame
+        Trajectory DataFrame with 2 columns: 'AuthorId', 'Hindex'
+
+    """
+
+    #df =
+
+    if show_progress: print("Computing c-index.")
+    if impact is None:
+        df = pub2author
+    else:
+        df = pub2author.merge(impact[[colgroupby, colcountby]], on='PublicationId', how='left')
+
+    return compute_qfactor(df, colgroupby = colgroupby, colcountby = colcountby, show_progress=show_progress)
+
 def author_top_field(pub2author, colgroupby = 'AuthorId', colcountby = 'FieldId', 
     fractional_field_counts = False, show_progress=False):
     """

@@ -33,6 +33,8 @@ setup(name=__package__,
             'unidecode',
             'tqdm',
             'tables',
+            'dask',
+            'numba',
             'sparse_dot_topn',
             'python-Levenshtein'
       ],

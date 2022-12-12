@@ -18,23 +18,25 @@ The ``pySciSci`` package offers a unified interface to analyze several of the mo
 
 The ``pySciSci`` package also provides efficient implementations of recent metrics developed to study scientific publications and authors, including:
 - H-index
+- G-index
 - Disruption Index
 - Author Pagerank
 - Collective credit allocation
-- Interdisciplinarity (RoaStirling)
+- Interdisciplinarity (RoaStirling, Simpson, Finite Simpson, Shannon)
 - Annual productivity trajectories
 - Sleeping Beauty Coefficient
 - Q-factor
 - Career Topic Switching
 - Field Reference Share
 - Field Reference Strength
-- Novelty & Conventionality, ToDo
+- Novelty & Conventionality
 ...
 
 Advanced tools for constructing and analyzing network objects (both static and temporal):
 - Citation network
 - Co-citation network
 - Co-authorship network
+- Co-mention network
 - Graph2vec network embedding
 
 Natural Language Processing
@@ -52,7 +54,7 @@ Visualization
 Pull and install in the current directory:
 
 ```
-  pip install git+git://github.com/SciSciCollective/pyscisci
+  pip install git+https://github.com/SciSciCollective/pyscisci
 ```
 
 ### Latest PyPI stable release
