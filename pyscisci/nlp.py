@@ -128,13 +128,14 @@ def align_publications(df1, df2=None, columns2match_exact=['Year'], column2match
         #    for each string, we create feature vectors from 3-char counts
         tfidf = TfidfVectorizer(min_df=1, ngram_range = (3,3), analyzer='char', lowercase=False)
         tfidf1 = tfidf.fit_transform(df1[column2match_approx])
-        tfidf2 = tfidf.transform(df2[column2match_approx])
 
         matches = np.empty(tfidf1.shape[0])
         matches[:] = np.NaN
 
         # if there are no columns to match exactly
         if (columns2match_exact is None or len(columns2match_exact) == 0):
+
+            tfidf2 = tfidf.transform(df2[column2match_approx])
 
             # 1) first do the all-to-all cosine similarity and extract up to the ntop best possible matches
             co= awesome_cossim_topn(tfidf1, tfidf2.T, ntop=ntop, lower_bound=cosine_lower_bound, use_threads=use_threads, n_jobs=n_jobs).tocoo()
@@ -154,7 +155,10 @@ def align_publications(df1, df2=None, columns2match_exact=['Year'], column2match
             def subgroup_match(subdf):
                 if not df2groups.indices.get(subdf.name, None) is None:
                     sub_tfidf1 = tfidf1[subdf.index.values]
-                    sub_tfidf2 = tfidf2[df2groups.indices[subdf.name]]
+
+                    sub_tfidf2 = tfidf.transform(df2.loc[df2groups.indices[subdf.name]][column2match_approx])
+
+                    #sub_tfidf2 = tfidf2[df2groups.indices[subdf.name]]
                     co = awesome_cossim_topn(sub_tfidf1, sub_tfidf2.transpose(), ntop=ntop, lower_bound=cosine_lower_bound, use_threads=use_threads, n_jobs=n_jobs).tocoo()
 
                     # 2) now use the Levenshtein distance to find the best match
