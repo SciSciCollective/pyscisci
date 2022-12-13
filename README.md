@@ -60,9 +60,10 @@ ToDo
 
 ## Computational Requirements
 
-Currently, the ``pySciSci`` is built ontop of pandas, and keeps entire dataframes in working memory.  We have found that most large-scale analyzes require more computational power and RAM than available on a typical personal computer.   Consider running on a cloud computing platform (Google Cloud, Microsoft Azure, Amazon Web Services, etc).
+Currently, the ``pySciSci`` is built ontop of pandas, and keeps entire dataframes in working memory.  We have found that most large-scale analyzes 
+can be performed on a personal computer with extended RAM.  If you dont have enough computational power, consider a smaller database (DBLP or APS), or running on a cloud computing platform (Google Cloud, Microsoft Azure, Amazon Web Services, etc).
 
-ToDo: explore Dask and pySpark implemenations for multiprocessing.
+We also support basic Dask implemenations for multiprocessing.  [An example notebook can be found here.](/examples/Getting_Started/Getting%20Started%20with%20a%20Dask%20Example.ipynb)
 
 ## Contributing
 See the [contributing guide](/CONTRIBUTING.md) for detailed instructions on how to get started with our project.
