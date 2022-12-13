@@ -15,24 +15,27 @@ The ``pySciSci`` package offers a unified interface to analyze several of the mo
 
 The ``pySciSci`` package also provides efficient implementations of recent metrics developed to study scientific publications and authors, including:
 
-| Publications Metrics |  - |
+| Publications Metrics |    |
 | ----------- | ----------- |
 | Measure | Example |
-| Interdisciplinarity (RoaStirling, Simpson, Finite Simpson, Shannon) |  |
+| Interdisciplinarity - Simpsons Index |  [Example of Interdisciplinarity](/examples/Method_Examples/Example%20of%20Interdisciplinarity.ipynb)|
+| Interdisciplinarity - Shannons Index | [Example of Interdisciplinarity](/examples/Method_Examples/Example%20of%20Interdisciplinarity.ipynb) |
+| Interdisciplinarity - RoaStirling Index | [Example of Interdisciplinarity](/examples/Method_Examples/Example%20of%20Interdisciplinarity.ipynb) |
+| Disruption Index | |
+| Sleeping Beauty Coefficient | |
+| Novelty & Conventionality | [Example Novelty](/examples/Getting_Started/Example Novelty.ipynb) |
 
-- H-index
-- G-index
-- Disruption Index
-- Author Pagerank
-- Collective credit allocation
-- Annual productivity trajectories
-- Sleeping Beauty Coefficient
-- Q-factor
-- Career Topic Switching
-- Field Reference Share
-- Field Reference Strength
-- Novelty & Conventionality
-...
+| Author Metrics |    |
+| ----------- | ----------- |
+| Measure | Example |
+| H-index |  [Example of Interdisciplinarity](/examples/Method_Examples/Example%20of%20Interdisciplinarity.ipynb)|
+| G-index | [Example of Interdisciplinarity](/examples/Method_Examples/Example%20of%20Interdisciplinarity.ipynb) |
+| Q-factor | |
+| Author Pagerank | [Example of Interdisciplinarity](/examples/Method_Examples/Example%20of%20Interdisciplinarity.ipynb) |
+| Collective credit allocation | |
+| Annual productivity trajectories | |
+| Career Topic Switching | [Example Novelty](/examples/Getting_Started/Example Novelty.ipynb) |
+
 
 Advanced tools for constructing and analyzing network objects (both static and temporal):
 - Citation network
