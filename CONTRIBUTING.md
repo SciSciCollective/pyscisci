@@ -70,4 +70,4 @@ Once you submit your PR, a Docs team member will review your proposal. We may as
 
 Congratulations :tada::tada: The ``pySciSci`` team thanks you :sparkles:. 
 
-Now that you are part of the GitHub docs community, add yourself to the ``pySciSci`` readme.
+Now that you are part of the ``pySciSci`` community, add yourself to the ``pySciSci`` readme.
