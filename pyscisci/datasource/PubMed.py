@@ -35,9 +35,10 @@ class PubMed(BibDataBase):
     """
 
 
-    def __init__(self, path2database = '', database_extension='csv.gz', keep_in_memory = False, global_filter=None, show_progress=True):
+    def __init__(self, path2database = '', database_extension='csv.gz', keep_in_memory = False, global_filter=None, 
+        enable_dask=False, show_progress=True):
 
-        self._default_init(path2database, database_extension, keep_in_memory, global_filter, show_progress)
+        self._default_init(path2database, database_extension, keep_in_memory, global_filter, enable_dask, show_progress)
 
         self.PublicationIdType = int
         self.AffiliationIdType = int

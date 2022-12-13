@@ -15,6 +15,9 @@ from collections import defaultdict
 import pandas as pd
 import numpy as np
 
+from dask.distributed import Client
+import dask.dataframe as dd
+
 from pyscisci.utils import isin_sorted, zip2dict, groupby_count
 #from pyscisci.methods import *
 from pyscisci.datasource.readwrite import load_preprocessed_data, append_to_preprocessed
@@ -61,11 +64,12 @@ class BibDataBase(object):
         
 
     def _default_init(self, path2database = '', database_extension='csv.gz', keep_in_memory = False, 
-        global_filter = None, show_progress=True):
+        global_filter = None, enable_dask=False, show_progress=True):
 
         self.path2database = path2database
         self.keep_in_memory = keep_in_memory
         self.global_filter = None
+        self.use_dask = enable_dask
         self.show_progress = show_progress
 
         self.path2author = 'author'
@@ -117,6 +121,21 @@ class BibDataBase(object):
         """
         
         setattr(self, 'path2' + dataframe_name, new_path)
+
+    def setup_dask_client(self, n_workers=None, threads_per_worker=None):
+        """
+        Initialize a Dask client
+
+        Parameters
+        --------
+        n_workers : int, defualt None
+            The number of workers to use.
+
+        threads_per_worker : int, defualt None
+            The number of threads per worker to use.
+
+        """
+        self.dask_client = Client(n_workers=n_workers, threads_per_worker=threads_per_worker)
 
     @property
     def affiliation(self):
@@ -594,7 +613,7 @@ class BibDataBase(object):
             if os.path.exists(os.path.join(self.path2database, self.path2pub)):
                 return load_preprocessed_data(dataname=self.path2pub, path2database=self.path2database, database_extension=self.database_extension,
                     columns=columns, filter_dict=filter_dict, duplicate_subset=duplicate_subset, duplicate_keep=duplicate_keep, dropna=dropna,
-                    prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, show_progress=show_progress)
+                    prefunc2apply=prefunc2apply, postfunc2apply=postfunc2apply, use_dask=self.use_dask, show_progress=show_progress)
             else:
                 raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), os.path.join(self.path2database, self.path2pub))
         else:
@@ -1138,15 +1157,15 @@ class BibDataBase(object):
             The journal(s) publication information.
         """
         if self.database_extension == 'hdf':
-            df.to_hdf(fname, mode = 'w', key=key)
+            df.to_hdf(fname, mode = 'w', key=key) #, format='table')
         elif self.database_extension == 'csv':
-            df.to_csv(fname, mode='w', header=True, index=False)
+            df.to_csv(fname, mode='w', header=True, index=False, escapechar='\\')
         elif self.database_extension == 'csv.gz':
-            df.to_csv(fname, mode='w', header=True, index=False, compression='gzip')
+            df.to_csv(fname, mode='w', header=True, index=False, escapechar='\\', compression='gzip')
         else:
-            df.to_csv(fname, mode='w', header=True, index=False, compression=database_extension)
+            df.to_csv(fname, mode='w', header=True, index=False, escapechar='\\', compression=self.database_extension)
 
-    def read_data_file(self, fname):
+    def read_data_file(self, fname, key=''):
         """
         Read the DataFrame from a file.
 
@@ -1165,7 +1184,7 @@ class BibDataBase(object):
             The DataFrame.
         """
         if self.database_extension == 'hdf':
-            return pd.read_hdf(fname, mode = 'r')
+            return pd.read_hdf(fname, key=key)
 
         elif self.database_extension == 'csv':
             return pd.read_csv(fname, mode='r')
@@ -1259,7 +1278,7 @@ class BibDataBase(object):
             return pd.concat(fullrefdf)
 
 
-    def precompute_impact(self, preprocess=True, citation_horizons = [5,10], noselfcite = True):
+    def compute_impact(self, preprocess=True, citation_horizons = [5,10], noselfcite = True):
         """
         Calculate several of the common citation indices.
             * 'Ctotal' : The total number of citations.

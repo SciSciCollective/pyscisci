@@ -25,6 +25,7 @@ from pyscisci.methods.disruption import *
 from pyscisci.methods.longtermimpact import *
 from pyscisci.methods.sleepingbeauty import *
 from pyscisci.methods.pivotscore import *
+from pyscisci.methods.novelty import *
 
 def citation_rank(df, colgroupby='Year', colrankby='C10', ascending=True, normed=False, show_progress=False):
     """

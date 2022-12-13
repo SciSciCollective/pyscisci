@@ -4,6 +4,8 @@ import pathlib
 import pandas as pd
 import numpy as np
 
+import dask.dataframe as dd
+
 from unidecode import unidecode
 import html
 
@@ -66,7 +68,7 @@ def load_xml_text(root_element, default=''):
 
 
 def load_preprocessed_data(dataname, path2database, database_extension = 'hdf', columns = None, filter_dict=None, duplicate_subset=None,
-    duplicate_keep='last', dropna=None, keep_source_file=False, prefunc2apply=None, postfunc2apply=None, show_progress=False):
+    duplicate_keep='last', dropna=None, keep_source_file=False, prefunc2apply=None, postfunc2apply=None, use_dask=False, show_progress=False):
     """
         Load the preprocessed DataFrame from a preprocessed directory.
 
@@ -137,15 +139,23 @@ def load_preprocessed_data(dataname, path2database, database_extension = 'hdf', 
     if isinstance(show_progress, str):
         desc = show_progress
 
-    if database_extension == 'hdf':
+    if database_extension == 'hdf' and not use_dask:
         def read_file(fname):
-            return pd.read_hdf(fname, mode = 'r')
-    elif database_extension == 'csv':
+            return pd.read_hdf(fname, key=dataname)
+    elif database_extension == 'hdf' and use_dask:
+        raise NotImplementedError('Dask is not compatible with hdf dataframes.  Please reprocess using csv or csv.gz (recommended).')
+    elif database_extension == 'csv' and not use_dask:
         def read_file(fname):
-            return pd.read_csv(fname, mode='r')
-    elif database_extension == 'csv.gz':
+            return pd.read_csv(fname)
+    elif database_extension == 'csv' and use_dask:
         def read_file(fname):
-            return pd.read_csv(fname, mode='r', compression='gzip')
+            return dd.read_csv(fname)
+    elif database_extension == 'csv.gz' and not use_dask:
+        def read_file(fname):
+            return pd.read_csv(fname, compression='gzip')
+    elif database_extension == 'csv.gz' and use_dask:
+        def read_file(fname):
+            return dd.read_csv(fname, compression='gzip', blocksize=None)
 
     data = []
     #print(FileNumbers)
@@ -162,14 +172,17 @@ def load_preprocessed_data(dataname, path2database, database_extension = 'hdf', 
             subdf = subdf[columns]
 
         if isinstance(dropna, list):
-            subdf.dropna(subset = dropna, inplace = True, how = 'any')
+            subdf = subdf.dropna(subset = dropna, how = 'any')
 
         if isinstance(filter_dict, dict):
+            if len(filter_dict) > 0 and use_dask:
+                raise NotImplementedError('Dask does not currently support filtering when loading dataframes.')
+
             for isinkey, isinlist in filter_dict.items():
-                subdf = subdf[isin_sorted(subdf[isinkey], isinlist)]
+                subdf = subdf.loc[isin_sorted(subdf[isinkey].values, isinlist)]
 
         if isinstance(duplicate_subset, list):
-            subdf.drop_duplicates(subset = duplicate_subset, keep = duplicate_keep, inplace = True)
+            subdf = subdf.drop_duplicates(subset = duplicate_subset, keep = duplicate_keep)
 
         if keep_source_file:
             subdf['filetag'] = ifile
@@ -179,10 +192,13 @@ def load_preprocessed_data(dataname, path2database, database_extension = 'hdf', 
 
         data.append(subdf)
 
-    data = pd.concat(data)
+    if use_dask:
+        data = dd.multi.concat(data)
+    else:
+        data = pd.concat(data)
 
     if isinstance(duplicate_subset, list):
-        data.drop_duplicates(subset = duplicate_subset, keep = duplicate_keep, inplace = True)
+        data = data.drop_duplicates(subset = duplicate_subset, keep = duplicate_keep)
 
     data.name = dataname
     

@@ -26,9 +26,10 @@ class WOS(BibDataBase):
 
     """
 
-    def __init__(self, path2database = '', database_extension='csv.gz', keep_in_memory = False, global_filter=None, show_progress=True):
+    def __init__(self, path2database = '', database_extension='csv.gz', keep_in_memory = False, global_filter=None, 
+        enable_dask=False, show_progress=True):
 
-        self._default_init(path2database, database_extension, keep_in_memory, global_filter, show_progress)
+        self._default_init(path2database, database_extension, keep_in_memory, global_filter, enable_dask, show_progress)
 
         self.PublicationIdType = str
         self.AffiliationIdType = str
@@ -113,19 +114,23 @@ class WOS(BibDataBase):
         fname = os.path.join(self.path2database, 'pub2field', 'pub2field{}.'.format(ifile) + self.database_extension)
         self.save_data_file(field, fname, key ='pub2field')
 
-    def preprocess(self, xml_directory = 'RawXML', name_space = 'http://scientific.thomsonreuters.com/schema/wok5.4/public/FullRecord',
+    def preprocess(self, xml_directory = 'RawXML', name_space = None,
         process_name=True, num_file_lines=10**6, show_progress=True):
         """
         Bulk preprocess of the Web of Science raw data.
 
         Parameters
         ----------
+        'xml_directory': str, default 'RawXML'
+            The subdirectory containing the raw WOS xml files.
+
+        'name_space': str, defulat None
+            The link to a xml namespace file.  Originally 'http://scientific.thomsonreuters.com/schema/wok5.4/public/FullRecord' but 
+            this link is now broken and Clarivate has not replaced the namespace.
+
         process_name: bool, default True
             If True, then when processing the raw file, the package `NameParser <https://nameparser.readthedocs.io/en/latest/>`_
             will be used to split author FullNames.
-
-        xml_file_name: str, default 'dblp.xml.gz'
-            The xml file name.
 
         num_file_lines: int, default 10**6
             The processed data will be saved into smaller DataFrames, each with `num_file_lines` rows.
