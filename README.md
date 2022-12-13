@@ -14,12 +14,15 @@ The ``pySciSci`` package offers a unified interface to analyze several of the mo
 
 
 The ``pySciSci`` package also provides efficient implementations of recent metrics developed to study scientific publications and authors, including:
+| Publications |
+| Measure | Example |
+| Interdisciplinarity (RoaStirling, Simpson, Finite Simpson, Shannon) | |
+
 - H-index
 - G-index
 - Disruption Index
 - Author Pagerank
 - Collective credit allocation
-- Interdisciplinarity (RoaStirling, Simpson, Finite Simpson, Shannon)
 - Annual productivity trajectories
 - Sleeping Beauty Coefficient
 - Q-factor
