@@ -7,15 +7,11 @@ The ``pySciSci`` package offers a unified interface to analyze several of the mo
 | ----------- | ----------- |
 | [Microsoft Academic Graph](https://docs.microsoft.com/en-us/academic-services/graph/) (MAG)      | [Getting Started with MAG](/examples/Getting_Started/Getting%20Started%20with%20MAG.ipynb)       |
 | [Clarivate Web of Science](https://clarivate.com/webofsciencegroup/solutions/web-of-science/) (WoS)   | [Getting Started with WOS](/examples/Getting_Started/Getting%20Started%20with%20WOS.ipynb)        |
+| [DBLP](https://dblp.uni-trier.de) | [Getting Started with DBLP](/examples/Getting_Started/Getting%20Started%20with%20DBLP.ipynb) |
+| [American Physical Society](https://journals.aps.org/datasets) (APS) | [Getting Started with APS](/examples/Getting_Started/Getting%20Started%20with%20APS.ipynb) |
+| [PubMed](https://www.nlm.nih.gov/databases/download/pubmed_medline.html) | [Getting Started with PubMed](/examples/Getting_Started/Getting%20Started%20with%20PubMed.ipynb) |
+| [OpenAlex](https://openalex.org/) | [Getting Started with OpenAlex](/examples/Getting_Started/Getting%20Started%20with%20OpenAlex.ipynb) |
 
-- [DBLP](https://dblp.uni-trier.de)
-  see [Getting Started with DBLP](/examples/Getting_Started/Getting%20Started%20with%20DBLP.ipynb)
-- [American Physical Society](https://journals.aps.org/datasets) (APS)
-  see [Getting Started with APS](/examples/Getting_Started/Getting%20Started%20with%20APS.ipynb)
-- [PubMed](https://www.nlm.nih.gov/databases/download/pubmed_medline.html)
-  see [Getting Started with PubMed](/examples/Getting_Started/Getting%20Started%20with%20PubMed.ipynb)
-- [OpenAlex](https://openalex.org/)
-  see [Getting Started with OpenAlex](/examples/Getting_Started/Getting%20Started%20with%20OpenAlex.ipynb)
 
 The ``pySciSci`` package also provides efficient implementations of recent metrics developed to study scientific publications and authors, including:
 - H-index
