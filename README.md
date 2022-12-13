@@ -23,18 +23,19 @@ The ``pySciSci`` package also provides efficient implementations of recent metri
 | Interdisciplinarity - RoaStirling Index | [Example of Interdisciplinarity](/examples/Method_Examples/Example%20of%20Interdisciplinarity.ipynb) |
 | Disruption Index | |
 | Sleeping Beauty Coefficient | |
-| Novelty & Conventionality | [Example Novelty](/examples/Getting_Started/Example Novelty.ipynb) |
+| Novelty & Conventionality | [Example Novelty](/examples/Getting_Started/Example%20Novelty.ipynb) |
+| Long Term Citation | [Example Longterm Impact](/examples/Method_Examples/Example%20Longterm%20Impact.ipynb) |
 
 | Author Metrics |    |
 | ----------- | ----------- |
 | Measure | Example |
-| H-index |  [Example of Interdisciplinarity](/examples/Method_Examples/Example%20of%20Interdisciplinarity.ipynb)|
-| G-index | [Example of Interdisciplinarity](/examples/Method_Examples/Example%20of%20Interdisciplinarity.ipynb) |
+| H-index | [Example Career Analysis.ipynb](/examples/Method_Examples/Example%20Career%20Analysis.ipynb) |
+| G-index |  |
 | Q-factor | |
 | Author Pagerank | [Example of Interdisciplinarity](/examples/Method_Examples/Example%20of%20Interdisciplinarity.ipynb) |
 | Collective credit allocation | |
 | Annual productivity trajectories | |
-| Career Topic Switching | [Example Novelty](/examples/Getting_Started/Example Novelty.ipynb) |
+| Career Topic Switching | [Example Novelty](/examples/Method_Examples/Example%20Novelty.ipynb) |
 
 
 Advanced tools for constructing and analyzing network objects (both static and temporal):
