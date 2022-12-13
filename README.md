@@ -14,11 +14,11 @@ The ``pySciSci`` package offers a unified interface to analyze several of the mo
 
 
 The ``pySciSci`` package also provides efficient implementations of recent metrics developed to study scientific publications and authors, including:
-| Example | Table |
-| ----------- | ----------- |
-| <td colspan=2>Publications |
-| Measure | Example |
-| Interdisciplinarity (RoaStirling, Simpson, Finite Simpson, Shannon) | |
+| Example | Table 
+| ----------- | ----------- 
+| <td colspan=2>Publications 
+| Measure | Example 
+| Interdisciplinarity (RoaStirling, Simpson, Finite Simpson, Shannon) | 
 
 - H-index
 - G-index
