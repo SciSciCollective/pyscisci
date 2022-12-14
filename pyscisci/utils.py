@@ -9,6 +9,7 @@ import sys
 import pandas as pd
 import numpy as np
 import requests
+import scipy.stats as spstats
 
 from numba import jit
 
@@ -407,6 +408,18 @@ def simpson_finite(p):
     else:
         return None
 
+def shannon_entropy(p, base=np.e):
+    """
+    Shannon entropy
+
+    Parameters
+    ----------
+    p : numpy array or list
+        array of values
+
+    """
+    value,counts = np.unique(p, return_counts=True)
+    return spstats.entropy(counts, base=base)
 
 def value_to_int(a, sort_values='value', ascending=False, return_map=True):
     """
