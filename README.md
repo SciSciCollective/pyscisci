@@ -21,10 +21,10 @@ The ``pySciSci`` package also provides efficient implementations of recent metri
 | Interdisciplinarity - Simpsons Index |  [Example of Interdisciplinarity](/examples/Method_Examples/Example%20of%20Interdisciplinarity.ipynb)|
 | Interdisciplinarity - Shannons Index | [Example of Interdisciplinarity](/examples/Method_Examples/Example%20of%20Interdisciplinarity.ipynb) |
 | Interdisciplinarity - RoaStirling Index | [Example of Interdisciplinarity](/examples/Method_Examples/Example%20of%20Interdisciplinarity.ipynb) |
-| Disruption Index | |
-| Sleeping Beauty Coefficient | |
+| Disruption Index | [Example Publication Citations](/examples/Method_Examples/Example%20Publication%20Citations.ipynb) |
+| Sleeping Beauty Coefficient | [Example Publication Citations](/examples/Method_Examples/Example%20Publication%20Citations.ipynb) |
 | Novelty & Conventionality | [Example Novelty](/examples/Method_Examples/Example%20Novelty.ipynb) |
-| Long Term Citation | [Example Longterm Impact](/examples/Method_Examples/Example%20Longterm%20Impact.ipynb) |
+| Long Term Citation | [Example Publication Citations](/examples/Method_Examples/Example%20Publication%20Citations.ipynb) |
 
 | Author Metrics |    |
 | ----------- | ----------- |
@@ -32,11 +32,11 @@ The ``pySciSci`` package also provides efficient implementations of recent metri
 | H-index | [Example Career Analysis](/examples/Method_Examples/Example%20Career%20Analysis.ipynb) |
 | G-index | [Example Career Analysis](/examples/Method_Examples/Example%20Career%20Analysis.ipynb) |
 | Q-factor | [Example Career Analysis](/examples/Method_Examples/Example%20Career%20Analysis.ipynb) |
-| Author Pagerank | [Example of Interdisciplinarity](/examples/Method_Examples/Example%20of%20Interdisciplinarity.ipynb) |
+| Annual productivity trajectories |[Example Career Analysis](/examples/Method_Examples/Example%20Career%20Analysis.ipynb) |
+| Author Pagerank | [Example of Scientific Credit](/examples/Network_Examples/Example%20of%20Diffusion%20of%20Scientific%20Credit.ipynb) |
 | Collective credit allocation | [Example of Credit Allocation](/examples/Method_Examples/Example%20of%20Credit%20Allocation.ipynb)|
-| Annual productivity trajectories |[Example Career Analysis.ipynb](/examples/Method_Examples/Example%20Career%20Analysis.ipynb) |
-| Career Topic Switching | [Example Novelty](/examples/Method_Examples/Example%20Career%20Tropic%20Switching.ipynb) |
-
+| Career Topic Switching | [Example Career Topic Switching](/examples/Method_Examples/Example%20Career%20Topic%20Switching.ipynb) |
+| HotStreak | [Example Career Analysis](/examples/Method_Examples/Example%20Career%20Analysis.ipynb) |
 
 Advanced tools for constructing and analyzing network objects (both static and temporal):
 - Citation network
