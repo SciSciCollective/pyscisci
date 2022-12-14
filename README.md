@@ -29,11 +29,11 @@ The ``pySciSci`` package also provides efficient implementations of recent metri
 | Author Metrics |    |
 | ----------- | ----------- |
 | Measure | Example |
-| H-index | [Example Career Analysis.ipynb](/examples/Method_Examples/Example%20Career%20Analysis.ipynb) |
-| G-index |  |
-| Q-factor | |
+| H-index | [Example Career Analysis](/examples/Method_Examples/Example%20Career%20Analysis.ipynb) |
+| G-index | [Example Career Analysis](/examples/Method_Examples/Example%20Career%20Analysis.ipynb) |
+| Q-factor | [Example Career Analysis](/examples/Method_Examples/Example%20Career%20Analysis.ipynb) |
 | Author Pagerank | [Example of Interdisciplinarity](/examples/Method_Examples/Example%20of%20Interdisciplinarity.ipynb) |
-| Collective credit allocation | |
+| Collective credit allocation | [Example of Credit Allocation](/examples/Method_Examples/Example%20of%20Credit%20Allocation.ipynb)|
 | Annual productivity trajectories |[Example Career Analysis.ipynb](/examples/Method_Examples/Example%20Career%20Analysis.ipynb) |
 | Career Topic Switching | [Example Novelty](/examples/Method_Examples/Example%20Career%20Tropic%20Switching.ipynb) |
 

@@ -20,13 +20,14 @@ else:
 from pyscisci.utils import rank_array, check4columns
 
 from pyscisci.methods.raostirling import *
-from pyscisci.methods.interdisciplinary import *
+from pyscisci.methods.diversity import *
 from pyscisci.methods.creditshare import *
 from pyscisci.methods.disruption import *
 from pyscisci.methods.longtermimpact import *
 from pyscisci.methods.sleepingbeauty import *
 from pyscisci.methods.pivotscore import *
 from pyscisci.methods.novelty import *
+
 
 def citation_rank(df, colgroupby='Year', colrankby='C10', ascending=True, normed=False, show_progress=False):
     """
