@@ -57,6 +57,11 @@ Visualization
 
 ## Installation
 
+### Latest PyPI stable release
+```
+  pip install pyscisci
+```
+
 ### Latest development release on GitHub
 
 Pull and install in the current directory:
@@ -64,10 +69,6 @@ Pull and install in the current directory:
 ```
   pip install git+https://github.com/SciSciCollective/pyscisci
 ```
-
-### Latest PyPI stable release
-
-ToDo
 
 ### Extras
 - To enable all extra functionality run: pip install pyscisci[nlp,hdf]
