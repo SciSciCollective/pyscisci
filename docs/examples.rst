@@ -34,6 +34,7 @@ Advanced Functionality
 Science of Science Textbook
 ----------------------------
 Examples taken from different chapters of the Science of Science Textbook :cite:`Wang2021scisci`.
+
 - `Chapter 0 Data Prep <https://github.com/SciSciCollective/pyscisci/blob/master/examples/ScienceOfScienceTextbook/Chapter%200%20Preparing%20PySciSci.ipynb>`_
 - `Chapter 1 Productivity of a Scientist <https://github.com/examples/SciSciCollective/pyscisci/blob/master/examples/ScienceOfScienceTextbook/Chapter%2001%20Productivity%20of%20a%20Scientist.ipynb>`_
 - `Chapter 2 The HIndex <https://github.com/SciSciCollective/pyscisci/blob/master/examples/ScienceOfScienceTextbook/Chapter%2002%20The%20h-index.ipynb>`_
