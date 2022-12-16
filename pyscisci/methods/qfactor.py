@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-.. module:: hindex
-    :synopsis: Calculate the hindex.
+.. module:: qfactor
+    :synopsis: Calculate the qfactor.
 
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
  """

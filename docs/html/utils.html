@@ -1,0 +1,435 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>General Functions &#8212; pySciSci 0.6 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Biblio-Networks" href="network.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-pyscisci.utils">
+<span id="general-functions"></span><h1>General Functions<a class="headerlink" href="#module-pyscisci.utils" title="Permalink to this heading">¶</a></h1>
+<span class="target" id="module-utils"></span><dl class="py function">
+<dt class="sig sig-object py" id="pyscisci.utils.download_file_from_google_drive">
+<span class="sig-prename descclassname"><span class="pre">pyscisci.utils.</span></span><span class="sig-name descname"><span class="pre">download_file_from_google_drive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CHUNK_SIZE</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32768</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.utils.download_file_from_google_drive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download data files from the google Drive.</p>
+<p>Modified from: from <a class="reference external" href="https://stackoverflow.com/questions/38511444/python-download-files-from-google-drive-using-url">https://stackoverflow.com/questions/38511444/python-download-files-from-google-drive-using-url</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyscisci.utils.empty_mode">
+<span class="sig-prename descclassname"><span class="pre">pyscisci.utils.</span></span><span class="sig-name descname"><span class="pre">empty_mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.utils.empty_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mode of array when empty</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>a</strong> (<em>numpy array</em><em> or </em><em>list</em>) – array of values</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyscisci.utils.groupby_count">
+<span class="sig-prename descclassname"><span class="pre">pyscisci.utils.</span></span><span class="sig-name descname"><span class="pre">groupby_count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colgroupby</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colcountby</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">count_unique</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.utils.groupby_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Group the DataFrame and count the number for each group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>DataFrame</em>) – The DataFrame.</p></li>
+<li><p><strong>colgroupby</strong> (<em>str</em>) – The column to groupby.</p></li>
+<li><p><strong>colcountby</strong> (<em>str</em>) – The column to count.</p></li>
+<li><p><strong>count_unique</strong> (<em>bool</em><em>, </em><em>default True</em>) – If True, count unique items in the rows.  If False, just return the number of rows.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em> or </em><em>str</em><em>, </em><em>default False</em>) – If True, display a progress bar for the count.  If str, the name of the progress bar to display.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>DataFrame with two columns: colgroupby, colcountby+`Count`</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyscisci.utils.groupby_mean">
+<span class="sig-prename descclassname"><span class="pre">pyscisci.utils.</span></span><span class="sig-name descname"><span class="pre">groupby_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colgroupby</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colcountby</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.utils.groupby_mean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Group the DataFrame and find the mean of the column.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>DataFrame</em>) – The DataFrame.</p></li>
+<li><p><strong>colgroupby</strong> (<em>str</em>) – The column to groupby.</p></li>
+<li><p><strong>colcountby</strong> (<em>str</em>) – The column to find the mean of values.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em> or </em><em>str</em><em>, </em><em>default False</em>) – If True, display a progress bar for the summation.  If str, the name of the progress bar to display.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>DataFrame with two columns: colgroupby, colcountby+’Mean’</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyscisci.utils.groupby_range">
+<span class="sig-prename descclassname"><span class="pre">pyscisci.utils.</span></span><span class="sig-name descname"><span class="pre">groupby_range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colgroupby</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colrange</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.utils.groupby_range" title="Permalink to this definition">¶</a></dt>
+<dd><p>Group the DataFrame and find the range between the smallest and largest value for each group.</p>
+<blockquote>
+<div><dl class="simple">
+<dt>df: DataFrame</dt><dd><p>The DataFrame.</p>
+</dd>
+<dt>colgroupby: str</dt><dd><p>The column to groupby.</p>
+</dd>
+<dt>colrange: str</dt><dd><p>The column to find the range of values.</p>
+</dd>
+<dt>show_progress: bool or str, default False</dt><dd><p>If True, display a progress bar for the range.  If str, the name of the progress bar to display.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>DataFrame</dt><dd><p>DataFrame with two columns: colgroupby, colrange+`Range`</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyscisci.utils.groupby_total">
+<span class="sig-prename descclassname"><span class="pre">pyscisci.utils.</span></span><span class="sig-name descname"><span class="pre">groupby_total</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colgroupby</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colcountby</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.utils.groupby_total" title="Permalink to this definition">¶</a></dt>
+<dd><p>Group the DataFrame and find the total of the column.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>DataFrame</em>) – The DataFrame.</p></li>
+<li><p><strong>colgroupby</strong> (<em>str</em>) – The column to groupby.</p></li>
+<li><p><strong>colcountby</strong> (<em>str</em>) – The column to find the total of values.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em> or </em><em>str</em><em>, </em><em>default False</em>) – If True, display a progress bar for the summation.  If str, the name of the progress bar to display.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>DataFrame with two columns: colgroupby, colcountby+’Total’</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyscisci.utils.groupby_zero_col">
+<span class="sig-prename descclassname"><span class="pre">pyscisci.utils.</span></span><span class="sig-name descname"><span class="pre">groupby_zero_col</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colgroupby</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colrange</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.utils.groupby_zero_col" title="Permalink to this definition">¶</a></dt>
+<dd><p>Group the DataFrame and shift the column so the minimum value is 0.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>DataFrame</em>) – The DataFrame.</p></li>
+<li><p><strong>colgroupby</strong> (<em>str</em>) – The column to groupby.</p></li>
+<li><p><strong>colrange</strong> (<em>str</em>) – The column to find the range of values.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em> or </em><em>str</em><em>, </em><em>default False</em>) – If True, display a progress bar.  If str, the name of the progress bar to display.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>DataFrame with two columns: colgroupby, colrange</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyscisci.utils.holder_mean">
+<span class="sig-prename descclassname"><span class="pre">pyscisci.utils.</span></span><span class="sig-name descname"><span class="pre">holder_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.utils.holder_mean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Holder mean</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>numpy array</em><em> or </em><em>list</em>) – array of values</p></li>
+<li><p><strong>rho</strong> (<em>float</em>) – holder parameter
+arithmetic mean (rho=1)
+geometric mean (rho=0)
+harmonic mean (rho=-1)
+quadratic mean (rho=2)
+max (rho-&gt; infty)
+min (rho-&gt; -infty)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyscisci.utils.isin_range">
+<span class="sig-prename descclassname"><span class="pre">pyscisci.utils.</span></span><span class="sig-name descname"><span class="pre">isin_range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values2check</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.utils.isin_range" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the values2check are in the inclusive range [min_value, max_value].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>values2check</strong> (<em>numpy array</em>) – The values to check.</p></li>
+<li><p><strong>min_value</strong> (<em>float</em>) – The lowest value of the range.</p></li>
+<li><p><strong>max_value</strong> (<em>float</em>) – The highest value of the range.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em> or </em><em>str</em><em>, </em><em>default False</em>) – If True, display a progress bar for the count.  If str, the name of the progress bar to display.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the value is in the range.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Numpy Array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyscisci.utils.isin_sorted">
+<span class="sig-prename descclassname"><span class="pre">pyscisci.utils.</span></span><span class="sig-name descname"><span class="pre">isin_sorted</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values2check</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">masterlist</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.utils.isin_sorted" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the values2check are in the sorted masterlist.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>values2check</strong> (<em>numpy array</em>) – The values to check.</p></li>
+<li><p><strong>masterlist</strong> (<em>numpy array</em>) – The sorted list of master values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the value is in the masterlist.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Numpy Array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyscisci.utils.jenson_shannon">
+<span class="sig-prename descclassname"><span class="pre">pyscisci.utils.</span></span><span class="sig-name descname"><span class="pre">jenson_shannon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.utils.jenson_shannon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Jensen–Shannon divergence</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyscisci.utils.kl">
+<span class="sig-prename descclassname"><span class="pre">pyscisci.utils.</span></span><span class="sig-name descname"><span class="pre">kl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.utils.kl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Kullback–Leibler divergence (KL-divergence)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyscisci.utils.rank_array">
+<span class="sig-prename descclassname"><span class="pre">pyscisci.utils.</span></span><span class="sig-name descname"><span class="pre">rank_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ascending</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.utils.rank_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rank elements in the array.
+ascending=&gt; lowest=0, highest=1
+descending=&gt; lowest=1, highest=0</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>numpy array</em><em> or </em><em>list</em>) – Object to rank</p></li>
+<li><p><strong>ascending</strong> (<em>bool</em><em>, </em><em>default True</em>) – Sort ascending vs. descending.</p></li>
+<li><p><strong>normed</strong> (<em>bool</em><em>, </em><em>default False</em>) – False : rank is from 0 to N -1
+True : rank is from 0 to 1</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Ranked array.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyscisci.utils.shannon_entropy">
+<span class="sig-prename descclassname"><span class="pre">pyscisci.utils.</span></span><span class="sig-name descname"><span class="pre">shannon_entropy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.718281828459045</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.utils.shannon_entropy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shannon entropy</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>p</strong> (<em>numpy array</em><em> or </em><em>list</em>) – array of values</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyscisci.utils.simpson">
+<span class="sig-prename descclassname"><span class="pre">pyscisci.utils.</span></span><span class="sig-name descname"><span class="pre">simpson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.utils.simpson" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simpson diversity</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>p</strong> (<em>numpy array</em><em> or </em><em>list</em>) – array of values</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyscisci.utils.simpson_finite">
+<span class="sig-prename descclassname"><span class="pre">pyscisci.utils.</span></span><span class="sig-name descname"><span class="pre">simpson_finite</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.utils.simpson_finite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simpson diversity with finite size correction</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>p</strong> (<em>numpy array</em><em> or </em><em>list</em>) – array of values</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyscisci.utils.uniquemap_by_frequency">
+<span class="sig-prename descclassname"><span class="pre">pyscisci.utils.</span></span><span class="sig-name descname"><span class="pre">uniquemap_by_frequency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colgroupby</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'PublicationId'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colcountby</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'FieldId'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ascending</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.utils.uniquemap_by_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reduce a one-to-many mapping to a selection based on frequency of occurence in the dataframe
+(either to the largest, most common or smallest, least common).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ascending</strong> (<em>bool</em><em>, </em><em>default False</em>) – False: larger counts dominate–map defaults to the most common
+True: smaller counts dominate–map defaults to the least common</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyscisci.utils.value_to_int">
+<span class="sig-prename descclassname"><span class="pre">pyscisci.utils.</span></span><span class="sig-name descname"><span class="pre">value_to_int</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'value'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ascending</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.utils.value_to_int" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map the values of an array to integers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>numpy array</em><em> or </em><em>list</em>) – array of values</p></li>
+<li><p><strong>sort_values</strong> (<em>str</em><em>, </em><em>default 'value'</em>) – ‘none’ : dont sort
+‘value’ : sort the array items based on their value
+‘freq’ : sort the array items based on their frequency (see ascending)</p></li>
+<li><p><strong>ascending</strong> (<em>bool</em><em>, </em><em>default False</em>) – <dl class="simple">
+<dt>Only when sort_values == ‘freq’:</dt><dd><p>False: larger counts dominate–map 0 to the most common
+True: smaller counts dominate–map 0 to the least common</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>return_map</strong> (<em>bool</em><em>, </em><em>default True</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyscisci.utils.welford_mean_m2">
+<span class="sig-prename descclassname"><span class="pre">pyscisci.utils.</span></span><span class="sig-name descname"><span class="pre">welford_mean_m2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">previous_count</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">previous_mean</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">previous_m2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.utils.welford_mean_m2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Welford’s algorithm for online mean and variance.</p>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">pySciSci</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="about.html">About</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html">The DataBase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methods.html">Bibliometrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network.html">Biblio-Networks</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">General Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pyscisci.utils.download_file_from_google_drive"><code class="docutils literal notranslate"><span class="pre">download_file_from_google_drive()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pyscisci.utils.empty_mode"><code class="docutils literal notranslate"><span class="pre">empty_mode()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pyscisci.utils.groupby_count"><code class="docutils literal notranslate"><span class="pre">groupby_count()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pyscisci.utils.groupby_mean"><code class="docutils literal notranslate"><span class="pre">groupby_mean()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pyscisci.utils.groupby_range"><code class="docutils literal notranslate"><span class="pre">groupby_range()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pyscisci.utils.groupby_total"><code class="docutils literal notranslate"><span class="pre">groupby_total()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pyscisci.utils.groupby_zero_col"><code class="docutils literal notranslate"><span class="pre">groupby_zero_col()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pyscisci.utils.holder_mean"><code class="docutils literal notranslate"><span class="pre">holder_mean()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pyscisci.utils.isin_range"><code class="docutils literal notranslate"><span class="pre">isin_range()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pyscisci.utils.isin_sorted"><code class="docutils literal notranslate"><span class="pre">isin_sorted()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pyscisci.utils.jenson_shannon"><code class="docutils literal notranslate"><span class="pre">jenson_shannon()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pyscisci.utils.kl"><code class="docutils literal notranslate"><span class="pre">kl()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pyscisci.utils.rank_array"><code class="docutils literal notranslate"><span class="pre">rank_array()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pyscisci.utils.shannon_entropy"><code class="docutils literal notranslate"><span class="pre">shannon_entropy()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pyscisci.utils.simpson"><code class="docutils literal notranslate"><span class="pre">simpson()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pyscisci.utils.simpson_finite"><code class="docutils literal notranslate"><span class="pre">simpson_finite()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pyscisci.utils.uniquemap_by_frequency"><code class="docutils literal notranslate"><span class="pre">uniquemap_by_frequency()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pyscisci.utils.value_to_int"><code class="docutils literal notranslate"><span class="pre">value_to_int()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pyscisci.utils.welford_mean_m2"><code class="docutils literal notranslate"><span class="pre">welford_mean_m2()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="network.html" title="previous chapter">Biblio-Networks</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, Alexander Gates.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/utils.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

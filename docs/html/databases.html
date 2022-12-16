@@ -1,0 +1,1618 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>The DataBase &#8212; pySciSci 0.6 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Bibliometrics" href="methods.html" />
+    <link rel="prev" title="Examples" href="examples.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="the-database">
+<h1>The DataBase<a class="headerlink" href="#the-database" title="Permalink to this heading">¶</a></h1>
+<dl class="simple">
+<dt><em>pySciSci</em> provides a standardized interface for working with several of the major datasets in the Science of Science, including:</dt><dd><ul class="simple">
+<li><p><a class="reference external" href="https://openalex.org/">OpenAlex</a></p></li>
+<li><p><a class="reference external" href="https://docs.microsoft.com/en-us/academic-services/graph/">Microsoft Academic Graph</a> (MAG)</p></li>
+<li><p><a class="reference external" href="https://clarivate.com/webofsciencegroup/solutions/web-of-science/">Clarivate Web of Science</a> (WOS)</p></li>
+<li><p><a class="reference external" href="https://journals.aps.org/datasets">American Physics Society</a> (APS)</p></li>
+<li><p><a class="reference external" href="https://www.nlm.nih.gov/databases/download/pubmed_medline.html">PubMed</a></p></li>
+<li><p><a class="reference external" href="https://dblp.uni-trier.de">DBLP Computer Science Bibliography</a> (DBLP)</p></li>
+</ul>
+</dd>
+</dl>
+<p>The storage and processing frameworks are highly generalizable, and can be extended to other databases not mentioned here.  Please contribute an interface to your data on the github <a class="reference external" href="https://github.com/SciSciCollective/pyscisci">project page</a>!</p>
+<p>Each dataset is accessed as a customized variant of the <em>BibDataBase</em> class, a container of python Pandas data frames <a class="reference external" href="https://pandas.pydata.org/">pandas</a>, that handles all data loading and pre-processing.</p>
+<p>Currently, we provide direct data access only to DBLP and PubMed.  All other data must be manually downloaded from the data provider before processing.</p>
+<p>To facilitate data movement and lower memory overhead when the complete tables are not required, we pre-process the data tables into smaller chunks.  When loading a table into memory, the user can quickly load the full table by referencing the table name as a database property or specify multiple filters to load only a subset of the data.</p>
+<section id="basic-data-workflow">
+<h2>Basic Data WorkFlow<a class="headerlink" href="#basic-data-workflow" title="Permalink to this heading">¶</a></h2>
+<p>Every dataset in <em>pySciSci</em> is first pre-processed into a standardized tabular format based around DataFrame objects.</p>
+<dl class="simple">
+<dt>First usage only:</dt><dd><ul class="simple">
+<li><p>Download Data</p></li>
+<li><p>Preprocess Data</p></li>
+</ul>
+</dd>
+<dt>All other usages:</dt><dd><ul class="simple">
+<li><p>Apply Data Filter</p></li>
+<li><p>Load Only the DataFrame you need</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="dataset-examples">
+<h2>DataSet Examples<a class="headerlink" href="#dataset-examples" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/SciSciCollective/pyscisci/blob/master/examples/Getting_Started/Getting%20Started%20with%20OpenAlex.ipynb">Getting Started With OpenAlex</a></p></li>
+<li><p><a class="reference external" href="https://github.com/SciSciCollective/pyscisci/blob/master/examples/Getting%20Started%20with%20MAG.ipynb">Getting Started With MAG</a></p></li>
+<li><p><a class="reference external" href="https://github.com/SciSciCollective/pyscisci/blob/master/examples/Getting%20Started%20with%20WOS.ipynb">Getting Started With WoS</a></p></li>
+<li><p><a class="reference external" href="https://github.com/SciSciCollective/pyscisci/blob/master/examples/Getting%20Started%20with%20DBLP.ipynb">Getting Started With DBLP</a></p></li>
+<li><p><a class="reference external" href="https://github.com/SciSciCollective/pyscisci/blob/master/examples/Getting%20Started%20with%20APS.ipynb">Getting Started With APS</a></p></li>
+<li><p><a class="reference external" href="https://github.com/SciSciCollective/pyscisci/blob/master/examples/Getting%20Started%20with%20PubMed.ipynb">Getting Started With PubMed</a></p></li>
+<li><p><a class="reference external" href="https://github.com/SciSciCollective/pyscisci/blob/master/examples/Getting_Started/Getting%20Started%20with%20a%20Custom%20DB.ipynb">Getting Started With Custom DB</a></p></li>
+</ul>
+</section>
+<section id="dataframes">
+<h2>DataFrames<a class="headerlink" href="#dataframes" title="Permalink to this heading">¶</a></h2>
+<dl class="simple">
+<dt>Each dataset is partitioned into several DataFrames containing information for different bibliometric objects that are accessed as properties of the BibDataBase:</dt><dd><ul class="simple">
+<li><p><em>pub</em>: The DataFrame keeping publication information, including publication date, journal, title, etc.. Each PubId occurs only once.  Columns depend on the specific datasource.</p></li>
+<li><p><em>author</em>: The DataFrame keeping author names and personal information. Each AuthorId occurs only once.  Columns depend on the specific datasource.</p></li>
+<li><p><em>affiliation</em>: The DataFrame keeping affilations names and websites. Each AffiliationId occurs only once.  Columns depend on the specific datasource.</p></li>
+<li><p><em>journal</em>: The DataFrame keeping journal names and websites. Each JournalId occurs only once.  Columns depend on the specific datasource.</p></li>
+<li><p><em>fieldinfo</em>: The DataFrame keeping field names and levels. Each FieldId occurs only once.  Columns depend on the specific datasource.</p></li>
+</ul>
+</dd>
+<dt>There are also DataFrames which contain edge lists linking the different bibliometric data objects:</dt><dd><ul class="simple">
+<li><p><em>pub2ref</em>: The DataFrame linking publications to their references (or citations).</p></li>
+<li><p><em>pub2field</em>: The DataFrame linking publications to their fields.</p></li>
+<li><p><em>paa</em>: The DataFrame linking publications to authors to affiliations.  Columns depend on the specific datasource.</p></li>
+</ul>
+</dd>
+<dt>And two processed DataFrames are created which contain the most popular citation counts for future reference:</dt><dd><ul class="simple">
+<li><p><em>impact</em>: The DataFrame linking publications to their citations counts.  Columns depend on the specific datasource and processing options.</p></li>
+<li><p><em>pub2refnoself</em>: The DataFrame linking publications to their references where all self-citations are removed.</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="filters">
+<h2>Filters<a class="headerlink" href="#filters" title="Permalink to this heading">¶</a></h2>
+<p>Some datasets contain a wide-range of publication types, from many times, in many fields, spanning many different topics.  Often, it is useful to focus only on a subset of the available data.  For example, the MAG contains many different document types including journal publications, books, patents, and others.</p>
+<p>Filters can be applied to the BibDataBase to ensure only a desired subset of the data is loaded into memory.</p>
+<dl class="simple">
+<dt>There are four default filters provided by <em>pySciSci</em>:</dt><dd><ul class="simple">
+<li><p>YearFilter</p></li>
+<li><p>DocTypeFilter</p></li>
+<li><p>FieldFilter</p></li>
+<li><p>JournalFilter</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="property-dictionaries">
+<h2>Property Dictionaries<a class="headerlink" href="#property-dictionaries" title="Permalink to this heading">¶</a></h2>
+<dl class="simple">
+<dt>Two property dictionaries are created for quick reference without the need to load the complete publication dataframe:</dt><dd><ul class="simple">
+<li><p><em>pub2year</em>: mapping between the PubId and PubYear</p></li>
+<li><p><em>pub2doctype</em>: mapping between the PubId and DocType (when available)</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="module-pyscisci.database">
+<span id="bibdatabase"></span><h2>BibDataBase<a class="headerlink" href="#module-pyscisci.database" title="Permalink to this heading">¶</a></h2>
+<span class="target" id="module-datasource"></span><dl class="py class">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyscisci.database.</span></span><span class="sig-name descname"><span class="pre">BibDataBase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path2database</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">database_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'csv.gz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_in_memory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.database.BibDataBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for all bibliometric database interfaces.</p>
+<p>The BibDataBase provides a parasomonious structure for each of the specific data sources (MAG, WOS, etc.).</p>
+<dl class="simple">
+<dt>There are four primary types of functions:</dt><dd><ol class="arabic simple">
+<li><p><em>Parseing</em> Functions (data source specific) that parse the raw data files</p></li>
+<li><p><em>Loading</em> Functions that load DataFrames</p></li>
+<li><p><em>Processing</em> Functions that calculate advanced data types from the raw files</p></li>
+<li><p><em>Analysis</em> Functions that calculate Science of Science metrics.</p></li>
+</ol>
+</dd>
+</dl>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path2database</strong> (<em>str</em>) – The path to the database files</p></li>
+<li><p><strong>keep_in_memory</strong> (<em>bool</em><em>, </em><em>default False</em>) – Flag to keep database files in memory once loaded</p></li>
+<li><p><strong>global_filter</strong> (<em>dict</em><em> or </em><em>Filter</em>) – Set of conditions to apply globally.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Flag to show progress of loading, processing, and calculations.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<dl class="py property">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.affiliation">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">affiliation</span></span><a class="headerlink" href="#pyscisci.database.BibDataBase.affiliation" title="Permalink to this definition">¶</a></dt>
+<dd><p>The DataFrame keeping affiliation information. Columns may depend on the specific datasource.</p>
+<p class="rubric">Notes</p>
+<p>columns: ‘AffiliationId’, ‘NumberPublications’, ‘NumberCitations’, ‘FullName’, ‘GridId’, ‘OfficialPage’, ‘WikiPage’, ‘Latitude’, ‘Longitude’</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.author">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">author</span></span><a class="headerlink" href="#pyscisci.database.BibDataBase.author" title="Permalink to this definition">¶</a></dt>
+<dd><p>The DataFrame keeping author information. Columns may depend on the specific datasource.</p>
+<p class="rubric">Notes</p>
+<p>columns: ‘AuthorId’, ‘LastKnownAffiliationId’, ‘NumberPublications’, ‘NumberCitations’, ‘FullName’, ‘LastName’, ‘FirstName’, ‘MiddleName’</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.author2pub">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">author2pub</span></span><a class="headerlink" href="#pyscisci.database.BibDataBase.author2pub" title="Permalink to this definition">¶</a></dt>
+<dd><p>The DataFrame keeping all publication, author relationships.  Columns may depend on the specific datasource.</p>
+<p class="rubric">Notes</p>
+<p>columns: ‘PublicationId’, ‘AuthorId’</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.compute_impact">
+<span class="sig-name descname"><span class="pre">compute_impact</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">citation_horizons</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[5,</span> <span class="pre">10]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noselfcite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.database.BibDataBase.compute_impact" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Calculate several of the common citation indices.</dt><dd><ul class="simple">
+<li><p>‘Ctotal’ : The total number of citations.</p></li>
+<li><p>‘Ck’ : The total number of citations within the first k years of publcation, for each k value specified by <cite>citation_horizons</cite>.</p></li>
+<li><p>‘Ctotal_noself’ : The total number of citations with self-citations removed.</p></li>
+<li><p>‘Ck’ : The total number of citations within the first k years of publcation with self-citations removed, for each k value specified by <cite>citation_horizons</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em><em>, </em><em>Optional</em>) – If True then the impact measures are saved in preprocessed files.</p></li>
+<li><p><strong>citation_horizons</strong> (<em>list</em><em>, </em><em>default</em><em> [</em><em>5</em><em>,</em><em>10</em><em>]</em><em>, </em><em>Optional</em>) – The DataFrame column with Author Ids.  If None then the database ‘AuthorId’ is used.</p></li>
+<li><p><strong>noselfcite</strong> (<em>Bool</em><em>, </em><em>default 'True'</em><em>, </em><em>Optional</em>) – If True then the noselfcitation pub2ref files are also processed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The impact DataFrame with at least two columns: ‘PublicationId’, ‘Year’, + citation columns</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.fieldinfo">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fieldinfo</span></span><a class="headerlink" href="#pyscisci.database.BibDataBase.fieldinfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>The DataFrame keeping all publication field relationships.  Columns may depend on the specific datasource.</p>
+<p class="rubric">Notes</p>
+<p>columns: ‘FieldId’, ‘FieldLevel’, ‘NumberPublications’, ‘FieldName’</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.get_author_publications">
+<span class="sig-name descname"><span class="pre">get_author_publications</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paa</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_pub_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_impact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.database.BibDataBase.get_author_publications" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce a DataFrame with the author(s) publication information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>author_ids</strong> (<em>int</em><em>, </em><em>str</em><em>, or </em><em>list</em>) – An AuthorId or list of AuthorIds</p></li>
+<li><p><strong>paa</strong> (<em>None</em><em>, or </em><em>DataFrame - default None</em><em>, </em><em>optional</em>) – A pre-loaded paa DataFrame or defualt None indicates we should load the paa dataframe.</p></li>
+<li><p><strong>include_pub_info</strong> (<em>bool</em><em> or </em><em>DataFrame</em><em>, </em><em>defualt None</em><em>, </em><em>optional</em>) – If DataFrame- used as the publication information.
+If Bool and True - we load our own publication information.</p></li>
+<li><p><strong>include_impact</strong> (<em>bool</em><em> or </em><em>DataFrame</em><em>, </em><em>defualt None</em><em>, </em><em>optional</em>) – If DataFrame- used as the impact or reference information.
+If Bool and True - we load our own impact information.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>author_paa</strong> – The author(s) publication information.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.get_journal_publications">
+<span class="sig-name descname"><span class="pre">get_journal_publications</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pub</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_pub_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_impact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.database.BibDataBase.get_journal_publications" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce a DataFrame with the journal(s) publication information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>journal_ids</strong> (<em>int</em><em>, </em><em>str</em><em>, or </em><em>list</em>) – A JournalId or list of JournalIds</p></li>
+<li><p><strong>pub</strong> (<em>None</em><em>, or </em><em>DataFrame - default None</em><em>, </em><em>optional</em>) – A pre-loaded pub DataFrame or defualt None indicates we should load the pub dataframe.</p></li>
+<li><p><strong>include_pub_info</strong> (<em>bool</em><em> or </em><em>DataFrame</em><em>, </em><em>defualt None</em><em>, </em><em>optional</em>) – If DataFrame- used as the publication information.
+If Bool and True - we load our own publication information.</p></li>
+<li><p><strong>include_impact</strong> (<em>bool</em><em> or </em><em>DataFrame</em><em>, </em><em>defualt None</em><em>, </em><em>optional</em>) – If DataFrame- used as the impact or reference information.
+If Bool and True - we load our own impact information.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>journal_pubs</strong> – The journal(s) publication information.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.get_publication_info">
+<span class="sig-name descname"><span class="pre">get_publication_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pub</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.database.BibDataBase.get_publication_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce a DataFrame with the publication information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pub_ids</strong> (<em>int</em><em>, </em><em>str</em><em>, or </em><em>list</em>) – A PublicationId or list of PublicationIds</p></li>
+<li><p><strong>pub</strong> (<em>Bool</em><em>, or </em><em>DataFrame - default True</em><em>, </em><em>optional</em>) – A pre-loaded pub DataFrame or a bool indicating you should load the publicaiton dataframe.</p></li>
+<li><p><strong>columns</strong> (<em>list</em><em>, </em><em>defualt None</em><em>, </em><em>optional</em>) – A list of specific columns from the pub DataFrame to return.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>pub_info</strong> – The publication information.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.journal">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">journal</span></span><a class="headerlink" href="#pyscisci.database.BibDataBase.journal" title="Permalink to this definition">¶</a></dt>
+<dd><p>The DataFrame keeping journal information.  Columns may depend on the specific datasource.</p>
+<p class="rubric">Notes</p>
+<p>columns: ‘JournalId’, ‘FullName’, ‘Issn’, ‘Publisher’, ‘Webpage’</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.load_affiliations">
+<span class="sig-name descname"><span class="pre">load_affiliations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_subset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'last'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropna</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefunc2apply</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">postfunc2apply</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.database.BibDataBase.load_affiliations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the Affiliation DataFrame from a preprocessed directory, or parse from the raw files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em><em>, </em><em>Optional</em>) – Attempt to load from the preprocessed directory.</p></li>
+<li><p><strong>columns</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Load only this subset of columns</p></li>
+<li><p><strong>filter_dict</strong> (<em>dict</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Dictionary of format {“ColumnName”:”ListofValues”} where “ColumnName” is a data column
+and “ListofValues” is a sorted list of valid values.  A DataFrame only containing rows that appear in
+“ListofValues” will be returned.</p></li>
+<li><p><strong>duplicate_subset</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any duplicate entries as specified by this subset of columns</p></li>
+<li><p><strong>duplicate_keep</strong> (<em>str</em><em>, </em><em>default 'last'</em><em>, </em><em>Optional</em>) – If duplicates are being dropped, keep the ‘first’ or ‘last’
+(see <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop_duplicates.html">pandas.DataFram.drop_duplicates</a>)</p></li>
+<li><p><strong>dropna</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any NaN entries as specified by this subset of columns</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Affililation DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.load_authors">
+<span class="sig-name descname"><span class="pre">load_authors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_subset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'last'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropna</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefunc2apply</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">postfunc2apply</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">process_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.database.BibDataBase.load_authors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the Author DataFrame from a preprocessed directory, or parse from the raw files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em><em>, </em><em>Optional</em>) – Attempt to load from the preprocessed directory.</p></li>
+<li><p><strong>columns</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Load only this subset of columns</p></li>
+<li><p><strong>filter_dict</strong> (<em>dict</em><em>, </em><em>default {}</em><em>, </em><em>Optional</em>) – Dictionary of format {“ColumnName”:”ListofValues”} where “ColumnName” is a data column and “ListofValues” is a sorted list of valid values.  A DataFrame only containing rows that appear in
+“ListofValues” will be returned.</p></li>
+<li><p><strong>duplicate_subset</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any duplicate entries as specified by this subset of columns</p></li>
+<li><p><strong>duplicate_keep</strong> (<em>str</em><em>, </em><em>default 'last'</em><em>, </em><em>Optional</em>) – <p>If duplicates are being dropped, keep the ‘first’ or ‘last’
+(see <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop_duplicates.html">pandas.DataFram.drop_duplicates</a>)</p>
+</p></li>
+<li><p><strong>dropna</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any NaN entries as specified by this subset of columns</p></li>
+<li><p><strong>process_name</strong> (<em>bool</em><em>, </em><em>default True</em><em>, </em><em>Optional</em>) – If True, then when processing the raw file, the package <a class="reference external" href="https://nameparser.readthedocs.io/en/latest/">NameParser</a>
+will be used to split author FullNames.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Author DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.load_fieldinfo">
+<span class="sig-name descname"><span class="pre">load_fieldinfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.database.BibDataBase.load_fieldinfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the Field Information DataFrame from a preprocessed directory, or parse from the raw files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em><em>, </em><em>Optional</em>) – Attempt to load from the preprocessed directory.</p></li>
+<li><p><strong>columns</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Load only this subset of columns</p></li>
+<li><p><strong>filter_dict</strong> (<em>dict</em><em>, </em><em>default {}</em><em>, </em><em>Optional</em>) – Dictionary of format {“ColumnName”:”ListofValues”} where “ColumnName” is a data column
+and “ListofValues” is a sorted list of valid values.  A DataFrame only containing rows that appear in
+“ListofValues” will be returned.</p></li>
+<li><p><strong>duplicate_subset</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any duplicate entries as specified by this subset of columns</p></li>
+<li><p><strong>duplicate_keep</strong> (<em>str</em><em>, </em><em>default 'last'</em><em>, </em><em>Optional</em>) – <p>If duplicates are being dropped, keep the ‘first’ or ‘last’
+(see <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop_duplicates.html">pandas.DataFram.drop_duplicates</a>)</p>
+</p></li>
+<li><p><strong>dropna</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any NaN entries as specified by this subset of columns</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>FieldInformation DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.load_impact">
+<span class="sig-name descname"><span class="pre">load_impact</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_yearnormed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_subset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'last'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropna</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefunc2apply</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">postfunc2apply</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.database.BibDataBase.load_impact" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the precomputed impact DataFrame from a preprocessed directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em>) – Attempt to load from the preprocessed directory.</p></li>
+<li><p><strong>include_yearnormed</strong> (<em>bool</em><em>, </em><em>default True</em>) – Normalize all columns by yearly average.</p></li>
+<li><p><strong>columns</strong> (<em>list</em><em>, </em><em>default None</em>) – Load only this subset of columns</p></li>
+<li><p><strong>filter_dict</strong> (<em>dict</em><em>, </em><em>default {}</em><em>, </em><em>Optional</em>) – Dictionary of format {“ColumnName”:”ListofValues”} where “ColumnName” is a data column
+and “ListofValues” is a sorted list of valid values.  A DataFrame only containing rows that appear in
+“ListofValues” will be returned.</p></li>
+<li><p><strong>duplicate_subset</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any duplicate entries as specified by this subset of columns</p></li>
+<li><p><strong>duplicate_keep</strong> (<em>str</em><em>, </em><em>default 'last'</em><em>, </em><em>Optional</em>) – <p>If duplicates are being dropped, keep the ‘first’ or ‘last’
+(see <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop_duplicates.html">pandas.DataFram.drop_duplicates</a>)</p>
+</p></li>
+<li><p><strong>dropna</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any NaN entries as specified by this subset of columns</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>FieldInformation DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.load_journals">
+<span class="sig-name descname"><span class="pre">load_journals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_subset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'last'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropna</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefunc2apply</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">postfunc2apply</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.database.BibDataBase.load_journals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the Journal DataFrame from a preprocessed directory, or parse from the raw files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em><em>, </em><em>Optional</em>) – Attempt to load from the preprocessed directory.</p></li>
+<li><p><strong>columns</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Load only this subset of columns</p></li>
+<li><p><strong>filter_dict</strong> (<em>dict</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Dictionary of format {“ColumnName”:”ListofValues”} where “ColumnName” is a data column
+and “ListofValues” is a sorted list of valid values.  A DataFrame only containing rows that appear in
+“ListofValues” will be returned.</p></li>
+<li><p><strong>duplicate_subset</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any duplicate entries as specified by this subset of columns</p></li>
+<li><p><strong>duplicate_keep</strong> (<em>str</em><em>, </em><em>default 'last'</em><em>, </em><em>Optional</em>) – <p>If duplicates are being dropped, keep the ‘first’ or ‘last’
+(see <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop_duplicates.html">pandas.DataFram.drop_duplicates</a>)</p>
+</p></li>
+<li><p><strong>dropna</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any NaN entries as specified by this subset of columns</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Journal DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.load_pub2field">
+<span class="sig-name descname"><span class="pre">load_pub2field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_subset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'last'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropna</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefunc2apply</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">postfunc2apply</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.database.BibDataBase.load_pub2field" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the Pub2Field DataFrame from a preprocessed directory, or parse from the raw files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em><em>, </em><em>Optional</em>) – Attempt to load from the preprocessed directory.</p></li>
+<li><p><strong>columns</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Load only this subset of columns</p></li>
+<li><p><strong>filter_dict</strong> (<em>dict</em><em>, </em><em>default {}</em><em>, </em><em>Optional</em>) – Dictionary of format {“ColumnName”:”ListofValues”} where “ColumnName” is a data column
+and “ListofValues” is a sorted list of valid values.  A DataFrame only containing rows that appear in
+“ListofValues” will be returned.</p></li>
+<li><p><strong>duplicate_subset</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any duplicate entries as specified by this subset of columns</p></li>
+<li><p><strong>duplicate_keep</strong> (<em>str</em><em>, </em><em>default 'last'</em><em>, </em><em>Optional</em>) – <p>If duplicates are being dropped, keep the ‘first’ or ‘last’
+(see <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop_duplicates.html">pandas.DataFram.drop_duplicates</a>)</p>
+</p></li>
+<li><p><strong>dropna</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any NaN entries as specified by this subset of columns</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pub2Field DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.load_publicationauthoraffiliation">
+<span class="sig-name descname"><span class="pre">load_publicationauthoraffiliation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_subset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'last'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropna</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefunc2apply</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">postfunc2apply</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.database.BibDataBase.load_publicationauthoraffiliation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the PublicationAuthorAffilation DataFrame from a preprocessed directory, or parse from the raw files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em><em>, </em><em>Optional</em>) – Attempt to load from the preprocessed directory.</p></li>
+<li><p><strong>columns</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Load only this subset of columns</p></li>
+<li><p><strong>filter_dict</strong> (<em>dict</em><em>, </em><em>default {}</em><em>, </em><em>Optional</em>) – Dictionary of format {“ColumnName”:”ListofValues”} where “ColumnName” is a data column
+and “ListofValues” is a sorted list of valid values.  A DataFrame only containing rows that appear in
+“ListofValues” will be returned.</p></li>
+<li><p><strong>duplicate_subset</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any duplicate entries as specified by this subset of columns</p></li>
+<li><p><strong>duplicate_keep</strong> (<em>str</em><em>, </em><em>default 'last'</em><em>, </em><em>Optional</em>) – <p>If duplicates are being dropped, keep the ‘first’ or ‘last’
+(see <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop_duplicates.html">pandas.DataFram.drop_duplicates</a>)</p>
+</p></li>
+<li><p><strong>dropna</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any NaN entries as specified by this subset of columns</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>PublicationAuthorAffilation DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.load_publications">
+<span class="sig-name descname"><span class="pre">load_publications</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_subset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'last'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropna</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefunc2apply</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">postfunc2apply</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.database.BibDataBase.load_publications" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the Publication DataFrame from a preprocessed directory, or parse from the raw files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em><em>, </em><em>Optional</em>) – Attempt to load from the preprocessed directory.</p></li>
+<li><p><strong>columns</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Load only this subset of columns</p></li>
+<li><p><strong>filter_dict</strong> (<em>dict</em><em>, </em><em>default {}</em><em>, </em><em>Optional</em>) – Dictionary of format {“ColumnName”:”ListofValues”} where “ColumnName” is a data column
+and “ListofValues” is a sorted list of valid values.  A DataFrame only containing rows that appear in
+“ListofValues” will be returned.</p></li>
+<li><p><strong>duplicate_subset</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any duplicate entries as specified by this subset of columns</p></li>
+<li><p><strong>duplicate_keep</strong> (<em>str</em><em>, </em><em>default 'last'</em><em>, </em><em>Optional</em>) – <p>If duplicates are being dropped, keep the ‘first’ or ‘last’
+(see <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop_duplicates.html">pandas.DataFram.drop_duplicates</a>)</p>
+</p></li>
+<li><p><strong>dropna</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any NaN entries as specified by this subset of columns</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Publication DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.load_references">
+<span class="sig-name descname"><span class="pre">load_references</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_subset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'last'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noselfcite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropna</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefunc2apply</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">postfunc2apply</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.database.BibDataBase.load_references" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the Pub2Ref DataFrame from a preprocessed directory, or parse from the raw files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em><em>, </em><em>Optional</em>) – Attempt to load from the preprocessed directory.</p></li>
+<li><p><strong>columns</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Load only this subset of columns</p></li>
+<li><p><strong>filter_dict</strong> (<em>dict</em><em>, </em><em>default {}</em><em>, </em><em>Optional</em>) – Dictionary of format {“ColumnName”:”ListofValues”} where “ColumnName” is a data column
+and “ListofValues” is a sorted list of valid values.  A DataFrame only containing rows that appear in
+“ListofValues” will be returned.</p></li>
+<li><p><strong>duplicate_subset</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any duplicate entries as specified by this subset of columns</p></li>
+<li><p><strong>duplicate_keep</strong> (<em>str</em><em>, </em><em>default 'last'</em><em>, </em><em>Optional</em>) – <p>If duplicates are being dropped, keep the ‘first’ or ‘last’
+(see <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop_duplicates.html">pandas.DataFram.drop_duplicates</a>)</p>
+</p></li>
+<li><p><strong>dropna</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any NaN entries as specified by this subset of columns</p></li>
+<li><p><strong>noselfcite</strong> (<em>bool</em><em>, </em><em>default False</em><em>, </em><em>Optional</em>) – If True, then the preprocessed pub2ref files with self-citations removed will be used.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pub2Ref DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.paa">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">paa</span></span><a class="headerlink" href="#pyscisci.database.BibDataBase.paa" title="Permalink to this definition">¶</a></dt>
+<dd><p>The DataFrame keeping all publication, author, affiliation relationships.  Columns may depend on the specific datasource.</p>
+<p class="rubric">Notes</p>
+<p>columns: ‘PublicationId’, ‘AuthorId’, ‘AffiliationId’, ‘AuthorSequence’,  ‘OrigAuthorName’, ‘OrigAffiliationName’</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.precompute_teamsize">
+<span class="sig-name descname"><span class="pre">precompute_teamsize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save2pubdf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.database.BibDataBase.precompute_teamsize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the teamsize of publications, defined as the total number of Authors on the publication.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>save2pubdf</strong> (<em>bool</em><em>, </em><em>default True</em><em>, </em><em>Optional</em>) – If True the results are appended to the preprocessed publication DataFrames.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default False</em>) – If True, display a progress bar for the count.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TeamSize DataFrame with 2 columns: ‘PublicationId’, ‘TeamSize’</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.pub">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pub</span></span><a class="headerlink" href="#pyscisci.database.BibDataBase.pub" title="Permalink to this definition">¶</a></dt>
+<dd><p>The DataFrame keeping publication information. Columns may depend on the specific datasource.</p>
+<p class="rubric">Notes</p>
+<p>columns: ‘PublicationId’, ‘Year’, ‘JournalId’, ‘FamilyId’, ‘Doi’, ‘Title’, ‘Date’, ‘Volume’, ‘Issue’, ‘DocType’</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.pub2doctype">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pub2doctype</span></span><a class="headerlink" href="#pyscisci.database.BibDataBase.pub2doctype" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary mapping PublicationId to Document Type.</p>
+<p class="rubric">Notes</p>
+<p>doctype mapping: ‘Journal’: ‘j’, ‘Book’:’b’, ‘’:’’, ‘BookChapter’:’bc’, ‘Conference’:’c’, ‘Dataset’:’d’, ‘Patent’:’p’, ‘Repository’:’r’</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.pub2field">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pub2field</span></span><a class="headerlink" href="#pyscisci.database.BibDataBase.pub2field" title="Permalink to this definition">¶</a></dt>
+<dd><p>The DataFrame keeping all publication field relationships.  Columns may depend on the specific datasource.</p>
+<p class="rubric">Notes</p>
+<p>columns: ‘PublicationId’, ‘FieldId’</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.pub2ref">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pub2ref</span></span><a class="headerlink" href="#pyscisci.database.BibDataBase.pub2ref" title="Permalink to this definition">¶</a></dt>
+<dd><p>The DataFrame keeping citing and cited PublicationId.</p>
+<p class="rubric">Notes</p>
+<p>columns: ‘CitingPublicationId’, ‘CitedPublicationId’</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.pub2refnoself">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pub2refnoself</span></span><a class="headerlink" href="#pyscisci.database.BibDataBase.pub2refnoself" title="Permalink to this definition">¶</a></dt>
+<dd><p>The DataFrame keeping citing and cited PublicationId after filtering out the self-citations.</p>
+<p class="rubric">Notes</p>
+<p>columns: CitingPublicationId, CitedPublicationId</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.pub2year">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pub2year</span></span><a class="headerlink" href="#pyscisci.database.BibDataBase.pub2year" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary mapping PublicationId to Year.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.publicationid_list">
+<span class="sig-name descname"><span class="pre">publicationid_list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.database.BibDataBase.publicationid_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of all PublicationIds.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.read_data_file">
+<span class="sig-name descname"><span class="pre">read_data_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.database.BibDataBase.read_data_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the DataFrame from a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>DataFrame</em>) – A pandas DataFrame</p></li>
+<li><p><strong>fname</strong> (<em>std</em><em>,</em>) – The filename</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>df</strong> – The DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.remove_selfcitations">
+<span class="sig-name descname"><span class="pre">remove_selfcitations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.database.BibDataBase.remove_selfcitations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prcoess the pub2ref DataFrame and remove all citation relationships that share an Author.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em><em>, </em><em>Optional</em>) – If True then the new preprocessed DataFrames are saved in pub2refnoself</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>DataFrame</em> – Pub2Ref DataFrame with 2 columns: ‘CitingPublicationId’, ‘CitedPublicationId’</p></li>
+<li><p><em>|</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.save_data_file">
+<span class="sig-name descname"><span class="pre">save_data_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.database.BibDataBase.save_data_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the DataFrame to a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>DataFrame</em>) – A pandas DataFrame</p></li>
+<li><p><strong>fname</strong> (<em>std</em><em>,</em>) – The filename</p></li>
+<li><p><strong>key</strong> (<em>str</em>) – For hdf files, the table key.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>journal_pubs</strong> – The journal(s) publication information.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.set_global_filters">
+<span class="sig-name descname"><span class="pre">set_global_filters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">global_filter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.database.BibDataBase.set_global_filters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set of filtering conditions that restrict the global set of publications loaded from the DataBase.</p>
+<dl class="simple">
+<dt>Allowable global filters are:</dt><dd><p>‘Year’, ‘DocType’, ‘FieldId’</p>
+</dd>
+</dl>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.set_new_data_path">
+<span class="sig-name descname"><span class="pre">set_new_data_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.database.BibDataBase.set_new_data_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override path to the dataframe collection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataframe_name</strong> (<em>str</em>) – The dataframe name to override.  E.g. ‘author’, ‘pub’, ‘paa’, ‘pub2field’, etc.</p></li>
+<li><p><strong>new_path</strong> (<em>str</em>) – The new dataframe path.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.database.BibDataBase.setup_dask_client">
+<span class="sig-name descname"><span class="pre">setup_dask_client</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threads_per_worker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.database.BibDataBase.setup_dask_client" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a Dask client</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_workers</strong> (<em>int</em><em>, </em><em>defualt None</em>) – The number of workers to use.</p></li>
+<li><p><strong>threads_per_worker</strong> (<em>int</em><em>, </em><em>defualt None</em>) – The number of threads per worker to use.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="id9">
+<h2>OpenAlex<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h2>
+<p>For initial example, see <a class="reference external" href="https://github.com/SciSciCollective/pyscisci/blob/master/examples/Getting_Started/Getting%20Started%20with%20OpenAlex.ipynb">Getting Started With OpenAlex</a>.</p>
+<span class="target" id="module-pyscisci.datasource.OpenAlex"></span><dl class="py class">
+<dt class="sig sig-object py" id="pyscisci.datasource.OpenAlex.OpenAlex">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyscisci.datasource.OpenAlex.</span></span><span class="sig-name descname"><span class="pre">OpenAlex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path2database</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">database_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'csv.gz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_in_memory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_dask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.OpenAlex.OpenAlex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for the OpenAlex interface.</p>
+<p>This is an extension of ‘BibDataBase’ with processing functions specific to the MAG.
+See ‘BibDataBase’ in database.py for details of non-MAG specific functions.</p>
+<p>The MAG comes structured into three folders: mag, advanced, nlp.
+Explain downloading etc.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.OpenAlex.OpenAlex.download_from_source">
+<span class="sig-name descname"><span class="pre">download_from_source</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aws_access_key_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aws_secret_access_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specific_update</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aws_bucket</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'openalex'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataframe_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rewrite_existing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edit_works</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.OpenAlex.OpenAlex.download_from_source" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download the OpenAlex files from Amazon Web Services.
+The files will be saved to the path specified by <cite>path2database</cite> into RawXML.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source_url</strong> (<em>str</em><em>, </em><em>default 'ftp.ncbi.nlm.nih.gov'</em>) – The base url for the ftp server from which to download.</p></li>
+<li><p><strong>aws_access_key_id</strong> (<em>str</em>) – The acess key for AWS (not required)</p></li>
+<li><p><strong>aws_secret_access_key</strong> (<em>str</em>) – The secret acess key for AWS (not required)</p></li>
+<li><p><strong>specific_update</strong> (<em>str</em>) – Download only a specific update date, specified by the date in Y-M-D format, 2022-01-01.
+If empty the full data is downloaded.</p></li>
+<li><p><strong>dataframe_list</strong> (<em>list</em>) – <dl class="simple">
+<dt>The data types to download and save from OpenAlex.</dt><dd><p>’all’
+‘affiliations’
+‘authors’
+‘publications’
+‘references’
+‘publicationauthoraffiliation’
+‘fields’
+‘abstracts’</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>rewrite_existing</strong> (<em>bool</em><em>, </em><em>default False</em>) – If True, overwrite existing files or if False, only download any missing files.</p></li>
+<li><p><strong>edit_works</strong> (<em>bool</em><em>, </em><em>default True</em>) – If True, edit the works to remove pieces of data.  If False, force keeping all entries from the works file.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+<li><p><strong>https</strong> (<em># edited from</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.OpenAlex.OpenAlex.parse_affiliations">
+<span class="sig-name descname"><span class="pre">parse_affiliations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specific_update</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.OpenAlex.OpenAlex.parse_affiliations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the OpenAlex Affilation raw data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em>) – Save the processed data in new DataFrames.</p></li>
+<li><p><strong>specific_update</strong> (<em>str</em>) – Parse only a specific update date, specified by the date in Y-M-D format, 2022-01-01.
+If empty the full data is parsed.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Affiliation DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.OpenAlex.OpenAlex.parse_authors">
+<span class="sig-name descname"><span class="pre">parse_authors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specific_update</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">process_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.OpenAlex.OpenAlex.parse_authors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the OpenAlex Author raw data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em>) – Save the processed data in new DataFrames.</p></li>
+<li><p><strong>specific_update</strong> (<em>str</em>) – Parse only a specific update date, specified by the date in Y-M-D format, 2022-01-01.
+If empty the full data is parsed.</p></li>
+<li><p><strong>process_name</strong> (<em>bool</em><em>, </em><em>default True</em>) – <p>If True, then when processing the raw file, the package <a class="reference external" href="https://nameparser.readthedocs.io/en/latest/">NameParser</a>
+will be used to split author FullNames.</p>
+</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Author DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.OpenAlex.OpenAlex.parse_concepts">
+<span class="sig-name descname"><span class="pre">parse_concepts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specific_update</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.OpenAlex.OpenAlex.parse_concepts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the MAG Paper Field raw data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em>) – Save the processed data in new DataFrames.</p></li>
+<li><p><strong>specific_update</strong> (<em>str</em>) – Parse only a specific update date, specified by the date in Y-M-D format, 2022-01-01.
+If empty the full data is parsed.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>FieldInfo DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.OpenAlex.OpenAlex.parse_publications">
+<span class="sig-name descname"><span class="pre">parse_publications</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specific_update</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocess_dicts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataframe_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['publications',</span> <span class="pre">'references',</span> <span class="pre">'publicationauthoraffiliation',</span> <span class="pre">'fields']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.OpenAlex.OpenAlex.parse_publications" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the OpenAlex Works raw data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em>) – Save the processed data in new DataFrames.</p></li>
+<li><p><strong>specific_update</strong> (<em>str</em>) – Parse only a specific update date, specified by the date in Y-M-D format, 2022-01-01.
+If empty the full data is parsed.</p></li>
+<li><p><strong>parse_venues</strong> (<em>bool</em><em>, </em><em>default True</em>) – Also parse the venue information.</p></li>
+<li><p><strong>preprocess_dicts</strong> (<em>bool</em><em>, </em><em>default True</em>) – Save the processed Year and DocType data as dictionaries.</p></li>
+<li><p><strong>dataframe_list</strong> (<em>list</em>) – <dl class="simple">
+<dt>The data types to download and save from OpenAlex.</dt><dd><p>’all’
+‘publications’
+‘references’
+‘publicationauthoraffiliation’
+‘fields’
+‘abstracts’</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Publication DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.OpenAlex.OpenAlex.parse_venues">
+<span class="sig-name descname"><span class="pre">parse_venues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specific_update</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.OpenAlex.OpenAlex.parse_venues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the OpenAlex Venues raw data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em>) – Save the processed data in new DataFrames.</p></li>
+<li><p><strong>specific_update</strong> (<em>str</em>) – Parse only a specific update date, specified by the date in Y-M-D format, 2022-01-01.
+If empty the full data is parsed.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Venue DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.OpenAlex.OpenAlex.preprocess">
+<span class="sig-name descname"><span class="pre">preprocess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.OpenAlex.OpenAlex.preprocess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bulk preprocess the MAG raw data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataframe_list</strong> (<em>list</em><em>, </em><em>default None</em>) – The list of DataFrames to preprocess.  If None, all MAG DataFrames are preprocessed.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="microsoft-academic-graph-mag">
+<h2>Microsoft Academic Graph (MAG)<a class="headerlink" href="#microsoft-academic-graph-mag" title="Permalink to this heading">¶</a></h2>
+<p>For initial example, see <a class="reference external" href="https://github.com/SciSciCollective/pyscisci/blob/master/examples/Getting%20Started%20with%20MAG.ipynb">Getting Started With MAG</a>.</p>
+<span class="target" id="module-pyscisci.datasource.MAG"></span><dl class="py class">
+<dt class="sig sig-object py" id="pyscisci.datasource.MAG.MAG">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyscisci.datasource.MAG.</span></span><span class="sig-name descname"><span class="pre">MAG</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path2database</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">database_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'csv.gz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_in_memory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_dask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.MAG.MAG" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for Microsoft Academic Graph interface.</p>
+<p>This is an extension of ‘BibDataBase’ with processing functions specific to the MAG.
+See ‘BibDataBase’ in database.py for details of non-MAG specific functions.</p>
+<p>The MAG comes structured into three folders: mag, advanced, nlp.
+Explain downloading etc.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.MAG.MAG.parse_affiliations">
+<span class="sig-name descname"><span class="pre">parse_affiliations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.MAG.MAG.parse_affiliations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the MAG Affilation raw data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em>) – Save the processed data in new DataFrames.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Affiliation DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.MAG.MAG.parse_authors">
+<span class="sig-name descname"><span class="pre">parse_authors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">process_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_file_lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5000000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.MAG.MAG.parse_authors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the MAG Author raw data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em>) – Save the processed data in new DataFrames.</p></li>
+<li><p><strong>process_name</strong> (<em>bool</em><em>, </em><em>default True</em>) – <p>If True, then when processing the raw file, the package <a class="reference external" href="https://nameparser.readthedocs.io/en/latest/">NameParser</a>
+will be used to split author FullNames.</p>
+</p></li>
+<li><p><strong>num_file_lines</strong> (<em>int</em><em>, </em><em>default 5*10**6</em>) – The processed data will be saved into smaller DataFrames, each with <cite>num_file_lines</cite> rows.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Author DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.MAG.MAG.parse_fields">
+<span class="sig-name descname"><span class="pre">parse_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_file_lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5000000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.MAG.MAG.parse_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the MAG Paper Field raw data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em>) – Save the processed data in new DataFrames.</p></li>
+<li><p><strong>num_file_lines</strong> (<em>int</em><em>, </em><em>default 10**7</em>) – The processed data will be saved into smaller DataFrames, each with <cite>num_file_lines</cite> rows.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pub2Field DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.MAG.MAG.parse_publicationauthoraffiliation">
+<span class="sig-name descname"><span class="pre">parse_publicationauthoraffiliation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_file_lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5000000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.MAG.MAG.parse_publicationauthoraffiliation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the MAG PublicationAuthorAffiliation raw data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em>) – Save the processed data in new DataFrames.</p></li>
+<li><p><strong>num_file_lines</strong> (<em>int</em><em>, </em><em>default 10**7</em>) – The processed data will be saved into smaller DataFrames, each with <cite>num_file_lines</cite> rows.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>PublicationAuthorAffiliation DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.MAG.MAG.parse_publications">
+<span class="sig-name descname"><span class="pre">parse_publications</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_file_lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocess_dicts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.MAG.MAG.parse_publications" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the MAG Publication and Journal raw data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em>) – Save the processed data in new DataFrames.</p></li>
+<li><p><strong>num_file_lines</strong> (<em>int</em><em>, </em><em>default 5*10**6</em>) – The processed data will be saved into smaller DataFrames, each with <cite>num_file_lines</cite> rows.</p></li>
+<li><p><strong>preprocess_dicts</strong> (<em>bool</em><em>, </em><em>default True</em>) – Save the processed Year and DocType data as dictionaries.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Publication DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.MAG.MAG.parse_references">
+<span class="sig-name descname"><span class="pre">parse_references</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_file_lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.MAG.MAG.parse_references" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the MAG References raw data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em>) – Save the processed data in new DataFrames.</p></li>
+<li><p><strong>num_file_lines</strong> (<em>int</em><em>, </em><em>default 10**7</em>) – The processed data will be saved into smaller DataFrames, each with <cite>num_file_lines</cite> rows.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pub2Ref DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.MAG.MAG.preprocess">
+<span class="sig-name descname"><span class="pre">preprocess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dflist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">combine_conferences</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.MAG.MAG.preprocess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bulk preprocess the MAG raw data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dflist</strong> (<em>list</em><em>, </em><em>default None</em>) – The list of DataFrames to preprocess.  If None, all MAG DataFrames are preprocessed.</p></li>
+<li><p><strong>combine_conferences</strong> (<em>bool</em><em>, </em><em>default True</em><em>,</em>) – combine the conference series into the Journals</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="web-of-science-wos">
+<h2>Web of Science (WoS)<a class="headerlink" href="#web-of-science-wos" title="Permalink to this heading">¶</a></h2>
+<p>For initial example, see <a class="reference external" href="https://github.com/SciSciCollective/pyscisci/blob/master/examples/Getting%20Started%20with%20WOS.ipynb">Getting Started With WoS</a>.</p>
+<span class="target" id="module-pyscisci.datasource.WOS"></span><dl class="py class">
+<dt class="sig sig-object py" id="pyscisci.datasource.WOS.WOS">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyscisci.datasource.WOS.</span></span><span class="sig-name descname"><span class="pre">WOS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path2database</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">database_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'csv.gz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_in_memory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_dask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.WOS.WOS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for Web of Science interface.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.WOS.WOS.preprocess">
+<span class="sig-name descname"><span class="pre">preprocess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xml_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RawXML'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name_space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">process_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_file_lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.WOS.WOS.preprocess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bulk preprocess of the Web of Science raw data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>'xml_directory'</strong> (<em>str</em><em>, </em><em>default 'RawXML'</em>) – The subdirectory containing the raw WOS xml files.</p></li>
+<li><p><strong>'name_space'</strong> (<em>str</em><em>, </em><em>defulat None</em>) – The link to a xml namespace file.  Originally ‘<a class="reference external" href="http://scientific.thomsonreuters.com/schema/wok5.4/public/FullRecord">http://scientific.thomsonreuters.com/schema/wok5.4/public/FullRecord</a>’ but
+this link is now broken and Clarivate has not replaced the namespace.</p></li>
+<li><p><strong>process_name</strong> (<em>bool</em><em>, </em><em>default True</em>) – <p>If True, then when processing the raw file, the package <a class="reference external" href="https://nameparser.readthedocs.io/en/latest/">NameParser</a>
+will be used to split author FullNames.</p>
+</p></li>
+<li><p><strong>num_file_lines</strong> (<em>int</em><em>, </em><em>default 10**6</em>) – The processed data will be saved into smaller DataFrames, each with <cite>num_file_lines</cite> rows.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="dblp-computer-science-bibliography-dblp">
+<h2>DBLP Computer Science Bibliography (DBLP)<a class="headerlink" href="#dblp-computer-science-bibliography-dblp" title="Permalink to this heading">¶</a></h2>
+<p>For initial example, see <a class="reference external" href="https://github.com/SciSciCollective/pyscisci/blob/master/examples/Getting%20Started%20with%20DBLP.ipynb">Getting Started With DBLP</a>.</p>
+<span class="target" id="module-pyscisci.datasource.DBLP"></span><dl class="py class">
+<dt class="sig sig-object py" id="pyscisci.datasource.DBLP.DBLP">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyscisci.datasource.DBLP.</span></span><span class="sig-name descname"><span class="pre">DBLP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path2database</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">database_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'csv.gz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_in_memory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_dask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.DBLP.DBLP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for DBLP interface.</p>
+<p>The DBLP comes as a single xml file.  It can be downloaded from [DBLP](<a class="reference external" href="https://dblp.uni-trier.de/">https://dblp.uni-trier.de/</a>) via <cite>donwload_from_source</cite></p>
+<p>There is no citation information!</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="pyscisci.datasource.DBLP.DBLP.author2pub">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">author2pub</span></span><a class="headerlink" href="#pyscisci.datasource.DBLP.DBLP.author2pub" title="Permalink to this definition">¶</a></dt>
+<dd><p>The DataFrame keeping all publication, author relationships.  Columns may depend on the specific datasource.</p>
+<p class="rubric">Notes</p>
+<p>columns: ‘PublicationId’, ‘AuthorId’, ‘AuthorOrder’</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.DBLP.DBLP.download_from_source">
+<span class="sig-name descname"><span class="pre">download_from_source</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'https://dblp.uni-trier.de/xml/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xml_file_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dblp.xml.gz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtd_file_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dblp.dtd'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.DBLP.DBLP.download_from_source" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Download the DBLP raw xml file and the dtd formating information from [DBLP](<a class="reference external" href="https://dblp.uni-trier.de/">https://dblp.uni-trier.de/</a>).</dt><dd><ol class="arabic simple">
+<li><p>dblp.xml.gz - the compressed xml file</p></li>
+<li><p>dblp.dtd - the dtd containing xml syntax</p></li>
+</ol>
+</dd>
+</dl>
+<p>The files will be saved to the path specified by <cite>path2database</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source_url</strong> (str, default ‘<a class="reference external" href="https://dblp.uni-trier.de/xml/">https://dblp.uni-trier.de/xml/</a>’) – The base url from which to download.</p></li>
+<li><p><strong>xml_file_name</strong> (<em>str</em><em>, </em><em>default 'dblp.xml.gz'</em>) – The xml file name.</p></li>
+<li><p><strong>dtd_file_name</strong> (<em>str</em><em>, </em><em>default 'dblp.dtd'</em>) – The dtd file name.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.DBLP.DBLP.load_journals">
+<span class="sig-name descname"><span class="pre">load_journals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_subset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'last'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropna</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefunc2apply</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">postfunc2apply</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.DBLP.DBLP.load_journals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the Journal DataFrame from a preprocessed directory, or parse from the raw files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em><em>, </em><em>Optional</em>) – Attempt to load from the preprocessed directory.</p></li>
+<li><p><strong>columns</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Load only this subset of columns</p></li>
+<li><p><strong>filter_dict</strong> (<em>dict</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Dictionary of format {“ColumnName”:”ListofValues”} where “ColumnName” is a data column
+and “ListofValues” is a sorted list of valid values.  A DataFrame only containing rows that appear in
+“ListofValues” will be returned.</p></li>
+<li><p><strong>duplicate_subset</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any duplicate entries as specified by this subset of columns</p></li>
+<li><p><strong>duplicate_keep</strong> (<em>str</em><em>, </em><em>default 'last'</em><em>, </em><em>Optional</em>) – <p>If duplicates are being dropped, keep the ‘first’ or ‘last’
+(see <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop_duplicates.html">pandas.DataFram.drop_duplicates</a>)</p>
+</p></li>
+<li><p><strong>dropna</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any NaN entries as specified by this subset of columns</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Journal DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.DBLP.DBLP.load_publicationauthor">
+<span class="sig-name descname"><span class="pre">load_publicationauthor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_subset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'last'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropna</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.DBLP.DBLP.load_publicationauthor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the PublicationAuthor DataFrame from a preprocessed directory.  For DBLP, you must run preprocess before
+the dataframe is available for use.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em><em>, </em><em>Optional</em>) – Attempt to load from the preprocessed directory.</p></li>
+<li><p><strong>columns</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Load only this subset of columns</p></li>
+<li><p><strong>filter_dict</strong> (<em>dict</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Dictionary of format {“ColumnName”:”ListofValues”} where “ColumnName” is a data column
+and “ListofValues” is a sorted list of valid values.  A DataFrame only containing rows that appear in
+“ListofValues” will be returned.</p></li>
+<li><p><strong>duplicate_subset</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any duplicate entries as specified by this subset of columns</p></li>
+<li><p><strong>duplicate_keep</strong> (<em>str</em><em>, </em><em>default 'last'</em><em>, </em><em>Optional</em>) – <p>If duplicates are being dropped, keep the ‘first’ or ‘last’
+(see <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop_duplicates.html">pandas.DataFram.drop_duplicates</a>)</p>
+</p></li>
+<li><p><strong>dropna</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any NaN entries as specified by this subset of columns</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>PublicationAuthor DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.DBLP.DBLP.preprocess">
+<span class="sig-name descname"><span class="pre">preprocess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xml_file_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dblp.xml.gz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">process_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_file_lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.DBLP.DBLP.preprocess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bulk preprocess of the DBLP raw data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>process_name</strong> (<em>bool</em><em>, </em><em>default True</em>) – <p>If True, then when processing the raw file, the package <a class="reference external" href="https://nameparser.readthedocs.io/en/latest/">NameParser</a>
+will be used to split author FullNames.</p>
+</p></li>
+<li><p><strong>xml_file_name</strong> (<em>str</em><em>, </em><em>default 'dblp.xml.gz'</em>) – The xml file name.</p></li>
+<li><p><strong>num_file_lines</strong> (<em>int</em><em>, </em><em>default 10**6</em>) – The processed data will be saved into smaller DataFrames, each with <cite>num_file_lines</cite> rows.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="american-physics-society-aps">
+<h2>American Physics Society (APS)<a class="headerlink" href="#american-physics-society-aps" title="Permalink to this heading">¶</a></h2>
+<p>For initial example, see <a class="reference external" href="https://github.com/SciSciCollective/pyscisci/blob/master/examples/Getting%20Started%20with%20APS.ipynb">Getting Started With APS</a>.</p>
+<span class="target" id="module-pyscisci.datasource.APS"></span><dl class="py class">
+<dt class="sig sig-object py" id="pyscisci.datasource.APS.APS">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyscisci.datasource.APS.</span></span><span class="sig-name descname"><span class="pre">APS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path2database</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">database_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'csv.gz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_in_memory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_dask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.APS.APS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for APS interface.</p>
+<p>The APS comes as a single xml file.</p>
+<p>You must request usage through their website: <a class="reference external" href="https://journals.aps.org/datasets">https://journals.aps.org/datasets</a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.APS.APS.load_journals">
+<span class="sig-name descname"><span class="pre">load_journals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_subset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'last'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropna</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefunc2apply</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">postfunc2apply</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.APS.APS.load_journals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the Journal DataFrame from a preprocessed directory, or parse from the raw files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em><em>, </em><em>Optional</em>) – Attempt to load from the preprocessed directory.</p></li>
+<li><p><strong>columns</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Load only this subset of columns</p></li>
+<li><p><strong>filter_dict</strong> (<em>dict</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Dictionary of format {“ColumnName”:”ListofValues”} where “ColumnName” is a data column
+and “ListofValues” is a sorted list of valid values.  A DataFrame only containing rows that appear in
+“ListofValues” will be returned.</p></li>
+<li><p><strong>duplicate_subset</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any duplicate entries as specified by this subset of columns</p></li>
+<li><p><strong>duplicate_keep</strong> (<em>str</em><em>, </em><em>default 'last'</em><em>, </em><em>Optional</em>) – <p>If duplicates are being dropped, keep the ‘first’ or ‘last’
+(see <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop_duplicates.html">pandas.DataFram.drop_duplicates</a>)</p>
+</p></li>
+<li><p><strong>dropna</strong> (<em>list</em><em>, </em><em>default None</em><em>, </em><em>Optional</em>) – Drop any NaN entries as specified by this subset of columns</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Journal DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.APS.APS.preprocess">
+<span class="sig-name descname"><span class="pre">preprocess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">archive_year</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2019</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pubid2int</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_archive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">citation_archive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.APS.APS.preprocess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bulk preprocess the APS raw data.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="id22">
+<h2>PubMed<a class="headerlink" href="#id22" title="Permalink to this heading">¶</a></h2>
+<p>For initial example, see <a class="reference external" href="https://github.com/SciSciCollective/pyscisci/blob/master/examples/Getting%20Started%20with%20PubMed.ipynb">Getting Started With PubMed</a>.</p>
+<span class="target" id="module-pyscisci.datasource.PubMed"></span><dl class="py class">
+<dt class="sig sig-object py" id="pyscisci.datasource.PubMed.PubMed">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyscisci.datasource.PubMed.</span></span><span class="sig-name descname"><span class="pre">PubMed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path2database</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">database_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'csv.gz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_in_memory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_dask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.PubMed.PubMed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for PubMed Medline interface.</p>
+<p class="rubric">Notes</p>
+<p>~ PubMed comes as &gt;1000 compressed XML files.
+~ The PMID is renamed PublicationId to be consistent with the rest of pySciSci.
+~ PubMed does not disambiguate Authors.
+~</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.PubMed.PubMed.download_from_source">
+<span class="sig-name descname"><span class="pre">download_from_source</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ftp.ncbi.nlm.nih.gov'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtd_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'https://dtd.nlm.nih.gov/ncbi/pubmed/out/pubmed_190101.dtd'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rewrite_existing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.PubMed.PubMed.download_from_source" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Download the Pubmed raw xml files and the dtd formating information from [PubMed](<a class="reference external" href="https://www.nlm.nih.gov/databases/download/pubmed_medline.html">https://www.nlm.nih.gov/databases/download/pubmed_medline.html</a>).</dt><dd><ol class="arabic simple">
+<li><p>pubmed/baseline - the directory containing the baseline compressed xml files</p></li>
+<li><p>pubmed_190101.dtd - the dtd containing xml syntax</p></li>
+</ol>
+</dd>
+</dl>
+<p>The files will be saved to the path specified by <cite>path2database</cite> into RawXML.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source_url</strong> (<em>str</em><em>, </em><em>default 'ftp.ncbi.nlm.nih.gov'</em>) – The base url for the ftp server from which to download.</p></li>
+<li><p><strong>dtd_url</strong> (<em>str</em><em>, </em><em>default 'pubmed_190101.dtd'</em>) – The url for the dtd file.</p></li>
+<li><p><strong>rewrite_existing</strong> (<em>bool</em><em>, </em><em>default False</em>) – If True, overwrite existing files or if False, only download any missing files.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.PubMed.PubMed.parse_fields">
+<span class="sig-name descname"><span class="pre">parse_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_file_lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rewrite_existing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xml_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RawXML'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.PubMed.PubMed.parse_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the PubMed field (mesh term) raw data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em>) – Save the processed data in new DataFrames.</p></li>
+<li><p><strong>process_name</strong> (<em>bool</em><em>, </em><em>default True</em>) – <p>If True, then when processing the raw file, the package <a class="reference external" href="https://nameparser.readthedocs.io/en/latest/">NameParser</a>
+will be used to split author FullNames.</p>
+</p></li>
+<li><p><strong>num_file_lines</strong> (<em>int</em><em>, </em><em>default 5*10**6</em>) – The processed data will be saved into smaller DataFrames, each with <cite>num_file_lines</cite> rows.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Publication-Term ID DataFrame and Term ID - Term DataFrame</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.PubMed.PubMed.parse_publicationauthoraffiliation">
+<span class="sig-name descname"><span class="pre">parse_publicationauthoraffiliation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xml_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RawXML'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_file_lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rewrite_existing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.PubMed.PubMed.parse_publicationauthoraffiliation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the PubMed publication-author raw data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em>) – Save the processed data in new DataFrames.</p></li>
+<li><p><strong>process_name</strong> (<em>bool</em><em>, </em><em>default True</em>) – <p>If True, then when processing the raw file, the package <a class="reference external" href="https://nameparser.readthedocs.io/en/latest/">NameParser</a>
+will be used to split author FullNames.</p>
+</p></li>
+<li><p><strong>num_file_lines</strong> (<em>int</em><em>, </em><em>default 5*10**6</em>) – The processed data will be saved into smaller DataFrames, each with <cite>num_file_lines</cite> rows.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Publication-Author DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.PubMed.PubMed.parse_publications">
+<span class="sig-name descname"><span class="pre">parse_publications</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xml_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RawXML'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_file_lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rewrite_existing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.PubMed.PubMed.parse_publications" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the PubMed publication raw data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em>) – Save the processed data in new DataFrames.</p></li>
+<li><p><strong>process_name</strong> (<em>bool</em><em>, </em><em>default True</em>) – <p>If True, then when processing the raw file, the package <a class="reference external" href="https://nameparser.readthedocs.io/en/latest/">NameParser</a>
+will be used to split author FullNames.</p>
+</p></li>
+<li><p><strong>num_file_lines</strong> (<em>int</em><em>, </em><em>default 5*10**6</em>) – The processed data will be saved into smaller DataFrames, each with <cite>num_file_lines</cite> rows.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Publication metadata DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.PubMed.PubMed.parse_references">
+<span class="sig-name descname"><span class="pre">parse_references</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xml_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RawXML'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_file_lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rewrite_existing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.PubMed.PubMed.parse_references" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the PubMed References raw data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocess</strong> (<em>bool</em><em>, </em><em>default True</em>) – Save the processed data in new DataFrames.</p></li>
+<li><p><strong>process_name</strong> (<em>bool</em><em>, </em><em>default True</em>) – <p>If True, then when processing the raw file, the package <a class="reference external" href="https://nameparser.readthedocs.io/en/latest/">NameParser</a>
+will be used to split author FullNames.</p>
+</p></li>
+<li><p><strong>num_file_lines</strong> (<em>int</em><em>, </em><em>default 5*10**6</em>) – The processed data will be saved into smaller DataFrames, each with <cite>num_file_lines</cite> rows.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Citations DataFrame.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.PubMed.PubMed.preprocess">
+<span class="sig-name descname"><span class="pre">preprocess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xml_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RawXML'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">process_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_file_lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rewrite_existing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.PubMed.PubMed.preprocess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bulk preprocess of the PubMed raw data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>process_name</strong> (<em>bool</em><em>, </em><em>default True</em>) – <p>If True, then when processing the raw file, the package <a class="reference external" href="https://nameparser.readthedocs.io/en/latest/">NameParser</a>
+will be used to split author FullNames.</p>
+</p></li>
+<li><p><strong>num_file_lines</strong> (<em>int</em><em>, </em><em>default 10**6</em>) – The processed data will be saved into smaller DataFrames, each with <cite>num_file_lines</cite> rows.</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show progress with processing of the data.</p></li>
+<li><p><strong>rewrite_existing</strong> (<em>bool</em><em>, </em><em>default False</em>) – If True, rewrites the files in the data directory</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="custom-db">
+<h2>Custom DB<a class="headerlink" href="#custom-db" title="Permalink to this heading">¶</a></h2>
+<p>For initial example, see <a class="reference external" href="https://github.com/SciSciCollective/pyscisci/blob/master/examples/Getting_Started/Getting%20Started%20with%20a%20Custom%20DB.ipynb">Getting Started With Custom DB</a>.</p>
+<span class="target" id="module-pyscisci.datasource.CustomDB"></span><dl class="py class">
+<dt class="sig sig-object py" id="pyscisci.datasource.CustomDB.CustomDB">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyscisci.datasource.CustomDB.</span></span><span class="sig-name descname"><span class="pre">CustomDB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path2database</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">database_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'csv.gz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_in_memory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_dask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.CustomDB.CustomDB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for creating a CustomDB.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyscisci.datasource.CustomDB.CustomDB.set_new_data_paths">
+<span class="sig-name descname"><span class="pre">set_new_data_paths</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyscisci.datasource.CustomDB.CustomDB.set_new_data_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override path to the dataframe collections based on a new custom hierarchy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>new_path_dict</strong> (<em>dict</em>) – A dictionary where each key is a dataframe name to override.  E.g. ‘author’, ‘pub’, ‘paa’, ‘pub2field’, etc.
+and each item is the new dataframe path.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">pySciSci</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="about.html">About</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The DataBase</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#basic-data-workflow">Basic Data WorkFlow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dataset-examples">DataSet Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dataframes">DataFrames</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#filters">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#property-dictionaries">Property Dictionaries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pyscisci.database">BibDataBase</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id9">OpenAlex</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#microsoft-academic-graph-mag">Microsoft Academic Graph (MAG)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#web-of-science-wos">Web of Science (WoS)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dblp-computer-science-bibliography-dblp">DBLP Computer Science Bibliography (DBLP)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#american-physics-society-aps">American Physics Society (APS)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id22">PubMed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#custom-db">Custom DB</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="methods.html">Bibliometrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network.html">Biblio-Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Bibliometrics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="examples.html" title="previous chapter">Examples</a></li>
+      <li>Next: <a href="methods.html" title="next chapter">Bibliometrics</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, Alexander Gates.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/databases.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

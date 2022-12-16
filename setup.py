@@ -17,7 +17,7 @@ setup(name=__package__,
             'Intended Audience :: Science/Research',
             'Topic :: Scientific/Engineering :: Information Analysis',
       ],
-      keywords="science of science",
+      keywords=["science of science", "citation network", 'bibliometric'],
       url="https://github.com/ajgates42/pyscisci",
       author = 'Alex Gates <ajgates42@gmail.com>',
       license="MIT",
@@ -32,12 +32,12 @@ setup(name=__package__,
             'requests',
             'unidecode',
             'tqdm',
-            'tables',
             'dask',
-            'numba',
-            'sparse_dot_topn',
-            'python-Levenshtein'
-      ],
+            'numba'
+            ],
+      extras_require = {
+        'nlp':  ["sparse_dot_topn", "python-Levenshtein"],
+        'hdf':['tables']},
       include_package_data=True,
       zip_safe=False
       )

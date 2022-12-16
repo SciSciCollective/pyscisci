@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. module:: bibnetwork
+.. module:: sparsenetworkutils
     :synopsis: The main Network class
 
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>

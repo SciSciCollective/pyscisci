@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-.. module:: publication
-    :synopsis: The main Publication class
+.. module:: utils
+    :synopsis: utils for basic functions
 
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
  """

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 .. module:: reference strength
-    :synopsis: Set of functions for typical bibliometric citation analysis
+    :synopsis: Set of functions for finding field reference strength and share.
 
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
  """

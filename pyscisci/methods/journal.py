@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-.. module:: citationanalysis
-    :synopsis: Set of functions for typical bibliometric citation analysis
+.. module:: journalcitation
+    :synopsis: Set of functions for typical journal bibliometric citation analysis
 
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
  """

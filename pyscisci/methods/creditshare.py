@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-.. module:: citationanalysis
-    :synopsis: Set of functions for typical bibliometric citation analysis
+.. module:: credit sharing
+    :synopsis: Set of functions for calcuating credit share amongst authors.
 
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
  """

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-.. module:: citationanalysis
-    :synopsis: Set of functions for typical bibliometric citation analysis
+.. module:: RaoStirling Interdisciplinarity
+    :synopsis: Set of functions for RaoStirling Interdisciplinarity
 
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
  """

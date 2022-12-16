@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-.. module:: citationanalysis
-    :synopsis: Set of functions for typical bibliometric citation analysis
+.. module:: distruption index
+    :synopsis: Set of functions for finding the disruption index.
 
 .. moduleauthor:: Alex Gates <ajgates42@gmail.com>
  """

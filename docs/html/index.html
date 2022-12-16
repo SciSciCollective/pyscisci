@@ -1,0 +1,219 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Welcome to pySciSci’s documentation! &#8212; pySciSci 0.6 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="About" href="about.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="welcome-to-pyscisci-s-documentation">
+<h1>Welcome to pySciSci’s documentation!<a class="headerlink" href="#welcome-to-pyscisci-s-documentation" title="Permalink to this heading">¶</a></h1>
+<section id="table-of-contents">
+<h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="about.html">About</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="about.html#funding">Funding</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#getting-started-examples">Getting Started Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#method-examples">Method Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#advanced-functionality">Advanced Functionality</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#science-of-science-textbook">Science of Science Textbook</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html">The DataBase</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="databases.html#basic-data-workflow">Basic Data WorkFlow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="databases.html#dataset-examples">DataSet Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="databases.html#dataframes">DataFrames</a></li>
+<li class="toctree-l2"><a class="reference internal" href="databases.html#filters">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="databases.html#property-dictionaries">Property Dictionaries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="databases.html#module-pyscisci.database">BibDataBase</a></li>
+<li class="toctree-l2"><a class="reference internal" href="databases.html#id9">OpenAlex</a></li>
+<li class="toctree-l2"><a class="reference internal" href="databases.html#microsoft-academic-graph-mag">Microsoft Academic Graph (MAG)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="databases.html#web-of-science-wos">Web of Science (WoS)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="databases.html#dblp-computer-science-bibliography-dblp">DBLP Computer Science Bibliography (DBLP)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="databases.html#american-physics-society-aps">American Physics Society (APS)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="databases.html#id22">PubMed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="databases.html#custom-db">Custom DB</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="methods.html">Bibliometrics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="methods.html#publications-and-citations">Publications and Citations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="methods.html#author-centric-methods">Author-centric Methods</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="network.html">Biblio-Networks</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="network.html#pyscisci.network.coauthorship_network"><code class="docutils literal notranslate"><span class="pre">coauthorship_network()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="network.html#pyscisci.network.cocitation_network"><code class="docutils literal notranslate"><span class="pre">cocitation_network()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="network.html#pyscisci.network.cociting_network"><code class="docutils literal notranslate"><span class="pre">cociting_network()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="network.html#pyscisci.network.estimate_resolution"><code class="docutils literal notranslate"><span class="pre">estimate_resolution()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="network.html#pyscisci.network.extract_multiscale_backbone"><code class="docutils literal notranslate"><span class="pre">extract_multiscale_backbone()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">General Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyscisci.utils.download_file_from_google_drive"><code class="docutils literal notranslate"><span class="pre">download_file_from_google_drive()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyscisci.utils.empty_mode"><code class="docutils literal notranslate"><span class="pre">empty_mode()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyscisci.utils.groupby_count"><code class="docutils literal notranslate"><span class="pre">groupby_count()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyscisci.utils.groupby_mean"><code class="docutils literal notranslate"><span class="pre">groupby_mean()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyscisci.utils.groupby_range"><code class="docutils literal notranslate"><span class="pre">groupby_range()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyscisci.utils.groupby_total"><code class="docutils literal notranslate"><span class="pre">groupby_total()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyscisci.utils.groupby_zero_col"><code class="docutils literal notranslate"><span class="pre">groupby_zero_col()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyscisci.utils.holder_mean"><code class="docutils literal notranslate"><span class="pre">holder_mean()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyscisci.utils.isin_range"><code class="docutils literal notranslate"><span class="pre">isin_range()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyscisci.utils.isin_sorted"><code class="docutils literal notranslate"><span class="pre">isin_sorted()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyscisci.utils.jenson_shannon"><code class="docutils literal notranslate"><span class="pre">jenson_shannon()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyscisci.utils.kl"><code class="docutils literal notranslate"><span class="pre">kl()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyscisci.utils.rank_array"><code class="docutils literal notranslate"><span class="pre">rank_array()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyscisci.utils.shannon_entropy"><code class="docutils literal notranslate"><span class="pre">shannon_entropy()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyscisci.utils.simpson"><code class="docutils literal notranslate"><span class="pre">simpson()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyscisci.utils.simpson_finite"><code class="docutils literal notranslate"><span class="pre">simpson_finite()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyscisci.utils.uniquemap_by_frequency"><code class="docutils literal notranslate"><span class="pre">uniquemap_by_frequency()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyscisci.utils.value_to_int"><code class="docutils literal notranslate"><span class="pre">value_to_int()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyscisci.utils.welford_mean_m2"><code class="docutils literal notranslate"><span class="pre">welford_mean_m2()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h2>
+<div class="docutils container" id="id1">
+<div class="citation" id="id15" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
+<p>Santo Fortunato, Carl T. Bergstrom, Katy Borner, James A. Evans, Dirk Helbing, Staša Milojevic, Alexander M. Petersen, Filippo Radicchi, Roberta Sinatra, Brian Uzzi, Alessandro Vespignani, Ludo Waltman, Dashun Wang, and Albert-László Barabási. Science of science. <em>Science</em>, 359(6379):eaao0185, Mar 2018.</p>
+</div>
+<div class="citation" id="id16" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></span>
+<p>Dashun Wang and Albert-László Barabási. <em>Science of Science</em>. Cambridge University press, 2021.</p>
+</div>
+<div class="citation" id="id6" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></span>
+<p>Dashun Wang, Chaoming Song, and Albert-László -. L. Barabási. Quantifying long-term scientific impact. <em>Science</em>, 342(6154):127–132, 2013.</p>
+</div>
+<div class="citation" id="id12" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></span>
+<p>B. Uzzi, S. Mukherjee, M. Stringer, and B. Jones. Atypical combinations and scientific impact. <em>Science</em>, 342(6157):468–472, Oct 2013. <a class="reference external" href="https://doi.org/10.1126/science.1240474">doi:10.1126/science.1240474</a>.</p>
+</div>
+<div class="citation" id="id2" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></span>
+<p>Jorge E Hirsch. An index to quantify an individual's scientific research output. <em>Proceedings of the National academy of Sciences</em>, 102(46):16569–16572, 2005.</p>
+</div>
+<div class="citation" id="id3" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></span>
+<p>Samuel F Way, Allison C Morgan, Aaron Clauset, and Daniel B Larremore. The misleading narrative of the canonical faculty productivity trajectory. <em>Proceedings of the National Academy of Sciences</em>, 114(44):E9216–E9223, 2017.</p>
+</div>
+<div class="citation" id="id20" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></span>
+<p>Nees Jan van Eck and Ludo Waltman. Generalizing the h-and g-indices. <em>Journal of Informetrics</em>, 2(4):263–271, 2008.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">pySciSci</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="about.html">About</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html">The DataBase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methods.html">Bibliometrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network.html">Biblio-Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">General Functions</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="about.html" title="next chapter">About</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, Alexander Gates.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
