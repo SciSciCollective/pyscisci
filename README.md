@@ -1,6 +1,6 @@
 # ``pySciSci``
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/SciSciCollective/pyscisci/blob/master/LICENSE)
-[![Read the Docs](https://readthedocs.org/projects/pyscisci/badge/?version=latest)(https://pyscisci.readthedocs.io/en/latest/?badge=latest)
+[![Read the Docs](https://readthedocs.org/projects/pyscisci/badge/?version=latest)](https://pyscisci.readthedocs.io/en/latest/?badge=latest)
 
 "The Science of Science (SciSci) is based on a transdisciplinary approach that uses large data sets to study the mechanisms underlying the doing of science—from the choice of a research problem to career trajectories and progress within a field"[[1]](#1).
 
