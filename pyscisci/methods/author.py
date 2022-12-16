@@ -18,7 +18,7 @@ else:
     from tqdm import tqdm
 
 from pyscisci.utils import zip2dict, check4columns, groupby_count, groupby_range, empty_mode
-from pyscisci.methods.hindex import compute_hindex
+from pyscisci.methods.hindex import compute_hindex, compute_gindex
 from pyscisci.methods.qfactor import compute_qfactor
 from pyscisci.methods.productivitytrajectory import yearly_productivity_traj
 from pyscisci.methods.diffusionscientificcredit import diffusion_of_scientific_credit
@@ -213,6 +213,74 @@ def author_productivity_trajectory(pub2author, colgroupby = 'AuthorId', datecol 
 
 def author_hindex(pub2author, impact=None, colgroupby = 'AuthorId', colcountby = 'Ctotal', show_progress=False):
     """
+    Calculate the author H-index.  See :cite:`hirsch2005index` for the derivation.
+
+    The algorithmic implementation can be found in :py:func:`metrics.hindex`.
+
+    Parameters
+    ----------
+    df : DataFrame, default None, Optional
+        A DataFrame with the author2publication information.  If None then the database 'author2pub' is used.
+
+    colgroupby : str, default 'AuthorId', Optional
+        The DataFrame column with Author Ids.  If None then the database 'AuthorId' is used.
+
+    colcountby : str, default 'Ctotal', Optional
+        The DataFrame column with Citation counts for each publication.  If None then the database 'Ctotal' is used.
+
+    Returns
+    -------
+    DataFrame
+        Trajectory DataFrame with 2 columns: 'AuthorId', 'Hindex'
+
+    """
+
+    #df =
+
+    if show_progress: print("Computing H-index.")
+    if impact is None:
+        df = pub2author
+    else:
+        df = pub2author.merge(impact[[colgroupby, colcountby]], on='PublicationId', how='left')
+
+    return compute_hindex(df, colgroupby = colgroupby, colcountby = colcountby, show_progress=show_progress)
+
+def author_gindex(pub2author, impact=None, colgroupby = 'AuthorId', colcountby = 'Ctotal', show_progress=False):
+    """
+    Calculate the author g-index.  See :cite:`hirsch2005index` for the derivation.
+
+    The algorithmic implementation can be found in :py:func:`metrics.hindex`.
+
+    Parameters
+    ----------
+    df : DataFrame, default None, Optional
+        A DataFrame with the author2publication information.  If None then the database 'author2pub' is used.
+
+    colgroupby : str, default 'AuthorId', Optional
+        The DataFrame column with Author Ids.  If None then the database 'AuthorId' is used.
+
+    colcountby : str, default 'Ctotal', Optional
+        The DataFrame column with Citation counts for each publication.  If None then the database 'Ctotal' is used.
+
+    Returns
+    -------
+    DataFrame
+        Trajectory DataFrame with 2 columns: 'AuthorId', 'Hindex'
+
+    """
+
+    #df =
+
+    if show_progress: print("Computing G-index.")
+    if impact is None:
+        df = pub2author
+    else:
+        df = pub2author.merge(impact[[colgroupby, colcountby]], on='PublicationId', how='left')
+
+    return compute_gindex(df, colgroupby = colgroupby, colcountby = colcountby, show_progress=show_progress)
+
+def author_hindex(pub2author, impact=None, colgroupby = 'AuthorId', colcountby = 'Ctotal', show_progress=False):
+    """
     Calculate the author yearly productivity trajectory.  See :cite:`hirsch2005index` for the derivation.
 
     The algorithmic implementation can be found in :py:func:`metrics.hindex`.
@@ -371,8 +439,50 @@ def author_top_field(pub2author, colgroupby = 'AuthorId', colcountby = 'FieldId'
     return author2field.to_frame().reset_index().rename(columns=newname_dict)
 
 
+def author_hotstreak(pub2author, colgroupby = 'AuthorId', citecol = 'c10',datecol='Year',  maxk=1, l1_lambda=1.0, show_progress=False):
+    """
+    Identify hot streaks in author careers :cite:`liu2018hotstreak'.
 
+    TODO: this is an interger programming problem.  Reimplement using an interger solver.
+    Right now just using a brut force search (very inefficient)!
+    
+    Parameters
+    ----------
+    pub2author : DataFrame
+        The author publication history for all authors.
 
+    colgroupby : str, default 'AuthorId'
+        The column with Author information.
+
+    citecol : str, default 'c10'
+        The column with publication citation information.
+
+    datecol : str, default 'Year'
+        The column with publication date/year information.
+    
+    max_k : int, default 1
+        The maximum number of hot streaks to search for in a career. Should be 1 or 2.
+    
+    l1_lambda : float, default 1.0
+        The l1 regularization for the number of streaks.  
+        Note, the authors never define the value they used for this in the SI.
+        
+    Returns
+    ----------
+    lsm_err : float
+        The least square mean error of the model plus the l1-regularized term for the number of model coefficients.
+
+    streak_loc : array
+        The index locations for the hot streak start and end locations.
+    """
+
+    # register our pandas apply with tqdm for a progress bar
+    tqdm.pandas(desc='Author HotStreak', disable= not show_progress)
+
+    pub2author = pub2author.sort_values(by=[colgroupby, datecol]).reset_index(drop=True)
+
+    hotstreak = pub2author.groupby(colgroupby).progress_apply(lambda x: career_hotstreak(x, citecol=citecol, maxk=maxk, l1_lambda = l1_lambda))
+    return hotstreak.reset_index().rename(columns={'level_1':'StreakNumber'})
 
 class pySciSciMetricError(Exception):
     """

@@ -46,7 +46,7 @@ def brut_fit_piecewise_step2(ys):
     
     return np.min(errs), locs2[np.argmin(errs)]
 
-def career_hotstreak(author_career_df, maxk=1, l1_lambda = 1.):
+def career_hotstreak(author_career_df, citecol='c10', maxk=1, l1_lambda = 1.):
     """
     Identify hot streaks in author careers :cite:`liu2018hotstreak'.
 
@@ -57,6 +57,9 @@ def career_hotstreak(author_career_df, maxk=1, l1_lambda = 1.):
     ----------
     author_career_df : DataFrame
         The author publication history.
+
+    citecol : str, default 'c10'
+        The column with publication citation information.
     
     max_k : int, default 1
         The maximum number of hot streaks to search for in a career. Should be 1 or 2.
@@ -77,7 +80,7 @@ def career_hotstreak(author_career_df, maxk=1, l1_lambda = 1.):
         raise NotImplementedError("the career hotstreak is not implemented for this number of streaks.  set maxk = 1 or maxk=2 ")
 
     Delta_N = max(5, int(0.1*author_career_df.shape[0]))
-    gamma_N = hard_rolling_window(np.log10(author_career_df['c10'].values), window=Delta_N, step_size = 1).mean(axis=1)
+    gamma_N = hard_rolling_window(np.log10(author_career_df[citecol].values), window=Delta_N, step_size = 1).mean(axis=1)
     gamma_N = gamma_N[int(Delta_N/2):-int(Delta_N/2)]
     
     nostreak_err = np.sqrt(np.sum((gamma_N - gamma_N.mean())**2)) + l1_lambda # no step functions uses 1 model coefficient
@@ -87,13 +90,16 @@ def career_hotstreak(author_career_df, maxk=1, l1_lambda = 1.):
     streak_err += 3*l1_lambda # 1 step function = 3 model coefficients
     
     streak_loc = [None]*4
+
     if (nostreak_err <= streak_err): 
         streak_err = nostreak_err
+        nstreak = 0
     else:
         streak_loc[:2] = streak_loc1 + int(Delta_N/2)
         streak_gammas[0] = np.hstack([gamma_N[:streak_loc1[0]], gamma_N[(streak_loc1[1]+1):]]).mean()
         streak_gammas[1] = gamma_N[streak_loc1[0]:(streak_loc1[1]+1)].mean()
-        
+        nstreak = 1
+
     if maxk == 2:
         streak_err2, streak_loc2 = brut_fit_piecewise_step2(gamma_N)
         streak_err2 += 6*l1_lambda # 2 step functions = 6 model coefficients
@@ -102,5 +108,9 @@ def career_hotstreak(author_career_df, maxk=1, l1_lambda = 1.):
             streak_gammas[0] = np.hstack([gamma_N[:streak_loc1[0]], gamma_N[streak_loc1[1]:(streak_loc1[2])], gamma_N[(streak_loc1[3]+1):]]).mean()
             streak_gammas[1] = gamma_N[streak_loc1[0]:(streak_loc1[1]+1)].mean()
             streak_gammas[2] = gamma_N[streak_loc1[2]:(streak_loc1[3]+1)].mean()
-            
-    return pd.Series(streak_gammas + streak_loc + [streak_err])
+            nstreak = 2
+    
+    solution_df = [[streak_gammas[0], streak_gammas[1], streak_loc[0], streak_loc[1]]]
+    if nstreak == 2:
+        solution_df += [streak_gammas[0], streak_gammas[2], streak_loc[3], streak_loc[4]]
+    return pd.DataFrame(solution_df, columns = ['Baseline', 'StreakGamma', 'StreakStart', 'StreakEnd'])

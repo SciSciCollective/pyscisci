@@ -39,7 +39,7 @@ def beauty_coefficient(c):
         The awakening time
 
     """
-
+    c = c.values
     t_m = np.argmax(c)
     B_denom = c
     B_denom[c==0] = 1
@@ -56,9 +56,9 @@ def beauty_coefficient(c):
     # :cite:`ke2015beauty` eq 3
     t_a = np.argmax(d_t[:(t_m+1)])
 
-    return np.Series([B, t_a])
+    return pd.Series([B, t_a], index=['BeautyCoefficient', 'Awakening'])
 
-def compute_sleepingbeauty(df, colgroupby, colcountby, show_progress=False):
+def compute_sleepingbeauty(df, colgroupby, colcountby, coldate='Year', show_progress=False):
     """
     Calculate the sleeping beauty and awakening time for each group in the DataFrame.  See :cite:`ke2015beauty` for details.
 
@@ -67,13 +67,16 @@ def compute_sleepingbeauty(df, colgroupby, colcountby, show_progress=False):
     Parameters
     ----------
     df : DataFrame
-        A DataFrame with the citation information for each Author.
+        A DataFrame with the citation information for each publication in each year.
 
     colgroupby : str
-        The DataFrame column with Author Ids.
+        The DataFrame column with Publication Ids.
 
     colcountby : str
         The DataFrame column with Citation counts for each publication.
+
+    coldate : str
+        The DataFrame column with Year information.
 
     Returns
     -------
@@ -84,5 +87,20 @@ def compute_sleepingbeauty(df, colgroupby, colcountby, show_progress=False):
     # register our pandas apply with tqdm for a progress bar
     tqdm.pandas(desc='Beauty', disable= not show_progress)
 
-    newname_dict = zip2dict([str(colcountby), '0', '1'], [str(colgroupby)+'Beauty']*2 + ['Awakening'])
-    return df.groupby(colgroupby, sort=False)[colcountby].progress_apply(beauty_coefficient).to_frame().reset_index().rename(columns=newname_dict)
+    def fill_missing_dates(subdf):
+        subdf = subdf.set_index(coldate).reindex(np.arange(subdf[coldate].min(), subdf[coldate].max()+1)).fillna(0).reset_index()
+        return subdf
+
+    # first fill in missing dates
+    df = df.groupby(colgroupby, sort=False, group_keys=False).apply(fill_missing_dates)
+
+    #get start year
+    syear = df.groupby(colgroupby, sort=False)[coldate].min()
+
+    # now find the beauty coefficient and awakening year
+    beauty = df.groupby(colgroupby, sort=False)[colcountby].progress_apply(beauty_coefficient).unstack(1).reset_index()
+
+    # translate the awakening from index to year
+    beauty['Awakening'] = [a+syear[pid] for pid,a in beauty[[colgroupby, 'Awakening']].values]
+    
+    return beauty
