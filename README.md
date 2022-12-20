@@ -41,18 +41,24 @@ The ``pySciSci`` package also provides efficient implementations of recent metri
 | HotStreak | [Example Career Analysis](/examples/Method_Examples/Example%20Career%20Analysis.ipynb) |
 
 Advanced tools for constructing and analyzing network objects (both static and temporal):
-- Citation network
-- Co-citation network
-- Co-authorship network
-- Co-mention network
-- Graph2vec network embedding
+| Network Analysis |    |
+| ----------- | ----------- |
+| Measure | Example |
+| Citation Network | |
+| Author Citation Network | [Example of Diffusion of Scientific Credit](https://github.com/SciSciCollective/pyscisci/blob/master/examples/Network_Examples/Example%20of%20Diffusion%20of%20Scientific%20Credit.ipynb)|
+| Co-citation network | [Example of Cocitation Network](https://github.com/SciSciCollective/pyscisci/blob/master/examples/Network_Examples/Example%20of%20Cocitation%20Network.ipynb)|
+| Co-authorship network | |
+| Co-mention network | [Example of Coword Mention Network](https://github.com/SciSciCollective/pyscisci/blob/master/examples/NLP_Examples/Example%20of%20Coword%20Mention%20Network.ipynb)|
+| Graph2vec network embedding | [Example_Node2vec](https://github.com/SciSciCollective/pyscisci/blob/master/examples/NLP_Examples/Example_Node2vec%20(umap%2Csem_axis).ipynb)|
+| Multiscale Backbone | [Example of Cocitation Network](https://github.com/SciSciCollective/pyscisci/blob/master/examples/Network_Examples/Example%20of%20Cocitation%20Network.ipynb) |
+| Career Topic Switching | [Example Career Topic Switching](/examples/Method_Examples/Example%20Career%20Topic%20Switching.ipynb) |
 
 Natural Language Processing
 - Publication matching
 - Author matching
 
 Visualization
-- Career Timelines
+- Career Timelines [Example Career Analysis](/examples/Method_Examples/Example%20Career%20Analysis.ipynb)
 
 
 ## Installation
