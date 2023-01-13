@@ -9,6 +9,7 @@ import sys
 import pandas as pd
 import numpy as np
 import requests
+import math
 import scipy.stats as spstats
 
 from numba import jit
@@ -340,6 +341,18 @@ def rank_array(a, ascending=True, normed=False):
         ranks = ranks/(ranks.shape[0]-1)
     return ranks
 
+def convert_size(size_bytes):
+    """
+    Convert the bytes to human readable.
+    """
+    if size_bytes == 0:
+       return "0B"
+    size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+    i = int(math.floor(math.log(size_bytes, 1024)))
+    p = math.pow(1024, i)
+    s = round(size_bytes / p, 2)
+    return "%s %s" % (s, size_name[i])
+
 def empty_mode(a):
     """
     Mode of array when empty
@@ -498,6 +511,60 @@ def welford_mean_m2(previous_count, previous_mean, previous_m2, new_value):
 @jit
 def zscore_var(obs, m, var):
     return (obs-m) / np.sqrt(var)
+
+@jit
+def fast_delong(X,Y):
+    """
+    A fast algorithm from :cite:`Sun2014fastauc` to compute the DeLong AUC :cite:`DeLong1988auc`.
+    """
+    m = X.shape[0]
+    n = Y.shape[0]
+
+    if m == 0 or n == 0:
+        return np.nan, np.nan
+
+    theta = 0
+    Z = np.concatenate((X,Y), axis = 0)
+    Z_MR = compute_midrank(Z)
+    X_MR = compute_midrank(X)
+    Y_MR = compute_midrank(Y)
+
+
+    auc = Z_MR[:m].sum() / m / n - float(m + 1.0) / 2.0 / n
+
+    v01 = (Z_MR[:m] - X_MR) / n
+    v10 = 1.0 - (Z_MR[m:] - Y_MR[:]) / m
+    sx = np.cov(v01)
+    sy = np.cov(v10)
+    delongcov = sx / m + sy / n
+
+    return auc, delongcov
+
+@jit
+def compute_midrank(x):
+    """Computes midranks from :cite:`Sun2014fastauc`.
+
+    Args:
+       x - a 1D numpy array
+    Returns:
+       array of midranks
+
+    """
+    J = np.argsort(x)
+    Z = x[J]
+    N = x.shape[0]
+    T = np.zeros(N, dtype=float)
+    i = 0
+    while i < N:
+        j = i
+        while j < N and Z[j] == Z[i]:
+            j += 1
+        T[i:j] = 0.5*(i + j - 1)
+        i = j
+    T2 = np.empty(N, dtype=float)
+    
+    T2[J] = T + 1
+    return T2
 
 def download_file_from_google_drive(file_id, destination=None, CHUNK_SIZE = 32768):
     """

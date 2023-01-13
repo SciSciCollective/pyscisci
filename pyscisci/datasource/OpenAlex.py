@@ -544,7 +544,7 @@ class OpenAlex(BibDataBase):
                         
                         ownid = self.clean_openalex_ids(wline['id'])
 
-                        if ('publication' in dataframe_list) or ('works' in dataframe_list):
+                        if ('publications' in dataframe_list) or ('works' in dataframe_list):
                             wdata = [ownid, self.clean_openalex_ids(wline.get('host_venue', {}).get('id', None))]
                             wdata += [load_int(wline.get(idname, None)) for idname in ['publication_year', 'cited_by_count']]
                             wdata += [wline.get(idname, None) for idname in ['doi', 'title', 'publication_date', 'type']]
