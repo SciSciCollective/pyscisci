@@ -284,6 +284,9 @@ class DBLP(BibDataBase):
         req_stream = requests.get(os.path.join(source_url, xml_file_name), stream=True)
         total_size = int(req_stream.headers.get('content-length', 0))
 
+        if not os.path.exists(self.path2database):
+            os.mkdir(self.path2database)
+
         with tqdm(total=total_size, unit='iB', unit_scale=True, desc='dblp.xml.gz', leave=True, disable=not show_progress) as pbar:
             with open(os.path.join(self.path2database, xml_file_name), "wb") as outfile:
 
