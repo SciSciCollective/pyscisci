@@ -169,8 +169,9 @@ class APS(BibDataBase):
                     pubinfo.append(load_int(pubjson.get('pageEnd', '')))
 
                 elif not (pubjson.get('numPages', None) is None and not pubjson.get('pageStart', None) is None):
-                    pubinfo.append(pubinfo[-1] + load_int(pubjson.get('numPages', '')))
-
+                    #pubinfo.append(pubinfo[-1] + load_int(pubjson.get('numPages', '')))
+                    pubinfo.append(None)
+                    
                 else:
                     pubinfo.append(None)
 
