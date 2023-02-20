@@ -443,7 +443,7 @@ class OpenAlex(BibDataBase):
         return venue
 
 
-    def parse_publications(self, preprocess = True, specific_update='', preprocess_dicts = True, 
+    def parse_publications(self, preprocess = True, specific_update='', preprocess_dicts = True, num_file_lines=10**6,
         dataframe_list = ['publications', 'references', 'publicationauthoraffiliation', 'fields'],
         show_progress=True):
         """
@@ -463,6 +463,9 @@ class OpenAlex(BibDataBase):
 
         preprocess_dicts: bool, default True
             Save the processed Year and DocType data as dictionaries.
+
+        num_file_lines: int, default 10**6
+            The processed data will be saved into smaller DataFrames, each with `num_file_lines` rows.
 
         dataframe_list: list
             The data types to download and save from OpenAlex.
@@ -538,6 +541,9 @@ class OpenAlex(BibDataBase):
         ifile = 0
         for file_name in tqdm(files_to_parse, desc='Works', leave=True, disable=not show_progress):
             with gzip.open(os.path.join(work_dir, file_name), 'r') as infile:
+                
+                iline = 0
+                
                 for line in infile:
                     if line != '\n'.encode():
                         wline = json.loads(line)
@@ -595,6 +601,50 @@ class OpenAlex(BibDataBase):
                         if ('abstracts' in dataframe_list) and 'abstract_inverted_index' in wline:
                             pub2abstract.append([ownid, wline['abstract_inverted_index']])
 
+                        iline += 1
+
+                        if iline % num_file_lines == 0:
+                            if ('publications' in dataframe_list) or ('works' in dataframe_list):
+                                pub = pd.DataFrame(pubinfo, columns = pub_column_names)
+                                if preprocess:
+                                    fname = os.path.join(self.path2database, self.path2pub, '{}{}.{}'.format(self.path2pub, ifile, self.database_extension))
+                                    self.save_data_file(pub, fname, key =self.path2pub)
+                                    
+                                    pubinfo = []
+                            
+                            if ('references' in dataframe_list):
+                                pub2refdf = pd.DataFrame(pub2ref, columns = ['CitingPublicationId', 'CitedPublicationId'])
+                                if preprocess:
+                                    fname = os.path.join(self.path2database, self.path2pub2ref, '{}{}.{}'.format(self.path2pub2ref, ifile, self.database_extension))
+                                    self.save_data_file(pub2refdf, fname, key =self.path2pub2ref)
+
+                                    pub2ref = []
+
+                            if ('publicationauthoraffiliation' in dataframe_list):
+                                paadf = pd.DataFrame(paa, columns = paa_column_names)
+                                if preprocess:
+                                    fname = os.path.join(self.path2database, self.path2paa, '{}{}.{}'.format(self.path2paa, ifile, self.database_extension))
+                                    self.save_data_file(paadf, fname, key =self.path2paa)
+
+                                    paa = []
+
+                            if ('fields' in dataframe_list) or ('concepts' in dataframe_list):
+                                pub2fielddf = pd.DataFrame(pub2field, columns = pub2field_column_names)
+                                if preprocess:
+                                    fname = os.path.join(self.path2database, self.path2pub2field, '{}{}.{}'.format(self.path2pub2field, ifile, self.database_extension))
+                                    self.save_data_file(pub2fielddf, fname, key =self.path2pub2field)
+
+                                    pub2field = []
+
+                            if ('abstracts' in dataframe_list):
+                                with gzip.open(os.path.join(self.path2database, self.path2pub2abstract, '{}{}.gz'.format(self.path2pub2abstract, ifile)), 'wb') as outfile:
+                                    for abentry in pub2abstract:
+                                        outfile.write((json.dumps({abentry[0]:abentry[1]}) + "\n").encode('utf-8'))
+
+                                pub2abstract = []
+
+                            ifile += 1
+
 
                 
                 if ('publications' in dataframe_list) or ('works' in dataframe_list):
@@ -634,9 +684,11 @@ class OpenAlex(BibDataBase):
                         for abentry in pub2abstract:
                             outfile.write((json.dumps({abentry[0]:abentry[1]}) + "\n").encode('utf-8'))
 
+                    pub2abstract = []
+
                 ifile += 1
 
-        if (('publications' in dataframe_list) or ('works' in dataframe_list)) and preprocess_dicts:
+        if preprocess_dicts and (('publications' in dataframe_list) or ('works' in dataframe_list)) and preprocess_dicts:
             with gzip.open(os.path.join(self.path2database, 'pub2year.json.gz'), 'w') as outfile:
                 outfile.write(json.dumps(pub2year).encode('utf8'))
 
