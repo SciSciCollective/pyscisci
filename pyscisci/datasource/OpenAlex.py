@@ -554,14 +554,17 @@ class OpenAlex(BibDataBase):
                             wdata = [ownid, self.clean_openalex_ids(wline.get('host_venue', {}).get('id', None))]
                             wdata += [load_int(wline.get(idname, None)) for idname in ['publication_year', 'cited_by_count']]
                             wdata += [wline.get(idname, None) for idname in ['doi', 'title', 'publication_date', 'type']]
-                            wdata += [wline.get('pmid', None)]
+                            pmid = wline.get("ids", {}).get('pmid', None)
+                            if isinstance(pmid, str):
+                                pmid = pmid.replace("https://pubmed.ncbi.nlm.nih.gov/", "")
+                            wdata += [pmid]
                             bibinfo = wline.get('biblio', {})
                             wdata += [bibinfo.get(idname, None) for idname in ['volume', 'issue', 'first_page', 'last_page']]
                             wdata += [load_bool(wline.get(extraid, None)) for extraid in ['is_retracted', 'is_paratext']]
 
                             if preprocess_dicts:
-                                pub2year[wdata[0]] = wdata[2]
-                                pub2doctype[wdata[0]] = wdata[7]
+                                pub2year[ownid] = wdata[2]
+                                pub2doctype[ownid] = wdata[7]
 
                             pubinfo.append(wdata)
 
@@ -580,7 +583,7 @@ class OpenAlex(BibDataBase):
                                     #print(wline.get('authorships', []))
                                     #raise ValueError('author position')
 
-                                institution_list = wline.get('institutions', [])
+                                institution_list = authorinfo.get('institutions', [])
                                 if len(institution_list) == 0:
                                     institution_list = [None]
                                 else:
