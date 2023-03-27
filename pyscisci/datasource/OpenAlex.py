@@ -640,7 +640,7 @@ class OpenAlex(BibDataBase):
                                     pub2field = []
 
                             if ('abstracts' in dataframe_list):
-                                with gzip.open(os.path.join(self.path2database, self.path2pub2abstract, '{}{}.gz'.format(self.path2pub2abstract, ifile)), 'wb') as outfile:
+                                with gzip.open(os.path.join(self.path2database, self.path2pub2abstract, '{}{}.jsonl.gz'.format(self.path2pub2abstract, ifile)), 'wb') as outfile:
                                     for abentry in pub2abstract:
                                         outfile.write((json.dumps({abentry[0]:abentry[1]}) + "\n").encode('utf-8'))
 
