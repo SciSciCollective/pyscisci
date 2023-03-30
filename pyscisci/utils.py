@@ -249,6 +249,33 @@ def argtopk(a, k=5):
 def changepoint(a):
     return np.concatenate([[0], np.where(a[:-1] != a[1:])[0] + 1, [a.shape[0]]])
 
+def holm_correction(pvalues, alpha=0.05):
+    """
+    Holm’s Step-Down Procedure for multiple hypothesis testing.
+    Rather than controlling the FMER, Holm’s procedure controls for the false discovery rate (FDR)
+
+    Parameters
+    ----------
+    pvalues: numpy array
+        The p-values to check.
+
+    alpha: float, defulat 0.05
+        The significance level.
+
+    Returns
+    ----------
+    Numpy Array
+        True if the p-value is family-wise significant.
+
+    """
+    K = pvalues.shape[0]
+    sorted_pvalues = np.sort(pvalues)
+    holm_stepdown = alpha / (K - np.arange(K))
+    
+    first_reject_idx = np.argmax(sorted_pvalues > holm_stepdown)
+    
+    return np.argsort(pvalues) < first_reject_idx
+
 def zip2dict(keys, values):
     return dict(zip(keys, values))
 
