@@ -44,11 +44,11 @@ def abstractindex2text(abstract_index):
     """
 
     # unpack the index list
-    word_index = [ (word, idx) for word, idxlist in abstractInvertedIndex.items() for idx in idxlist] 
+    word_index = [ (word, idx) for word, idxlist in abstract_index.items() for idx in idxlist] 
     # sort the words
     word_index = sorted(word_index, key = lambda x : x[1])
     # insert the spaces back in and return
-    return " ".join(word_index)
+    return " ".join(list(zip(*word_index))[0])
 
 
 def strip_accents(text):
