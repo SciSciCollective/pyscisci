@@ -51,6 +51,14 @@ def abstractindex2text(abstract_index):
     return " ".join(list(zip(*word_index))[0])
 
 
+def standardize_doi(doistr):
+    """
+    
+    """
+
+    
+
+    
 def strip_accents(text):
     try:
         text = unicode(text, 'utf-8')

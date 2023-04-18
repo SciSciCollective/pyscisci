@@ -500,7 +500,7 @@ class OpenAlex(BibDataBase):
             dataframe_list = openalex_works_dfset
 
 
-        pub_column_names = ['PublicationId', 'JournalId', 'Year', 'NumberCitations', 'Doi', 'Title', 'Date', 'DocType', 'PMID', 'Volume', 'Issue', 'FirstPage', 'LastPage', 'IsRetracted', 'IsParaText']
+        pub_column_names = ['PublicationId', 'JournalId', 'Year', 'NumberCitations', 'Title', 'Date', 'DocType', 'Doi', 'PMID', 'Volume', 'Issue', 'FirstPage', 'LastPage', 'IsRetracted', 'IsParaText']
 
         if preprocess and (('publications' in dataframe_list) or ('works' in dataframe_list)):
             if not os.path.exists(os.path.join(self.path2database, self.path2pub)):
@@ -553,7 +553,11 @@ class OpenAlex(BibDataBase):
                         if ('publications' in dataframe_list) or ('works' in dataframe_list):
                             wdata = [ownid, self.clean_openalex_ids(wline.get('host_venue', {}).get('id', None))]
                             wdata += [load_int(wline.get(idname, None)) for idname in ['publication_year', 'cited_by_count']]
-                            wdata += [wline.get(idname, None) for idname in ['doi', 'title', 'publication_date', 'type']]
+                            wdata += [wline.get(idname, None) for idname in ['title', 'publication_date', 'type']]
+                            doi = wline.get('doi', None)
+                            if isinstance(doi, str):
+                                doi = doi.replace("https://doi.org/", "")
+                            wdata += [doi]
                             pmid = wline.get("ids", {}).get('pmid', None)
                             if isinstance(pmid, str):
                                 pmid = pmid.replace("https://pubmed.ncbi.nlm.nih.gov/", "")
