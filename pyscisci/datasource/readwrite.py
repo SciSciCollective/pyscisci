@@ -141,7 +141,7 @@ def load_preprocessed_data(dataname, path2database, database_extension = 'hdf', 
 
     if database_extension == 'hdf' and not use_dask:
         def read_file(fname):
-            return pd.read_hdf(fname, key=dataname)
+            return pd.read_hdf(fname) #, key=dataname)
     elif database_extension == 'hdf' and use_dask:
         raise NotImplementedError('Dask is not compatible with hdf dataframes.  Please reprocess using csv or csv.gz (recommended).')
     elif database_extension == 'csv' and not use_dask:
@@ -162,6 +162,7 @@ def load_preprocessed_data(dataname, path2database, database_extension = 'hdf', 
     for ifile in tqdm(FileNumbers, desc=desc, leave=True, disable=not show_progress):
         
         fname = os.path.join(path2files, dataname+"{}.".format(ifile)+database_extension)
+        
         if os.path.exists(fname):
             subdf = read_file(fname)
 

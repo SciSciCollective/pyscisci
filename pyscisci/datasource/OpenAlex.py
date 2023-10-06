@@ -155,7 +155,7 @@ class OpenAlex(BibDataBase):
 
         
         if not rewrite_existing:
-            files_already_downloaded = [os.path.join(dirpath.replace(self.path2database, ''), file) for (dirpath, dirnames, filenames) in os.walk(self.path2database) for file in filenames]
+            files_already_downloaded = [os.path.join(dirpath.replace(self.path2database, ''), file).lstrip('/') for (dirpath, dirnames, filenames) in os.walk(self.path2database) for file in filenames]
         else:
             files_already_downloaded = []
 
@@ -500,7 +500,7 @@ class OpenAlex(BibDataBase):
             dataframe_list = openalex_works_dfset
 
 
-        pub_column_names = ['PublicationId', 'JournalId', 'Year', 'NumberCitations', 'Title', 'Date', 'DocType', 'Doi', 'PMID', 'Volume', 'Issue', 'FirstPage', 'LastPage', 'IsRetracted', 'IsParaText']
+        pub_column_names = ['PublicationId', 'JournalId', 'Year', 'NumberCitations', 'Title', 'Date', 'DocType', 'Doi', 'PMID', 'Volume', 'Issue', 'FirstPage', 'LastPage', 'Language', 'IsRetracted', 'IsParaText', 'IsOpenAccess', 'OpenAccessStatus']
 
         if preprocess and (('publications' in dataframe_list) or ('works' in dataframe_list)):
             if not os.path.exists(os.path.join(self.path2database, self.path2pub)):
@@ -563,8 +563,10 @@ class OpenAlex(BibDataBase):
                                 pmid = pmid.replace("https://pubmed.ncbi.nlm.nih.gov/", "")
                             wdata += [pmid]
                             bibinfo = wline.get('biblio', {})
-                            wdata += [bibinfo.get(idname, None) for idname in ['volume', 'issue', 'first_page', 'last_page']]
-                            wdata += [load_bool(wline.get(extraid, None)) for extraid in ['is_retracted', 'is_paratext']]
+                            wdata += [bibinfo.get(idname, None) for idname in ['volume', 'issue', 'first_page', 'last_page', 'language']]
+                            wdata += [load_bool(wline.get(extraid, None)) for extraid in ['is_retracted', 'is_paratext', 'is_oa']]
+                            oainfo = wline.get('open_access', {})
+                            wdata += [oainfo.get(oai, None) for oai in ['oa_status']]
 
                             if preprocess_dicts:
                                 pub2year[ownid] = wdata[2]
