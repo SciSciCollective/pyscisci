@@ -18,8 +18,8 @@ else:
 from pyscisci.datasource.readwrite import load_preprocessed_data, load_int, load_float, load_bool
 from pyscisci.database import BibDataBase
 
-openalex_works_dfset = {'publications', 'references', 'publicationauthoraffiliation', 'concepts', 'fields', 'abstracts'}
-openalex_dataframe_set = {'publications', 'works', 'venues', 'authors', 'institutions', 'affiliations', 'concepts', 'fields'}
+openalex_works_dfset = {'publications', 'references', 'publicationauthoraffiliation', 'concepts', 'fields', 'abstracts', 'grants'}
+openalex_dataframe_set = {'publications', 'works', 'sources', 'authors', 'institutions', 'affiliations', 'concepts', 'fields', 'funders'}
 
 class OpenAlex(BibDataBase):
     """
@@ -42,6 +42,9 @@ class OpenAlex(BibDataBase):
         self.AffiliationIdType = int
         self.AuthorIdType = int
         self.JournalIdType = int
+
+        self.path2pub2grant = 'grant'
+        self.path2funders = 'funder'
 
     def preprocess(self, dataframe_list = None, show_progress=True):
         """
@@ -73,8 +76,11 @@ class OpenAlex(BibDataBase):
         if 'concepts' in dataframe_list or 'fields' in dataframe_list:
             self.parse_concepts(preprocess=True, show_progress=show_progress)
 
-        if 'venues' in dataframe_list or 'journals' in dataframe_list:
-            self.parse_venues(preprocess=True, show_progress=show_progress)
+        if 'sources' in dataframe_list or 'journals' in dataframe_list:
+            self.parse_sources(preprocess=True, show_progress=show_progress)
+
+        if 'funders' in dataframe_list:
+            self.parse_funders(preprocess=True, show_progress=show_progress)
 
     def download_from_source(self, aws_access_key_id='', aws_secret_access_key='', specific_update='', aws_bucket = 'openalex',
         dataframe_list = 'all', rewrite_existing = False, edit_works = True, show_progress=True):
@@ -108,6 +114,9 @@ class OpenAlex(BibDataBase):
                 'publicationauthoraffiliation'
                 'fields'
                 'abstracts'
+                'funders'
+                'sources'
+                'grants'
 
         rewrite_existing: bool, default False
             If True, overwrite existing files or if False, only download any missing files.
@@ -142,7 +151,7 @@ class OpenAlex(BibDataBase):
         else:
             # some dataframes have different names from those in pyscisci
             if 'publications' in dataframe_list: dataframe_list.add('works')
-            if 'journals' in dataframe_list: dataframe_list.add('venues')
+            if 'journals' in dataframe_list: dataframe_list.add('sources')
             if 'fields' in dataframe_list: dataframe_list.add('concepts')
             if 'affiliations' in dataframe_list: dataframe_list.add('institutions')
 
@@ -258,7 +267,7 @@ class OpenAlex(BibDataBase):
             Affiliation DataFrame.
         """
 
-        affil_column_names = ['AffiliationId', 'FullName', 'GridId', 'WikiPage', 'Country', 'City', 'Region', 'Latitude', 'Longitude', 'NumberPublications', 'NumberCitations']
+        affil_column_names = ['AffiliationId', 'FullName', 'InstitutionType', 'GridId', 'WikiDataId', 'WikiPage', 'RORId', 'Country', 'City', 'Region', 'Latitude', 'Longitude', 'NumberPublications', 'NumberCitations']
 
         if specific_update == '' or specific_update is None:
             institution_dir = os.path.join(self.path2database, 'data', 'institutions')
@@ -281,9 +290,9 @@ class OpenAlex(BibDataBase):
                 for line in infile:
                     if line != '\n'.encode():
                         aline = json.loads(line)
-                        affline = [self.clean_openalex_ids(aline['id']), aline.get('display_name', None)]
+                        affline = [self.clean_openalex_ids(aline['id']), aline.get('display_name', None), aline.get('type', None)]
                         otherids = aline.get('ids', {})
-                        affline += [otherids.get(idname, None) for idname in ['grid', 'wikipedia']]
+                        affline += [otherids.get(idname, None) for idname in ['grid', 'wikidata', 'wikipedia', 'ror']]
                         geoinfo = aline.get('geo', {})
                         affline += [geoinfo.get(idname, None) for idname in ['country_code', 'city', 'region']]
                         affline += [load_float(geoinfo.get(idname, None)) for idname in ['latitude', 'longitude']]
@@ -382,9 +391,9 @@ class OpenAlex(BibDataBase):
 
         return author
 
-    def parse_venues(self, preprocess = True, specific_update='', show_progress=True):
+    def parse_sources(self, preprocess = True, specific_update='', show_progress=True):
         """
-        Parse the OpenAlex Venues raw data.
+        Parse the OpenAlex Sources raw data.
 
         Parameters
         ----------
@@ -401,17 +410,17 @@ class OpenAlex(BibDataBase):
         Returns
         ----------
         DataFrame
-            Venue DataFrame.
+            Sources DataFrame.
         """
         if specific_update == '' or specific_update is None:
-            venue_dir = os.path.join(self.path2database, 'data', 'venues')
+            source_dir = os.path.join(self.path2database, 'data', 'sources')
         else:
-            venue_dir = os.path.join(self.path2database, 'data/venues', 'updated_date={}'.format(specific_update))
+            source_dir = os.path.join(self.path2database, 'data/sources', 'updated_date={}'.format(specific_update))
 
-        if not os.path.exists(venue_dir):
-            raise ValueError("The venues data was not found in the DataBase path.  Please download the data before parsing.")
+        if not os.path.exists(source_dir):
+            raise ValueError("The sources data was not found in the DataBase path.  Please download the data before parsing.")
         else:
-            files_to_parse = [os.path.join(dirpath, file) for (dirpath, dirnames, filenames) in os.walk(venue_dir) for file in filenames if '.gz' in file]
+            files_to_parse = [os.path.join(dirpath, file) for (dirpath, dirnames, filenames) in os.walk(source_dir) for file in filenames if '.gz' in file]
 
 
         if preprocess:
@@ -419,28 +428,29 @@ class OpenAlex(BibDataBase):
                 os.mkdir(os.path.join(self.path2database, self.path2journal))
 
 
-        venue_column_names = ['VenueId', 'FullName', 'ISSN', 'ISSN_l', 'HomePage', 'NumberPublications', 'NumberCitations']
-        venue_info = []
+        source_column_names = ['JournalId', 'FullName', 'Type', 'ISSN', 'ISSN_l', 'HomePage', 'Country', 'NumberPublications', 'NumberCitations', 'IsOpenAccess']
+        source_info = []
         ifile = 0
-        for file_name in tqdm(files_to_parse, desc='Venues', leave=True, disable=not show_progress):
-            with gzip.open(os.path.join(venue_dir, file_name), 'r') as infile:
+        for file_name in tqdm(files_to_parse, desc='Sources', leave=True, disable=not show_progress):
+            with gzip.open(os.path.join(source_dir, file_name), 'r') as infile:
                 for line in infile:
                     if line != '\n'.encode():
                         vline = json.loads(line)
                         vdata = [self.clean_openalex_ids(vline['id'])]
-                        vdata += [vline.get(idname, None) for idname in ['display_name', 'issn', 'issn_l', 'homepage_url']]
+                        vdata += [vline.get(idname, None) for idname in ['display_name', 'type', 'issn', 'issn_l', 'homepage_url', 'country_code']]
                         vdata += [load_int(vline.get(idname, None)) for idname in ['works_count', 'cited_by_count']]
-                        venue_info.append(vdata)
+                        vdata += [load_bool(vline.get(idname, None)) for idname in ['is_oa']]
+                        source_info.append(vdata)
 
-                venue = pd.DataFrame(venue_info, columns = venue_column_names)
+                source = pd.DataFrame(source_info, columns = source_column_names)
                 if preprocess:
                     fname = os.path.join(self.path2database, self.path2journal, '{}{}.{}'.format(self.path2journal, ifile, self.database_extension))
-                    self.save_data_file(venue, fname, key =self.path2journal)
+                    self.save_data_file(source, fname, key =self.path2journal)
 
                     ifile += 1
-                    venue_info = []
+                    source_info = []
         
-        return venue
+        return source
 
 
     def parse_publications(self, preprocess = True, specific_update='', preprocess_dicts = True, num_file_lines=10**6,
@@ -457,9 +467,6 @@ class OpenAlex(BibDataBase):
         specific_update: str
             Parse only a specific update date, specified by the date in Y-M-D format, 2022-01-01.  
             If empty the full data is parsed.
-
-        parse_venues: bool, default True
-            Also parse the venue information.
 
         preprocess_dicts: bool, default True
             Save the processed Year and DocType data as dictionaries.
@@ -507,8 +514,8 @@ class OpenAlex(BibDataBase):
                 os.mkdir(os.path.join(self.path2database, self.path2pub))
 
             pubinfo = []
-            pub2year = {}
-            pub2doctype = {}
+            pub2year = []
+            pub2doctype = []
 
         if preprocess and ('references' in dataframe_list):
             if not os.path.exists(os.path.join(self.path2database, self.path2pub2ref)):
@@ -538,6 +545,14 @@ class OpenAlex(BibDataBase):
 
             pub2abstract = []
 
+        pub2grants_column_names = ['PublicationId', 'FunderId', 'AwardId']
+
+        if preprocess and ('grants' in dataframe_list):
+            if not os.path.exists(os.path.join(self.path2database, self.path2pub2grant)):
+                os.mkdir(os.path.join(self.path2database, self.path2pub2grant))
+
+            pub2grant = []
+
         ifile = 0
         for file_name in tqdm(files_to_parse, desc='Works', leave=True, disable=not show_progress):
             with gzip.open(os.path.join(work_dir, file_name), 'r') as infile:
@@ -551,7 +566,7 @@ class OpenAlex(BibDataBase):
                         ownid = self.clean_openalex_ids(wline['id'])
 
                         if ('publications' in dataframe_list) or ('works' in dataframe_list):
-                            wdata = [ownid, self.clean_openalex_ids(wline.get('host_venue', {}).get('id', None))]
+                            wdata = [ownid, self.clean_openalex_ids(wline.get('primary_location', {}).get('source', {}).get('id', None))]
                             wdata += [load_int(wline.get(idname, None)) for idname in ['publication_year', 'cited_by_count']]
                             wdata += [wline.get(idname, None) for idname in ['title', 'publication_date', 'type']]
                             doi = wline.get('doi', None)
@@ -569,8 +584,8 @@ class OpenAlex(BibDataBase):
                             wdata += [oainfo.get(oai, None) for oai in ['oa_status']]
 
                             if preprocess_dicts:
-                                pub2year[ownid] = wdata[2]
-                                pub2doctype[ownid] = wdata[7]
+                                pub2year.append([ownid, wdata[2]])
+                                pub2doctype.append([ownid, wdata[6]])
 
                             pubinfo.append(wdata)
 
@@ -606,6 +621,10 @@ class OpenAlex(BibDataBase):
                             for con_dict in pub_concepts:
                                 pub2field.append([ownid, self.clean_openalex_ids(con_dict.get('id', None)), load_int(con_dict.get('level', None)), load_float(con_dict.get('score', None))])
                         
+                        if ('grants' in dataframe_list):
+                            pub_grants = wline.get('grants', [])
+                            for grant_dict in pub_grants:
+                                pub2grant.append([ownid, self.clean_openalex_ids(grant_dict.get('funder', None)), grant_dict.get('award_id', None)])
 
                         if ('abstracts' in dataframe_list) and 'abstract_inverted_index' in wline:
                             pub2abstract.append([ownid, wline['abstract_inverted_index']])
@@ -644,6 +663,15 @@ class OpenAlex(BibDataBase):
                                     self.save_data_file(pub2fielddf, fname, key =self.path2pub2field)
 
                                     pub2field = []
+
+                            if ('grants' in dataframe_list):
+                                pub2grantsdf = pd.DataFrame(pub2grant, columns = pub2grants_column_names)
+                                if preprocess:
+                                    fname = os.path.join(self.path2database, self.path2pub2grant, '{}{}.{}'.format(self.path2pub2grant, ifile, self.database_extension))
+                                    self.save_data_file(pub2grantsdf, fname, key =self.path2pub2grant)
+
+                                    pub2grant = []
+
 
                             if ('abstracts' in dataframe_list):
                                 with gzip.open(os.path.join(self.path2database, self.path2pub2abstract, '{}{}.jsonl.gz'.format(self.path2pub2abstract, ifile)), 'wb') as outfile:
@@ -688,6 +716,14 @@ class OpenAlex(BibDataBase):
 
                         pub2field = []
 
+                if ('grants' in dataframe_list):
+                    pub2grantsdf = pd.DataFrame(pub2grant, columns = pub2grants_column_names)
+                    if preprocess:
+                        fname = os.path.join(self.path2database, self.path2pub2grant, '{}{}.{}'.format(self.path2pub2grant, ifile, self.database_extension))
+                        self.save_data_file(pub2grantsdf, fname, key =self.path2pub2grant)
+
+                        pub2grant = []
+
                 if ('abstracts' in dataframe_list):
                     with gzip.open(os.path.join(self.path2database, self.path2pub2abstract, '{}{}.gz'.format(self.path2pub2abstract, ifile)), 'w') as outfile:
                         for abentry in pub2abstract:
@@ -698,11 +734,16 @@ class OpenAlex(BibDataBase):
                 ifile += 1
 
         if preprocess_dicts and (('publications' in dataframe_list) or ('works' in dataframe_list)) and preprocess_dicts:
-            with gzip.open(os.path.join(self.path2database, 'pub2year.json.gz'), 'w') as outfile:
-                outfile.write(json.dumps(pub2year).encode('utf8'))
 
-            with gzip.open(os.path.join(self.path2database, 'pub2doctype.json.gz'), 'w') as outfile:
-                outfile.write(json.dumps(pub2doctype).encode('utf8'))
+            fname = os.path.join(self.path2database, '{}.{}'.format('pub2year', self.database_extension))
+            self.save_data_file(pd.DataFrame(pub2year, columns=['PublicationId', 'Year']), fname, key ='pub2year')
+            #with gzip.open(os.path.join(self.path2database, 'pub2year.json.gz'), 'w') as outfile:
+            #    outfile.write(json.dumps(pub2year).encode('utf8'))
+
+            fname = os.path.join(self.path2database, '{}.{}'.format('pub2doctype', self.database_extension))
+            self.save_data_file(pd.DataFrame(pub2doctype, columns=['PublicationId', 'DocType']), fname, key ='pub2doctype')
+            #with gzip.open(os.path.join(self.path2database, 'pub2doctype.json.gz'), 'w') as outfile:
+            #    outfile.write(json.dumps(pub2doctype).encode('utf8'))
 
         return True
 
@@ -776,3 +817,62 @@ class OpenAlex(BibDataBase):
         return fieldinfo
 
 
+    def parse_funders(self, preprocess = True, specific_update='', show_progress=True):
+        """
+        Parse the OpenAlex Sources raw data.
+
+        Parameters
+        ----------
+        preprocess: bool, default True
+            Save the processed data in new DataFrames.
+
+        specific_update: str
+            Parse only a specific update date, specified by the date in Y-M-D format, 2022-01-01.  
+            If empty the full data is parsed.
+
+        show_progress: bool, default True
+            Show progress with processing of the data.
+
+        Returns
+        ----------
+        DataFrame
+            Sources DataFrame.
+        """
+        if specific_update == '' or specific_update is None:
+            funder_dir = os.path.join(self.path2database, 'data', 'funders')
+        else:
+            funder_dir = os.path.join(self.path2database, 'data/funders', 'updated_date={}'.format(specific_update))
+
+        if not os.path.exists(funder_dir):
+            raise ValueError("The funders data was not found in the DataBase path.  Please download the data before parsing.")
+        else:
+            files_to_parse = [os.path.join(dirpath, file) for (dirpath, dirnames, filenames) in os.walk(funder_dir) for file in filenames if '.gz' in file]
+
+
+        if preprocess:
+            if not os.path.exists(os.path.join(self.path2database, self.path2funders)):
+                os.mkdir(os.path.join(self.path2database, self.path2funders))
+
+
+        funder_column_names = ['FunderId', 'WikiDataId', 'RORId', 'FullName', 'HomePage', 'Country', 'NumberGrants', 'NumberPublications', 'NumberCitations']
+        funder_info = []
+        ifile = 0
+        for file_name in tqdm(files_to_parse, desc='Funders', leave=True, disable=not show_progress):
+            with gzip.open(os.path.join(funder_dir, file_name), 'r') as infile:
+                for line in infile:
+                    if line != '\n'.encode():
+                        vline = json.loads(line)
+                        vdata = [self.clean_openalex_ids(vline['id']), vline.get('ids', {}).get('wikidata', None), vline.get('ids', {}).get('ror', None)]
+                        vdata += [vline.get(idname, None) for idname in ['display_name', 'homepage_url', 'country_code']]
+                        vdata += [load_int(vline.get(idname, None)) for idname in ['grants_count', 'works_count', 'cited_by_count']]
+                        funder_info.append(vdata)
+
+                funder = pd.DataFrame(funder_info, columns = funder_column_names)
+                if preprocess:
+                    fname = os.path.join(self.path2database, self.path2funders, '{}{}.{}'.format(self.path2funders, ifile, self.database_extension))
+                    self.save_data_file(funder, fname, key =self.path2funders)
+
+                    ifile += 1
+                    funder_info = []
+        
+        return funder
