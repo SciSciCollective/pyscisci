@@ -454,7 +454,7 @@ class OpenAlex(BibDataBase):
 
 
     def parse_publications(self, preprocess = True, specific_update='', preprocess_dicts = True, num_file_lines=10**6,
-        dataframe_list = ['publications', 'references', 'publicationauthoraffiliation', 'fields'],
+        dataframe_list = ['publications', 'references', 'publicationauthoraffiliation', 'fields', 'grants'],
         show_progress=True):
         """
         Parse the OpenAlex Works raw data.
@@ -482,6 +482,7 @@ class OpenAlex(BibDataBase):
                 'publicationauthoraffiliation'
                 'fields'
                 'abstracts'
+                'grants'
 
         show_progress: bool, default True
             Show progress with processing of the data.
@@ -561,12 +562,23 @@ class OpenAlex(BibDataBase):
                 
                 for line in infile:
                     if line != '\n'.encode():
-                        wline = json.loads(line)
                         
+                        wline = json.loads(line)
                         ownid = self.clean_openalex_ids(wline['id'])
 
                         if ('publications' in dataframe_list) or ('works' in dataframe_list):
-                            wdata = [ownid, self.clean_openalex_ids(wline.get('primary_location', {}).get('source', {}).get('id', None))]
+                            wdata = [ownid]
+                            location_info = wline.get('primary_location', {})
+                            
+                            if not location_info is None:
+                                sourceinfo = location_info.get('source', {})
+                                if not sourceinfo is None:
+                                    sourceid = self.clean_openalex_ids(sourceinfo.get('id', ""))
+                                else:
+                                    sourceid = None
+                            else:
+                                sourceid = None
+                            wdata += [sourceid]
                             wdata += [load_int(wline.get(idname, None)) for idname in ['publication_year', 'cited_by_count']]
                             wdata += [wline.get(idname, None) for idname in ['title', 'publication_date', 'type']]
                             doi = wline.get('doi', None)
