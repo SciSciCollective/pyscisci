@@ -142,7 +142,7 @@ class Node2Vec(object):
             min_count=0,
             sg=1,
             workers=self.workers,
-            iter=self.epoch,
+            epochs=self.epoch,
         )
         self.embedding = {
             entity: self.model.wv[str(index)]
