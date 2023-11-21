@@ -137,7 +137,7 @@ class Node2Vec(object):
         """
         self.model = Word2Vec(
             self.walks,
-            size=self.dimensions,
+            vector_size=self.dimensions,
             window=self.window_size,
             min_count=0,
             sg=1,
