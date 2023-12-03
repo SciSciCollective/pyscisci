@@ -259,7 +259,7 @@ def holm_correction(pvalues, alpha=0.05):
     pvalues: numpy array
         The p-values to check.
 
-    alpha: float, defulat 0.05
+    alpha: float, default 0.05
         The significance level.
 
     Returns
@@ -520,7 +520,7 @@ def value_to_int(a, sort_values='value', ascending=False, return_map=True):
 
 def uniquemap_by_frequency(df, colgroupby='PublicationId', colcountby='FieldId', ascending=False):
     """
-    Reduce a one-to-many mapping to a selection based on frequency of occurence in the dataframe  
+    Reduce a one-to-many mapping to a selection based on frequency of occurrence in the dataframe  
     (either to the largest, most common or smallest, least common).
     
     Parameters
