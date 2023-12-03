@@ -38,7 +38,7 @@ def coauthorship_network(paa, focus_author_ids=None, focus_constraint='authors',
     focus_constraint : str, default 'authors'
         If focus_author_ids is not None:
             - 'authors' : the 'focus_author_ids' defines the node set, giving only the co-authorships between authors in the set.
-            - 'publications' : the publication history of `focus_author_ids' defines the edge set, giving the co-authorhips where at least one author from `focus_author_ids' was involved.
+            - 'publications' : the publication history of `focus_author_ids' defines the edge set, giving the co-authorships where at least one author from `focus_author_ids' was involved.
             - 'ego' : the 'focus_author_ids' defines a seed set, such that all authors must have co-authored at least one publication with an author from `focus_author_ids', but co-authorships are also found between the second-order author sets.
 
     temporal : bool, default False
@@ -139,7 +139,7 @@ def coauthorship_network(paa, focus_author_ids=None, focus_constraint='authors',
 
 def extract_multiscale_backbone(Xs, alpha):
     """
-    A sparse matrix implemntation of the multiscale backbone.
+    A sparse matrix implementation of the multiscale backbone.
 
     References
     ----------
@@ -205,7 +205,7 @@ def cocitation_network(pub2ref, focus_pub_ids=None, focus_constraint='citing', c
             -'citing' : the 'focus_pub_ids' defines the citation set, giving only the co-citations between the references
                 of the publications from this set.
             -'cited' : the 'focus_pub_ids' defines the cocitation node set.
-            -'egocited' : the 'focus_pub_ids' defines a seed set, such that all other publications must have been co-citeed with
+            -'egocited' : the 'focus_pub_ids' defines a seed set, such that all other publications must have been co-cited with
                 at least one publication from this set.
     
     cited_col_name : str, default 'CitedPublicationId'

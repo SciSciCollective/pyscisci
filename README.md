@@ -78,15 +78,15 @@ Pull and install in the current directory:
 
 ### Extras
 - To enable all extra functionality run: pip install pyscisci[nlp,hdf]
-- The requirenemnt to only use hdf tables has been removed, thus the dependency on tables is moved to an extra: pip install pyscisci[hdf]
+- The requirement to only use hdf tables has been removed, thus the dependency on tables is moved to an extra: pip install pyscisci[hdf]
 - Advanced NLP dependencies can be installed by running: pip install pyscisci[nlp]
 
 ## Computational Requirements
 
-Currently, the ``pySciSci`` is built ontop of pandas, and keeps entire dataframes in working memory.  We have found that most large-scale analyzes 
-can be performed on a personal computer with extended RAM.  If you dont have enough computational power, consider a smaller database (DBLP or APS), or running on a cloud computing platform (Google Cloud, Microsoft Azure, Amazon Web Services, etc).
+Currently, the ``pySciSci`` is built on top of pandas, and keeps entire dataframes in working memory.  We have found that most large-scale analyzes 
+can be performed on a personal computer with extended RAM.  If you don't have enough computational power, consider a smaller database (DBLP or APS), or running on a cloud computing platform (Google Cloud, Microsoft Azure, Amazon Web Services, etc).
 
-We also support basic Dask implemenations for multiprocessing.  [An example notebook can be found here.](/examples/Getting_Started/Getting%20Started%20with%20a%20Dask%20Example.ipynb)
+We also support basic Dask implementations for multiprocessing.  [An example notebook can be found here.](/examples/Getting_Started/Getting%20Started%20with%20a%20Dask%20Example.ipynb)
 
 ## Contributing
 See the [contributing guide](/CONTRIBUTING.md) for detailed instructions on how to get started with our project.

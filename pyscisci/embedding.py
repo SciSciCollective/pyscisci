@@ -363,7 +363,7 @@ def construct_line_net_adj(A, p=1, q=1, add_source_node=True):
     and determines the next node k based on i and j.
     We transform the 2nd order Markov process to the 1st order Markov
     process on supra-nodes. Each supra-node represents a pair of
-    nodes (j,i) in the original network, a pair of the previouly
+    nodes (j,i) in the original network, a pair of the previously
     visited node and current node. We place an edge
     from a supra-node (j,i) to another supra-node (i,k) if the random walker
     can transit from node j, i and to k. The weight of edge is given by the
@@ -423,7 +423,7 @@ def sem_axis(emb, positive_entities, negative_entities):
     SemAxis Code
     Paper: https://arxiv.org/abs/1806.05521
     SemAxis is a technique that leverages the latent semantic characteristics of word embeddings to represent 
-    The position of terms along a conceptual axis, reﬂecting the relationship of these terms to the concept.
+    The position of terms along a conceptual axis, reflecting the relationship of these terms to the concept.
     
     Semaxis works as follows.
     1. Given the set of positive instances, S+, and set of negative instances S-, calculate the average vector of each set (V+, V-).

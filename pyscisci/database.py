@@ -27,7 +27,7 @@ class BibDataBase(object):
     """
     Base class for all bibliometric database interfaces.
 
-    The BibDataBase provides a parasomonious structure for each of the specific data sources (MAG, WOS, etc.).
+    The BibDataBase provides a parsimonious structure for each of the specific data sources (MAG, WOS, etc.).
 
     There are four primary types of functions:
         1. *Parseing* Functions (data source specific) that parse the raw data files
@@ -128,10 +128,10 @@ class BibDataBase(object):
 
         Parameters
         --------
-        n_workers : int, defualt None
+        n_workers : int, default None
             The number of workers to use.
 
-        threads_per_worker : int, defualt None
+        threads_per_worker : int, default None
             The number of threads per worker to use.
 
         """
@@ -761,7 +761,7 @@ class BibDataBase(object):
     def load_publicationauthoraffiliation(self, preprocess = True, columns = None, filter_dict = {}, duplicate_subset = None,
         duplicate_keep = 'last', dropna = None, prefunc2apply=None, postfunc2apply=None, show_progress=False):
         """
-        Load the PublicationAuthorAffilation DataFrame from a preprocessed directory, or parse from the raw files.
+        Load the PublicationAuthorAffiliation DataFrame from a preprocessed directory, or parse from the raw files.
 
         Parameters
         ----------
@@ -789,7 +789,7 @@ class BibDataBase(object):
         Returns
         -------
         DataFrame
-            PublicationAuthorAffilation DataFrame.
+            PublicationAuthorAffiliation DataFrame.
         
 
         |
