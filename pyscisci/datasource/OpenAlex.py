@@ -524,7 +524,7 @@ class OpenAlex(BibDataBase):
 
             pub2ref = []
 
-        paa_column_names = ['PublicationId', 'AuthorId', 'AffiliationId', 'AuthorSequence', 'OrigAuthorName']
+        paa_column_names = ['PublicationId', 'AuthorId', 'AffiliationId', 'AuthorSequence', 'AuthorPosition', 'IsCorresponding', 'OrigAuthorName', 'RawAffiliationString']
 
         if preprocess and ('publicationauthoraffiliation' in dataframe_list):
             if not os.path.exists(os.path.join(self.path2database, self.path2paa)):
@@ -609,8 +609,13 @@ class OpenAlex(BibDataBase):
                             iauthor = 1
                             for authorinfo in wline.get('authorships', []):
                                 authorid = self.clean_openalex_ids(authorinfo.get('author', {}).get('id', None))
-                                authorname = authorinfo.get('author', {}).get('display_name', '')
                                 
+                                authorname = authorinfo.get('raw_author_name', '')
+                                affilstr = authorinfo.get('raw_affiliation_string', '')
+
+                                authorpos = authorinfo.get('author_position', None)
+                                authorcorr = authorinfo.get('is_corresponding', None)
+
                                 if (iauthor == 1 and authorinfo.get('author_position', None) != 'first'):
                                     iauthor = None
                                     #print(wline.get('authorships', []))
@@ -623,7 +628,7 @@ class OpenAlex(BibDataBase):
                                     institution_list = [self.clean_openalex_ids(affinfo.get('id', None)) for affinfo in institution_list]
 
                                 for inid in institution_list:
-                                    paa.append([ownid, authorid, inid, iauthor, authorname])
+                                    paa.append([ownid, authorid, inid, iauthor, authorpos, authorcorr, authorname, affilstr])
 
                                 if not iauthor is None:
                                     iauthor += 1

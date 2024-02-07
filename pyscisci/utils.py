@@ -323,12 +323,36 @@ def past_window(a, window, step_size = 1):
 def kl(p,q):
     """
     Kullback–Leibler divergence (KL-divergence)
+
+    Parameters
+    ----------
+    p : numpy array or list
+        probability distribution so must be normed to 1
+
+    q : numpy array or list
+        probability distribution so must be normed to 1
+
+    Returns
+    ----------
+    float    
     """
     return -np.nansum(p[p>0]*np.log2(p[p>0]/q[p>0]))
 
 def jenson_shannon(p,q):
     """
     Jensen–Shannon divergence
+
+    Parameters
+    ----------
+    p : numpy array or list
+        probability distribution so must be normed to 1
+
+    q : numpy array or list
+        probability distribution so must be normed to 1
+
+    Returns
+    ----------
+    float    
     """
     m = 0.5 * (p+q)
     return 0.5 * (kl(p,m) + kl(q,m))
@@ -422,7 +446,7 @@ def gini(array):
     """Calculate the Gini coefficient of a numpy array."""
     # based on bottom eq: http://www.statsdirect.com/help/content/image/stat0206_wmf.gif
     # from: http://www.statsdirect.com/help/default.htm#nonparametric_methods/gini.htm
-    array = array.flatten() #all values are treated equally, arrays must be 1d
+    #array = array.flatten() #all values are treated equally, arrays must be 1d
     
     array += 0.0000001 #values cannot be 0
     array = np.sort(array) #values must be sorted
@@ -437,7 +461,7 @@ def simpson(p):
     Parameters
     ----------
     p : numpy array or list
-        array of values
+        array of raw values
 
     """
     un, counts = np.unique(p, return_counts=True)
@@ -450,7 +474,7 @@ def simpson_finite(p):
     Parameters
     ----------
     p : numpy array or list
-        array of values
+        array of raw values
 
     """
     un, counts = np.unique(p, return_counts=True)
@@ -467,7 +491,7 @@ def shannon_entropy(p, base=np.e):
     Parameters
     ----------
     p : numpy array or list
-        array of values
+        array of raw alues
 
     """
     value,counts = np.unique(p, return_counts=True)
