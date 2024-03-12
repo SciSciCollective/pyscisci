@@ -146,13 +146,13 @@ def load_preprocessed_data(dataname, path2database, database_extension = 'hdf', 
         raise NotImplementedError('Dask is not compatible with hdf dataframes.  Please reprocess using csv or csv.gz (recommended).')
     elif database_extension == 'csv' and not use_dask:
         def read_file(fname):
-            return pd.read_csv(fname)
+            return pd.read_csv(fname, lineterminator='\n')
     elif database_extension == 'csv' and use_dask:
         def read_file(fname):
             return dd.read_csv(fname)
     elif database_extension == 'csv.gz' and not use_dask:
         def read_file(fname):
-            return pd.read_csv(fname, compression='gzip')
+            return pd.read_csv(fname, compression='gzip', lineterminator='\n')
     elif database_extension == 'csv.gz' and use_dask:
         def read_file(fname):
             return dd.read_csv(fname, compression='gzip', blocksize=None)

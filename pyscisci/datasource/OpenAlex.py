@@ -18,8 +18,8 @@ else:
 from pyscisci.datasource.readwrite import load_preprocessed_data, load_int, load_float, load_bool
 from pyscisci.database import BibDataBase
 
-openalex_works_dfset = {'publications', 'references', 'publicationauthoraffiliation', 'concepts', 'fields', 'abstracts', 'grants'}
-openalex_dataframe_set = {'publications', 'works', 'sources', 'authors', 'institutions', 'affiliations', 'concepts', 'fields', 'funders'}
+openalex_works_dfset = {'publications', 'references', 'publicationauthoraffiliation', 'concepts', 'fields', 'topics', 'abstracts', 'grants'}
+openalex_dataframe_set = {'publications', 'works', 'sources', 'authors', 'institutions', 'affiliations', 'concepts', 'fields', 'topics', 'funders'}
 
 class OpenAlex(BibDataBase):
     """
@@ -73,8 +73,10 @@ class OpenAlex(BibDataBase):
         if 'publications' in dataframe_list or 'works' in dataframe_list:
             self.parse_publications(preprocess = True, dataframe_list=pubdataframe_list, show_progress=show_progress)
 
-        if 'concepts' in dataframe_list or 'fields' in dataframe_list:
-            self.parse_concepts(preprocess=True, show_progress=show_progress)
+        if 'topics' in dataframe_list or 'fields' in dataframe_list:
+            self.parse_fields(preprocess=True, field_type = 'topics', show_progress=show_progress)
+        elif 'concepts' in dataframe_list:
+            self.parse_fields(preprocess=True, field_type = 'concepts', show_progress=show_progress)
 
         if 'sources' in dataframe_list or 'journals' in dataframe_list:
             self.parse_sources(preprocess=True, show_progress=show_progress)
@@ -113,6 +115,8 @@ class OpenAlex(BibDataBase):
                 'references'
                 'publicationauthoraffiliation'
                 'fields'
+                'topics'
+                'concepts'
                 'abstracts'
                 'funders'
                 'sources'
@@ -152,11 +156,11 @@ class OpenAlex(BibDataBase):
             # some dataframes have different names from those in pyscisci
             if 'publications' in dataframe_list: dataframe_list.add('works')
             if 'journals' in dataframe_list: dataframe_list.add('sources')
-            if 'fields' in dataframe_list: dataframe_list.add('concepts')
+            if 'fields' in dataframe_list: dataframe_list.add('topics')
             if 'affiliations' in dataframe_list: dataframe_list.add('institutions')
 
         # see if we have to do any editing
-        if edit_works and any(not pubsub in dataframe_list for pubsub in ['works', 'references', 'publicationauthoraffiliation', 'concepts', 'abstracts']):
+        if edit_works and any(not pubsub in dataframe_list for pubsub in ['works', 'references', 'publicationauthoraffiliation', 'topics', 'abstracts']):
             edit_works = True
         else:
             edit_works = False
@@ -239,8 +243,12 @@ class OpenAlex(BibDataBase):
 
     def clean_openalex_ids(self, oid):
         try:
-            oid = oid.replace('https://openalex.org/', '')
-            return int(oid[1:])
+            oid = oid.split('/')[-1]
+
+            try:
+                return int(oid)
+            except:
+                return int(oid[1:])
         except:
             return None
 
@@ -532,9 +540,9 @@ class OpenAlex(BibDataBase):
 
             paa = []
 
-        pub2field_column_names = ['PublicationId', 'FieldId', 'FieldLevel', 'Score']
+        pub2field_column_names = ['PublicationId', 'FieldId', 'Score']
 
-        if preprocess and (('fields' in dataframe_list) or ('concepts' in dataframe_list)):
+        if preprocess and (('fields' in dataframe_list) or ('topics' in dataframe_list) or ('concepts' in dataframe_list)):
             if not os.path.exists(os.path.join(self.path2database, self.path2pub2field)):
                 os.mkdir(os.path.join(self.path2database, self.path2pub2field))
 
@@ -618,8 +626,6 @@ class OpenAlex(BibDataBase):
 
                                 if (iauthor == 1 and authorinfo.get('author_position', None) != 'first'):
                                     iauthor = None
-                                    #print(wline.get('authorships', []))
-                                    #raise ValueError('author position')
 
                                 institution_list = authorinfo.get('institutions', [])
                                 if len(institution_list) == 0:
@@ -633,11 +639,16 @@ class OpenAlex(BibDataBase):
                                 if not iauthor is None:
                                     iauthor += 1
 
-                        if ('fields' in dataframe_list) or ('concepts' in dataframe_list):
+                        if ('topics' in dataframe_list):
+                            pub_topics = wline.get('topics', [])
+                            for topic_dict in pub_topics:
+                                pub2field.append([ownid, self.clean_openalex_ids(topic_dict.get('id', None)), load_float(topic_dict.get('score', None))])
+
+                        elif ('concepts' in dataframe_list):
                             pub_concepts = wline.get('concepts', [])
                             for con_dict in pub_concepts:
-                                pub2field.append([ownid, self.clean_openalex_ids(con_dict.get('id', None)), load_int(con_dict.get('level', None)), load_float(con_dict.get('score', None))])
-                        
+                                pub2field.append([ownid, self.clean_openalex_ids(con_dict.get('id', None)), load_float(con_dict.get('score', None))])
+
                         if ('grants' in dataframe_list):
                             pub_grants = wline.get('grants', [])
                             for grant_dict in pub_grants:
@@ -673,7 +684,7 @@ class OpenAlex(BibDataBase):
 
                                     paa = []
 
-                            if ('fields' in dataframe_list) or ('concepts' in dataframe_list):
+                            if ('fields' in dataframe_list) or ('concepts' in dataframe_list) or ('topics' in dataframe_list):
                                 pub2fielddf = pd.DataFrame(pub2field, columns = pub2field_column_names)
                                 if preprocess:
                                     fname = os.path.join(self.path2database, self.path2pub2field, '{}{}.{}'.format(self.path2pub2field, ifile, self.database_extension))
@@ -725,7 +736,7 @@ class OpenAlex(BibDataBase):
 
                         paa = []
 
-                if ('fields' in dataframe_list) or ('concepts' in dataframe_list):
+                if ('fields' in dataframe_list) or ('concepts' in dataframe_list) or ('topics' in dataframe_list):
                     pub2fielddf = pd.DataFrame(pub2field, columns = pub2field_column_names)
                     if preprocess:
                         fname = os.path.join(self.path2database, self.path2pub2field, '{}{}.{}'.format(self.path2pub2field, ifile, self.database_extension))
@@ -754,19 +765,98 @@ class OpenAlex(BibDataBase):
 
             fname = os.path.join(self.path2database, '{}.{}'.format('pub2year', self.database_extension))
             self.save_data_file(pd.DataFrame(pub2year, columns=['PublicationId', 'Year']), fname, key ='pub2year')
-            #with gzip.open(os.path.join(self.path2database, 'pub2year.json.gz'), 'w') as outfile:
-            #    outfile.write(json.dumps(pub2year).encode('utf8'))
 
             fname = os.path.join(self.path2database, '{}.{}'.format('pub2doctype', self.database_extension))
             self.save_data_file(pd.DataFrame(pub2doctype, columns=['PublicationId', 'DocType']), fname, key ='pub2doctype')
-            #with gzip.open(os.path.join(self.path2database, 'pub2doctype.json.gz'), 'w') as outfile:
-            #    outfile.write(json.dumps(pub2doctype).encode('utf8'))
 
         return True
 
-    def parse_concepts(self, preprocess = True, specific_update='', show_progress=True):
+    def parse_fields(self, preprocess = True, field_type = 'topics', specific_update='', show_progress=True):
+        if field_type == 'topics':
+            self.parse_topics(specific_update='', show_progress=True)
+        elif field_type == 'concepts':
+            self.parse_topics(specific_update='', show_progress=True)
+
+    def parse_topics(self, preprocess = True, specific_update ='', show_progress=True):
         """
-        Parse the MAG Paper Field raw data.
+        Parse the OpenAlex Topics
+
+        these are arranged into domains, fields, subfields, and topics
+        Parameters
+        ----------
+        preprocess: bool, default True
+            Save the processed data in new DataFrames.
+
+        specific_update: str
+            Parse only a specific update date, specified by the date in Y-M-D format, 2022-01-01.  
+            If empty the full data is parsed.
+
+        show_progress: bool, default True
+            Show progress with processing of the data.
+
+        Returns
+        ----------
+        DataFrame
+            FieldInfo DataFrame.
+        """
+
+
+        field_column_names = ['FieldId', 'FieldName', 'FieldLevel', 'FieldlevelName', 'WikiData', 'NumberPublications', 'NumberCitations', 'FieldDescription']
+
+        field_topic_hier = ['domains', 'fields', 'subfields', 'topics']
+
+        files_to_parse = []
+        for ft_level in field_topic_hier:
+
+            if specific_update == '' or specific_update is None:
+                topic_dir = os.path.join(self.path2database, 'data', ft_level)
+            else:
+                topic_dir = os.path.join(self.path2database, 'data/{}'.format(ft_level), 'updated_date={}'.format(specific_update))
+
+            if not os.path.exists(concept_dir):
+                raise ValueError("The topics data was not found in the DataBase path.  Please download the data before parsing.")
+            else:
+                files_to_parse += [os.path.join(dirpath, file) for (dirpath, dirnames, filenames) in os.walk(topic_dir) for file in filenames if '.gz' in file]
+
+
+        fieldinfo = []
+        fieldhierarchy = []
+        for file_name in tqdm(files_to_parse, desc='Topics', leave=True, disable=not show_progress):
+            for ilevel, ft_level in enumerate(field_topic_hier):
+                with gzip.open(os.path.join(concept_dir, file_name), 'r') as infile:
+                    for line in infile:
+                        if line != '\n'.encode():
+                            cline = json.loads(line)
+                            fid = self.clean_openalex_ids(cline.get('id', None))
+                            fielddata = [fid]
+                            fielddata.append(cline.get('display_name', None))
+                            fielddata.extend([ilevel, ft_level])
+                            fielddata.append(cline.get('ids', {}).get('wikipedia', None))
+                            fielddata += [load_int(cline.get(prop, None)) for prop in ['works_count', 'cited_by_count']]
+                            fielddata.append(cline.get('description', None))
+
+                            fieldinfo.append(fielddata)
+
+                            if ilevel < len(field_topic_hier) - 1:
+                                for child in cline.get(field_topic_hier[ilevel+1], []):
+                                    fieldhierarchy.append([fid, self.clean_openalex_ids(an.get('id', None))])
+
+        fieldinfo = pd.DataFrame(fieldinfo, columns = field_column_names)
+        if preprocess:
+            fname = os.path.join(self.path2database, self.path2fieldinfo, '{}{}.{}'.format(self.path2fieldinfo, 0, self.database_extension))
+            self.save_data_file(fieldinfo, fname, key =self.path2fieldinfo)
+
+            fieldhierarchy = pd.DataFrame(fieldhierarchy, columns = ['ParentFieldId', 'ChildFieldId'])
+            fname = os.path.join(self.path2database, self.path2fieldinfo, '{}{}.{}'.format('fieldhierarchy', 0, self.database_extension))
+            self.save_data_file(fieldhierarchy, fname, key ='fieldhierarchy')
+
+        return fieldinfo
+
+
+
+    def parse_concepts(self, preprocess = True, field_type = 'topics', specific_update='', show_progress=True):
+        """
+        Parse the MAG Paper Concepts raw data.
 
         Parameters
         ----------

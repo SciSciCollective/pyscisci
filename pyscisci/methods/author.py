@@ -433,10 +433,10 @@ def author_top_field(pub2author, colgroupby = 'AuthorId', colcountby = 'FieldId'
             return p.idxmax()
 
         # now take the weighted mode for each groupby column
-        author2field = author2field.groupby(colgroupby).progress_apply(weighted_mode)
+        author2field = author2field.groupby(colgroupby, as_index=False).progress_apply(weighted_mode)
 
     newname_dict = zip2dict([str(colcountby), '0'], ['Top' + str(colcountby)]*2)
-    return author2field.to_frame().reset_index().rename(columns=newname_dict)
+    return author2field.rename(columns=newname_dict)
 
 
 def author_hotstreak(pub2author, colgroupby = 'AuthorId', citecol = 'c10',datecol='Year',  maxk=1, l1_lambda=1.0, show_progress=False):
