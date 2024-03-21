@@ -114,4 +114,4 @@ def compute_gindex(df, colgroupby, colcountby, show_progress=False):
     tqdm.pandas(desc='Gindex', disable= not show_progress)
 
     newname_dict = zip2dict([str(colcountby), '0'], [str(colgroupby)+'Gindex']*2)
-    return df.groupby(colgroupby, sort=False)[colcountby].progress_apply(gindex).to_frame().reset_index().rename(columns=newname_dict)
+    return df.groupby(colgroupby, sort=False, as_index=False)[colcountby].progress_apply(gindex).rename(columns=newname_dict)
