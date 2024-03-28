@@ -46,6 +46,19 @@ class OpenAlex(BibDataBase):
         self.path2pub2grant = 'grant'
         self.path2funders = 'funder'
 
+    @property
+    def fieldhierarchy(self):
+        """
+        The DataFrame keeping all field2field hierarhcial relationships
+
+        Notes
+        -------
+        columns: 'ParentFieldId', 'ChildFieldId'
+        
+
+        """
+        return pd.read_csv(os.path.join(self.path2database, self.path2fieldinfo, 'fieldhierarchy0.csv.gz'))
+
     def preprocess(self, dataframe_list = None, show_progress=True):
         """
         Bulk preprocess the MAG raw data.
@@ -461,7 +474,7 @@ class OpenAlex(BibDataBase):
         return source
 
 
-    def parse_publications(self, preprocess = True, specific_update='', preprocess_dicts = True, num_file_lines=10**6,
+    def parse_publications(self, preprocess = True, specific_update='', preprocess_dicts = True, start_from_file_num = 0,
         dataframe_list = ['publications', 'references', 'publicationauthoraffiliation', 'fields', 'grants'],
         show_progress=True):
         """
@@ -478,9 +491,6 @@ class OpenAlex(BibDataBase):
 
         preprocess_dicts: bool, default True
             Save the processed Year and DocType data as dictionaries.
-
-        num_file_lines: int, default 10**6
-            The processed data will be saved into smaller DataFrames, each with `num_file_lines` rows.
 
         dataframe_list: list
             The data types to download and save from OpenAlex.
@@ -564,202 +574,153 @@ class OpenAlex(BibDataBase):
 
         ifile = 0
         for file_name in tqdm(files_to_parse, desc='Works', leave=True, disable=not show_progress):
-            with gzip.open(os.path.join(work_dir, file_name), 'r') as infile:
-                
-                iline = 0
-                
-                for line in infile:
-                    if line != '\n'.encode():
-                        
-                        wline = json.loads(line)
-                        ownid = self.clean_openalex_ids(wline['id'])
 
-                        if ('publications' in dataframe_list) or ('works' in dataframe_list):
-                            wdata = [ownid]
-                            location_info = wline.get('primary_location', {})
+            if ifile < start_from_file_num:
+                ifile+=1
+            else:
+
+                with gzip.open(os.path.join(work_dir, file_name), 'r') as infile:
+                    
+                    iline = 0
+                    
+                    for line in infile:
+                        if line != '\n'.encode():
                             
-                            if not location_info is None:
-                                sourceinfo = location_info.get('source', {})
-                                if not sourceinfo is None:
-                                    sourceid = self.clean_openalex_ids(sourceinfo.get('id', ""))
+                            wline = json.loads(line)
+                            ownid = self.clean_openalex_ids(wline['id'])
+
+                            if ('publications' in dataframe_list) or ('works' in dataframe_list):
+                                wdata = [ownid]
+                                location_info = wline.get('primary_location', {})
+                                
+                                if not location_info is None:
+                                    sourceinfo = location_info.get('source', {})
+                                    if not sourceinfo is None:
+                                        sourceid = self.clean_openalex_ids(sourceinfo.get('id', ""))
+                                    else:
+                                        sourceid = None
                                 else:
                                     sourceid = None
-                            else:
-                                sourceid = None
-                            wdata += [sourceid]
-                            wdata += [load_int(wline.get(idname, None)) for idname in ['publication_year', 'cited_by_count']]
-                            wdata += [wline.get(idname, None) for idname in ['title', 'publication_date', 'type']]
-                            doi = wline.get('doi', None)
-                            if isinstance(doi, str):
-                                doi = doi.replace("https://doi.org/", "")
-                            wdata += [doi]
-                            pmid = wline.get("ids", {}).get('pmid', None)
-                            if isinstance(pmid, str):
-                                pmid = pmid.replace("https://pubmed.ncbi.nlm.nih.gov/", "")
-                            wdata += [pmid]
-                            bibinfo = wline.get('biblio', {})
-                            wdata += [bibinfo.get(idname, None) for idname in ['volume', 'issue', 'first_page', 'last_page', 'language']]
-                            wdata += [load_bool(wline.get(extraid, None)) for extraid in ['is_retracted', 'is_paratext', 'is_oa']]
-                            oainfo = wline.get('open_access', {})
-                            wdata += [oainfo.get(oai, None) for oai in ['oa_status']]
+                                wdata += [sourceid]
+                                wdata += [load_int(wline.get(idname, None)) for idname in ['publication_year', 'cited_by_count']]
+                                wdata += [wline.get(idname, None) for idname in ['title', 'publication_date', 'type']]
+                                doi = wline.get('doi', None)
+                                if isinstance(doi, str):
+                                    doi = doi.replace("https://doi.org/", "")
+                                wdata += [doi]
+                                pmid = wline.get("ids", {}).get('pmid', None)
+                                if isinstance(pmid, str):
+                                    pmid = pmid.replace("https://pubmed.ncbi.nlm.nih.gov/", "")
+                                wdata += [pmid]
+                                bibinfo = wline.get('biblio', {})
+                                wdata += [bibinfo.get(idname, None) for idname in ['volume', 'issue', 'first_page', 'last_page', 'language']]
+                                wdata += [load_bool(wline.get(extraid, None)) for extraid in ['is_retracted', 'is_paratext', 'is_oa']]
+                                oainfo = wline.get('open_access', {})
+                                wdata += [oainfo.get(oai, None) for oai in ['oa_status']]
 
-                            if preprocess_dicts:
-                                pub2year.append([ownid, wdata[2]])
-                                pub2doctype.append([ownid, wdata[6]])
+                                if preprocess_dicts:
+                                    pub2year.append([ownid, wdata[2]])
+                                    pub2doctype.append([ownid, wdata[6]])
 
-                            pubinfo.append(wdata)
+                                pubinfo.append(wdata)
 
-                        if ('references' in dataframe_list):
-                            pub2ref.extend([[ownid, self.clean_openalex_ids(citedid)] for citedid in wline.get('referenced_works', [])])
-
-
-                        if ('publicationauthoraffiliation' in dataframe_list):
-                            iauthor = 1
-                            for authorinfo in wline.get('authorships', []):
-                                authorid = self.clean_openalex_ids(authorinfo.get('author', {}).get('id', None))
-                                
-                                authorname = authorinfo.get('raw_author_name', '')
-                                affilstr = authorinfo.get('raw_affiliation_string', '')
-
-                                authorpos = authorinfo.get('author_position', None)
-                                authorcorr = authorinfo.get('is_corresponding', None)
-
-                                if (iauthor == 1 and authorinfo.get('author_position', None) != 'first'):
-                                    iauthor = None
-
-                                institution_list = authorinfo.get('institutions', [])
-                                if len(institution_list) == 0:
-                                    institution_list = [None]
-                                else:
-                                    institution_list = [self.clean_openalex_ids(affinfo.get('id', None)) for affinfo in institution_list]
-
-                                for inid in institution_list:
-                                    paa.append([ownid, authorid, inid, iauthor, authorpos, authorcorr, authorname, affilstr])
-
-                                if not iauthor is None:
-                                    iauthor += 1
-
-                        if ('topics' in dataframe_list):
-                            pub_topics = wline.get('topics', [])
-                            for topic_dict in pub_topics:
-                                pub2field.append([ownid, self.clean_openalex_ids(topic_dict.get('id', None)), load_float(topic_dict.get('score', None))])
-
-                        elif ('concepts' in dataframe_list):
-                            pub_concepts = wline.get('concepts', [])
-                            for con_dict in pub_concepts:
-                                pub2field.append([ownid, self.clean_openalex_ids(con_dict.get('id', None)), load_float(con_dict.get('score', None))])
-
-                        if ('grants' in dataframe_list):
-                            pub_grants = wline.get('grants', [])
-                            for grant_dict in pub_grants:
-                                pub2grant.append([ownid, self.clean_openalex_ids(grant_dict.get('funder', None)), grant_dict.get('award_id', None)])
-
-                        if ('abstracts' in dataframe_list) and 'abstract_inverted_index' in wline:
-                            pub2abstract.append([ownid, wline['abstract_inverted_index']])
-
-                        iline += 1
-
-                        if iline % num_file_lines == 0:
-                            if ('publications' in dataframe_list) or ('works' in dataframe_list):
-                                pub = pd.DataFrame(pubinfo, columns = pub_column_names)
-                                if preprocess:
-                                    fname = os.path.join(self.path2database, self.path2pub, '{}{}.{}'.format(self.path2pub, ifile, self.database_extension))
-                                    self.save_data_file(pub, fname, key =self.path2pub)
-                                    
-                                    pubinfo = []
-                            
                             if ('references' in dataframe_list):
-                                pub2refdf = pd.DataFrame(pub2ref, columns = ['CitingPublicationId', 'CitedPublicationId'])
-                                if preprocess:
-                                    fname = os.path.join(self.path2database, self.path2pub2ref, '{}{}.{}'.format(self.path2pub2ref, ifile, self.database_extension))
-                                    self.save_data_file(pub2refdf, fname, key =self.path2pub2ref)
+                                pub2ref.extend([[ownid, self.clean_openalex_ids(citedid)] for citedid in wline.get('referenced_works', [])])
 
-                                    pub2ref = []
 
                             if ('publicationauthoraffiliation' in dataframe_list):
-                                paadf = pd.DataFrame(paa, columns = paa_column_names)
-                                if preprocess:
-                                    fname = os.path.join(self.path2database, self.path2paa, '{}{}.{}'.format(self.path2paa, ifile, self.database_extension))
-                                    self.save_data_file(paadf, fname, key =self.path2paa)
+                                iauthor = 1
+                                for authorinfo in wline.get('authorships', []):
+                                    authorid = self.clean_openalex_ids(authorinfo.get('author', {}).get('id', None))
+                                    
+                                    authorname = authorinfo.get('raw_author_name', '')
+                                    affilstr = authorinfo.get('raw_affiliation_string', '')
 
-                                    paa = []
+                                    authorpos = authorinfo.get('author_position', None)
+                                    authorcorr = authorinfo.get('is_corresponding', None)
 
-                            if ('fields' in dataframe_list) or ('concepts' in dataframe_list) or ('topics' in dataframe_list):
-                                pub2fielddf = pd.DataFrame(pub2field, columns = pub2field_column_names)
-                                if preprocess:
-                                    fname = os.path.join(self.path2database, self.path2pub2field, '{}{}.{}'.format(self.path2pub2field, ifile, self.database_extension))
-                                    self.save_data_file(pub2fielddf, fname, key =self.path2pub2field)
+                                    if (iauthor == 1 and authorinfo.get('author_position', None) != 'first'):
+                                        iauthor = None
 
-                                    pub2field = []
+                                    institution_list = authorinfo.get('institutions', [])
+                                    if len(institution_list) == 0:
+                                        institution_list = [None]
+                                    else:
+                                        institution_list = [self.clean_openalex_ids(affinfo.get('id', None)) for affinfo in institution_list]
+
+                                    for inid in institution_list:
+                                        paa.append([ownid, authorid, inid, iauthor, authorpos, authorcorr, authorname, affilstr])
+
+                                    if not iauthor is None:
+                                        iauthor += 1
+
+                            if ('topics' in dataframe_list):
+                                pub_topics = wline.get('topics', [])
+                                for topic_dict in pub_topics:
+                                    pub2field.append([ownid, self.clean_openalex_ids(topic_dict.get('id', None)), load_float(topic_dict.get('score', None))])
+
+                            elif ('concepts' in dataframe_list):
+                                pub_concepts = wline.get('concepts', [])
+                                for con_dict in pub_concepts:
+                                    pub2field.append([ownid, self.clean_openalex_ids(con_dict.get('id', None)), load_float(con_dict.get('score', None))])
 
                             if ('grants' in dataframe_list):
-                                pub2grantsdf = pd.DataFrame(pub2grant, columns = pub2grants_column_names)
-                                if preprocess:
-                                    fname = os.path.join(self.path2database, self.path2pub2grant, '{}{}.{}'.format(self.path2pub2grant, ifile, self.database_extension))
-                                    self.save_data_file(pub2grantsdf, fname, key =self.path2pub2grant)
+                                pub_grants = wline.get('grants', [])
+                                for grant_dict in pub_grants:
+                                    pub2grant.append([ownid, self.clean_openalex_ids(grant_dict.get('funder', None)), grant_dict.get('award_id', None)])
 
-                                    pub2grant = []
+                            if ('abstracts' in dataframe_list) and 'abstract_inverted_index' in wline:
+                                pub2abstract.append([ownid, wline['abstract_inverted_index']])
 
+                    
+                    if ('publications' in dataframe_list) or ('works' in dataframe_list):
+                        pub = pd.DataFrame(pubinfo, columns = pub_column_names)
+                        if preprocess:
+                            fname = os.path.join(self.path2database, self.path2pub, '{}{}.{}'.format(self.path2pub, ifile, self.database_extension))
+                            self.save_data_file(pub, fname, key =self.path2pub)
+                            
+                            pubinfo = []
+                    
+                    if ('references' in dataframe_list):
+                        pub2refdf = pd.DataFrame(pub2ref, columns = ['CitingPublicationId', 'CitedPublicationId'])
+                        if preprocess:
+                            fname = os.path.join(self.path2database, self.path2pub2ref, '{}{}.{}'.format(self.path2pub2ref, ifile, self.database_extension))
+                            self.save_data_file(pub2refdf, fname, key =self.path2pub2ref)
 
-                            if ('abstracts' in dataframe_list):
-                                with gzip.open(os.path.join(self.path2database, self.path2pub2abstract, '{}{}.jsonl.gz'.format(self.path2pub2abstract, ifile)), 'wb') as outfile:
-                                    for abentry in pub2abstract:
-                                        outfile.write((json.dumps({abentry[0]:abentry[1]}) + "\n").encode('utf-8'))
+                            pub2ref = []
 
-                                pub2abstract = []
+                    if ('publicationauthoraffiliation' in dataframe_list):
+                        paadf = pd.DataFrame(paa, columns = paa_column_names)
+                        if preprocess:
+                            fname = os.path.join(self.path2database, self.path2paa, '{}{}.{}'.format(self.path2paa, ifile, self.database_extension))
+                            self.save_data_file(paadf, fname, key =self.path2paa)
 
-                            ifile += 1
+                            paa = []
 
+                    if ('fields' in dataframe_list) or ('concepts' in dataframe_list) or ('topics' in dataframe_list):
+                        pub2fielddf = pd.DataFrame(pub2field, columns = pub2field_column_names)
+                        if preprocess:
+                            fname = os.path.join(self.path2database, self.path2pub2field, '{}{}.{}'.format(self.path2pub2field, ifile, self.database_extension))
+                            self.save_data_file(pub2fielddf, fname, key =self.path2pub2field)
 
-                
-                if ('publications' in dataframe_list) or ('works' in dataframe_list):
-                    pub = pd.DataFrame(pubinfo, columns = pub_column_names)
-                    if preprocess:
-                        fname = os.path.join(self.path2database, self.path2pub, '{}{}.{}'.format(self.path2pub, ifile, self.database_extension))
-                        self.save_data_file(pub, fname, key =self.path2pub)
-                        
-                        pubinfo = []
-                
-                if ('references' in dataframe_list):
-                    pub2refdf = pd.DataFrame(pub2ref, columns = ['CitingPublicationId', 'CitedPublicationId'])
-                    if preprocess:
-                        fname = os.path.join(self.path2database, self.path2pub2ref, '{}{}.{}'.format(self.path2pub2ref, ifile, self.database_extension))
-                        self.save_data_file(pub2refdf, fname, key =self.path2pub2ref)
+                            pub2field = []
 
-                        pub2ref = []
+                    if ('grants' in dataframe_list):
+                        pub2grantsdf = pd.DataFrame(pub2grant, columns = pub2grants_column_names)
+                        if preprocess:
+                            fname = os.path.join(self.path2database, self.path2pub2grant, '{}{}.{}'.format(self.path2pub2grant, ifile, self.database_extension))
+                            self.save_data_file(pub2grantsdf, fname, key =self.path2pub2grant)
 
-                if ('publicationauthoraffiliation' in dataframe_list):
-                    paadf = pd.DataFrame(paa, columns = paa_column_names)
-                    if preprocess:
-                        fname = os.path.join(self.path2database, self.path2paa, '{}{}.{}'.format(self.path2paa, ifile, self.database_extension))
-                        self.save_data_file(paadf, fname, key =self.path2paa)
+                            pub2grant = []
 
-                        paa = []
+                    if ('abstracts' in dataframe_list):
+                        with gzip.open(os.path.join(self.path2database, self.path2pub2abstract, '{}{}.jsonl.gz'.format(self.path2pub2abstract, ifile)), 'w') as outfile:
+                            for abentry in pub2abstract:
+                                outfile.write((json.dumps({abentry[0]:abentry[1]}) + "\n").encode('utf-8'))
 
-                if ('fields' in dataframe_list) or ('concepts' in dataframe_list) or ('topics' in dataframe_list):
-                    pub2fielddf = pd.DataFrame(pub2field, columns = pub2field_column_names)
-                    if preprocess:
-                        fname = os.path.join(self.path2database, self.path2pub2field, '{}{}.{}'.format(self.path2pub2field, ifile, self.database_extension))
-                        self.save_data_file(pub2fielddf, fname, key =self.path2pub2field)
+                        pub2abstract = []
 
-                        pub2field = []
-
-                if ('grants' in dataframe_list):
-                    pub2grantsdf = pd.DataFrame(pub2grant, columns = pub2grants_column_names)
-                    if preprocess:
-                        fname = os.path.join(self.path2database, self.path2pub2grant, '{}{}.{}'.format(self.path2pub2grant, ifile, self.database_extension))
-                        self.save_data_file(pub2grantsdf, fname, key =self.path2pub2grant)
-
-                        pub2grant = []
-
-                if ('abstracts' in dataframe_list):
-                    with gzip.open(os.path.join(self.path2database, self.path2pub2abstract, '{}{}.jsonl.gz'.format(self.path2pub2abstract, ifile)), 'w') as outfile:
-                        for abentry in pub2abstract:
-                            outfile.write((json.dumps({abentry[0]:abentry[1]}) + "\n").encode('utf-8'))
-
-                    pub2abstract = []
-
-                ifile += 1
+                    ifile += 1
 
         if preprocess_dicts and (('publications' in dataframe_list) or ('works' in dataframe_list)) and preprocess_dicts:
 
@@ -805,32 +766,33 @@ class OpenAlex(BibDataBase):
 
         field_topic_hier = ['domains', 'fields', 'subfields', 'topics']
 
-        files_to_parse = []
-        for ft_level in field_topic_hier:
+        if not os.path.exists(os.path.join(self.path2database, self.path2fieldinfo)):
+            os.mkdir(os.path.join(self.path2database, self.path2fieldinfo))
+
+        fieldinfo = []
+        fieldhierarchy = []
+        
+        for ilevel, ft_level in enumerate(field_topic_hier):
+
+            files_to_parse = []
 
             if specific_update == '' or specific_update is None:
                 topic_dir = os.path.join(self.path2database, 'data', ft_level)
             else:
                 topic_dir = os.path.join(self.path2database, 'data/{}'.format(ft_level), 'updated_date={}'.format(specific_update))
 
-            if not os.path.exists(concept_dir):
+            if not os.path.exists(topic_dir):
                 raise ValueError("The topics data was not found in the DataBase path.  Please download the data before parsing.")
             else:
                 files_to_parse += [os.path.join(dirpath, file) for (dirpath, dirnames, filenames) in os.walk(topic_dir) for file in filenames if '.gz' in file]
 
-
-        fieldinfo = []
-        fieldhierarchy = []
-        for file_name in tqdm(files_to_parse, desc='Topics', leave=True, disable=not show_progress):
-            for ilevel, ft_level in enumerate(field_topic_hier):
-                with gzip.open(os.path.join(concept_dir, file_name), 'r') as infile:
+            for file_name in tqdm(files_to_parse, desc=ft_level, leave=True, disable=not show_progress):
+                with gzip.open(os.path.join(topic_dir, file_name), 'r') as infile:
                     for line in infile:
                         if line != '\n'.encode():
                             cline = json.loads(line)
                             fid = self.clean_openalex_ids(cline.get('id', None))
-                            fielddata = [fid]
-                            fielddata.append(cline.get('display_name', None))
-                            fielddata.extend([ilevel, ft_level])
+                            fielddata = [fid, cline.get('display_name', None), ilevel, ft_level]
                             fielddata.append(cline.get('ids', {}).get('wikipedia', None))
                             fielddata += [load_int(cline.get(prop, None)) for prop in ['works_count', 'cited_by_count']]
                             fielddata.append(cline.get('description', None))
@@ -839,7 +801,7 @@ class OpenAlex(BibDataBase):
 
                             if ilevel < len(field_topic_hier) - 1:
                                 for child in cline.get(field_topic_hier[ilevel+1], []):
-                                    fieldhierarchy.append([fid, self.clean_openalex_ids(an.get('id', None))])
+                                    fieldhierarchy.append([fid, self.clean_openalex_ids(child.get('id', None))])
 
         fieldinfo = pd.DataFrame(fieldinfo, columns = field_column_names)
         if preprocess:
