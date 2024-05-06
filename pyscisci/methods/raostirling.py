@@ -81,7 +81,7 @@ def field_citation_distance(pub2ref, pub2field, pub2field_norm=True, temporal=Tr
     # to leverage matrix operations we need to map fields to the rows/cols of the matrix
     field2int = {fid:i for i, fid in enumerate(np.sort(pub2field['FieldId'].unique()))}
     int2field = {i:fid for fid, i in field2int.items()}
-    pub2field['FieldId'] = [field2int[fid] for fid in pub2field['FieldId'].values]
+    pub2field['FieldInt'] = [field2int[fid] for fid in pub2field['FieldId'].values]
     Nfields = len(field2int)
 
     pub2ref.rename(columns=pub2ref_rename_dict, inplace=True)

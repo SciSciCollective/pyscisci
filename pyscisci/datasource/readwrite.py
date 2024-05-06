@@ -180,7 +180,8 @@ def load_preprocessed_data(dataname, path2database, database_extension = 'hdf', 
                 raise NotImplementedError('Dask does not currently support filtering when loading dataframes.')
 
             for isinkey, isinlist in filter_dict.items():
-                subdf = subdf.loc[isin_sorted(subdf[isinkey].values, isinlist)]
+                if subdf.shape[0] > 0:
+                    subdf = subdf.loc[isin_sorted(subdf[isinkey].values, isinlist)]
 
         if isinstance(duplicate_subset, list):
             subdf = subdf.drop_duplicates(subset = duplicate_subset, keep = duplicate_keep)
@@ -202,6 +203,8 @@ def load_preprocessed_data(dataname, path2database, database_extension = 'hdf', 
         data = data.drop_duplicates(subset = duplicate_subset, keep = duplicate_keep)
 
     data.name = dataname
+
+    data.reset_index(drop=True, inplace=True)
     
     return data
 

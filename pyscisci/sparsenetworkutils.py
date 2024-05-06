@@ -9,7 +9,6 @@ import sys
 import numpy as np
 import pandas as pd
 
-from scipy import repeat, sqrt, where, square, absolute
 import scipy.sparse as spsparse
 
 # determine if we are loading from a jupyter notebook (to make pretty progress bars)
@@ -127,14 +126,14 @@ def sparse_pagerank_scipy(adjmat, alpha=0.85, personalization=None, initializati
 
     # initial vector
     if initialization is None:
-        x = repeat(1.0 / N, N)
+        x = np.repeat(1.0 / N, N)
     
     else:
         x = initialization / initialization.sum()
 
     # Personalization vector
     if personalization is None:
-        p = repeat(1.0 / N, N)
+        p = np.repeat(1.0 / N, N)
     else:
         p = personalization / personalization.sum()
 
@@ -144,7 +143,7 @@ def sparse_pagerank_scipy(adjmat, alpha=0.85, personalization=None, initializati
     else:
         dangling_weights = dangling / dangling.sum()
 
-    is_dangling = where(out_strength == 0)[0]
+    is_dangling = np.where(out_strength == 0)[0]
 
     # power iteration: make up to max_iter iterations
     for _ in range(max_iter):
@@ -152,7 +151,7 @@ def sparse_pagerank_scipy(adjmat, alpha=0.85, personalization=None, initializati
         x = alpha * (x * adjmat + sum(x[is_dangling]) * dangling_weights) + \
             (1 - alpha) * p
         # check convergence, l1 norm
-        err = absolute(x - xlast).sum()
+        err = np.absolute(x - xlast).sum()
         if err < N * tol:
             return x
 
@@ -171,7 +170,7 @@ def sparse_eigenvector_centrality_scipy(adjmat, max_iter=100, tol=1.0e-6, initia
 
     # initial vector
     if initialization is None:
-        x = repeat(1.0 / N, N)
+        x = np.repeat(1.0 / N, N)
     
     else:
         x = initialization / initialization.sum()
@@ -185,11 +184,11 @@ def sparse_eigenvector_centrality_scipy(adjmat, max_iter=100, tol=1.0e-6, initia
         x = xlast*adjmat
 
         
-        norm = sqrt( square(x).sum() ) or 1
+        norm = np.sqrt( np.square(x).sum() ) or 1
         x = x/norm
 
         # Check for convergence (in the L_1 norm).
-        err = absolute(x - xlast).sum()
+        err = np.absolute(x - xlast).sum()
         if err < N * tol:
             return x
     print('power iteration failed to converge in %d iterations.' % max_iter)

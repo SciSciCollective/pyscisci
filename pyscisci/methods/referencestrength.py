@@ -40,7 +40,7 @@ def field_citation_vectors(source2target, pub2field, count_normalize=None, n_fie
     Returns
     -------
     Distance DataFrame
-        DataFrame with 3 columns: SourceFieldId, TargetFieldId, Count
+        DataFrame with 3 columns: SourceFieldInt, TargetFieldInt, Count
 
     """
 
@@ -49,26 +49,26 @@ def field_citation_vectors(source2target, pub2field, count_normalize=None, n_fie
     else:
         Nfields = n_fields
 
-    source2target = source2target.merge(pub2field[['PublicationId', 'FieldId', 'PubFieldContribution']], how='left', left_on='SourceId', right_on='PublicationId').rename(
-            columns={'FieldId':'SourceFieldId', 'PubFieldContribution':'SourcePubFieldContribution'})
+    source2target = source2target.merge(pub2field[['PublicationId', 'FieldInt', 'PubFieldContribution']], how='left', left_on='SourceId', right_on='PublicationId').rename(
+            columns={'FieldInt':'SourceFieldInt', 'PubFieldContribution':'SourcePubFieldContribution'})
     del source2target['PublicationId']
 
-    source2target = source2target.merge(pub2field[['PublicationId', 'FieldId', 'PubFieldContribution']], how='left', left_on='TargetId', right_on='PublicationId').rename(
-    columns={'FieldId':'TargetFieldId', 'PubFieldContribution':'TargetPubFieldContribution'})
+    source2target = source2target.merge(pub2field[['PublicationId', 'FieldInt', 'PubFieldContribution']], how='left', left_on='TargetId', right_on='PublicationId').rename(
+    columns={'FieldInt':'TargetFieldInt', 'PubFieldContribution':'TargetPubFieldContribution'})
     del source2target['PublicationId']
 
     # drop any citation relationships for which we dont have field information
     source2target.dropna(inplace=True)
 
     # we need to use integer ids to map to the matrix
-    source2target[['SourceFieldId', 'TargetFieldId']] = source2target[['SourceFieldId', 'TargetFieldId']].astype(int)
+    source2target[['SourceFieldInt', 'TargetFieldInt']] = source2target[['SourceFieldInt', 'TargetFieldInt']].astype(int)
 
     # in the field2field distance matrix, the weighted contribution from a source publication in multiple fields
     # is the product of the source and target contributions
     source2target['SourcePubFieldContribution'] = source2target['SourcePubFieldContribution'] * source2target['TargetPubFieldContribution']
 
     # calculate the field representation vectors for this year only
-    field2field_mat = dataframe2bipartite(df=source2target, rowname='SourceFieldId', colname='TargetFieldId',
+    field2field_mat = dataframe2bipartite(df=source2target, rowname='SourceFieldInt', colname='TargetFieldInt',
             shape=(Nfields, Nfields), weightname='SourcePubFieldContribution')
 
     # now normalize the vectors by the source/target counts
@@ -139,7 +139,7 @@ def field_citation_share(pub2ref, pub2field, count_normalize=None, pub2field_nor
     # to leverage matrix operations we need to map fields to the rows/cols of the matrix
     field2int = {fid:i for i, fid in enumerate(np.sort(pub2field['FieldId'].unique()))}
     int2field = {i:fid for fid, i in field2int.items()}
-    pub2field['FieldId'] = [field2int[fid] for fid in pub2field['FieldId'].values]
+    pub2field['FieldInt'] = [field2int[fid] for fid in pub2field['FieldId'].values]
     Nfields = len(field2int)
 
     pub2ref.rename(columns=pub2ref_rename_dict, inplace=True)
