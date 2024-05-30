@@ -48,7 +48,7 @@ DataFrames
 Each dataset is partitioned into several DataFrames containing information for different bibliometric objects that are accessed as properties of the BibDataBase:
 	- *pub*: The DataFrame keeping publication information, including publication date, journal, title, etc.. Each PubId occurs only once.  Columns depend on the specific datasource. 
 	- *author*: The DataFrame keeping author names and personal information. Each AuthorId occurs only once.  Columns depend on the specific datasource. 
-	- *affiliation*: The DataFrame keeping affilations names and websites. Each AffiliationId occurs only once.  Columns depend on the specific datasource. 
+	- *affiliation*: The DataFrame keeping affiliations names and websites. Each AffiliationId occurs only once.  Columns depend on the specific datasource. 
 	- *journal*: The DataFrame keeping journal names and websites. Each JournalId occurs only once.  Columns depend on the specific datasource. 
 	- *fieldinfo*: The DataFrame keeping field names and levels. Each FieldId occurs only once.  Columns depend on the specific datasource. 
 

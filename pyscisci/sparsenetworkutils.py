@@ -68,7 +68,7 @@ def project_bipartite_mat(bipartite_adj, project_to = 'row'):
 
 def extract_multiscale_backbone(Xs, alpha):
     """
-    A sparse matrix implemntation of the multiscale backbone :cite:`Serrano2009backbone`.
+    A sparse matrix implementation of the multiscale backbone :cite:`Serrano2009backbone`.
 
     Parameters
     ----------
