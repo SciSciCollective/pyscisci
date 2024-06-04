@@ -93,9 +93,10 @@ def netnormcite_index(pub2ref, pub2year=None, focus_pub_ids = None, T=5, show_pr
             paper2y_cocite = {refid:get_yearly_ncites(y+t,refid) for citeid in get_citation_groups(focusid, y+t) for refid in get_reference_groups(citeid) }
             
             # the co-citation neighborhood doesnt include the focus publication
-            cnorm_denom = sum(ncites for refid, ncites in paper2y_cocite.items() if refid != focusid) / (len(paper2y_cocite) - 1)
+            cnorm_denom = sum(ncites for refid, ncites in paper2y_cocite.items() if refid != focusid)
             
-            if cnorm_denom > 0:
+            if cnorm_denom > 0 and len(paper2y_cocite)  > 1:
+                cnorm_denom = cnorm_denom / (len(paper2y_cocite) - 1)
                 cnormt += get_yearly_ncites(y+t,focusid) / cnorm_denom
 
         return cnormt
