@@ -63,7 +63,7 @@ def disruption_index(pub2ref, focus_pub_ids = None, cite_window = None, ref_wind
         citation_groups = pub2ref.groupby('CitedPublicationId', sort = False)['CitingPublicationId']
     else:
         cite_sub = [ ((y1-y2) >= cite_window[0] and (y1-y2) <=cite_window[1]) for y1,y2 in pub2ref[['CitingYear', 'CitedYear']].values]
-        citation_groups = pub2ref.loc[cite_sub].groupby('CitingPublicationId', sort = False)['CitedPublicationId']
+        citation_groups = pub2ref.loc[cite_sub].groupby('CitedPublicationId', sort = False)['CitingPublicationId']
 
     if focus_pub_ids is None:
         if cite_window is None:
