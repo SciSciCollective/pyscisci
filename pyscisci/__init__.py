@@ -8,5 +8,5 @@ __author__ = """\n""".join([
     'Alexander J Gates <ajgates42@gmail.com>'
 ])
 
-__version__ = '0.8.19'
-__release__ = '0.8.19'
+__version__ = '0.8.20'
+__release__ = '0.8.20'

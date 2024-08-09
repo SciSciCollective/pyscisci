@@ -69,18 +69,33 @@ def strip_accents(text):
     text = text.decode("utf-8")
     return str(text)
 
-def clean_names(name, remove_parentheses=True):
+def clean_person_names(name, remove_parentheses=True):
     name = strip_accents(name)
 
     if remove_parentheses:
         name = re.sub("[\(\[].*?[\)\]]", "", name) # remove text between () and []
         if '(' in name:
             name=name[:name.index('(')]
-        for c in [')', ']','.']:
+        for c in ['(',')', '[',']','.']:
             name=name.replace(c, '')
     for c in [',', ' - ', '- ', ' -']:
         name=name.replace(c, '-')
     name = name.replace(' & ', '&')
+    return name.strip()
+
+def clean_institution_names(name, remove_parentheses=True):
+    name = strip_accents(name)
+
+    if remove_parentheses:
+        name = re.sub("[\(\[].*?[\)\]]", "", name) # remove text between () and []
+        if '(' in name:
+            name=name[:name.index('(')]
+        for c in ['(',')', '[',']','.']:
+            name=name.replace(c, '')
+    for c in [',', ' - ', '- ', ' -']:
+        name=name.replace(c, ' ')
+    name = name.replace(' & ', ' and ')
+    name = re.sub('\s+', ' ', name)
     return name.strip()
 
 def levenshtein_best_match(s1, options, lower_bound=0.75):
