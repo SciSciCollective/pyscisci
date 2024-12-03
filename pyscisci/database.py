@@ -81,7 +81,7 @@ class BibDataBase(object):
         self.path2journal = 'journal'
         self.path2fieldinfo = 'fieldinfo'
         self.path2impact = 'impact'
-        self.path2pub2abstract = 'pub2abstract'
+        self.path2pub2text = 'pub2text'
 
         self.database_extension = database_extension
 

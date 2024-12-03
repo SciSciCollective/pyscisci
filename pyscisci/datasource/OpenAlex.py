@@ -19,7 +19,7 @@ from pyscisci.datasource.readwrite import load_preprocessed_data, load_int, load
 from pyscisci.database import BibDataBase
 from pyscisci.nlp import abstractindex2text
 
-openalex_works_dfset = {'publications', 'references', 'publicationauthoraffiliation', 'concepts', 'fields', 'topics', 'abstracts', 'grants'}
+openalex_works_dfset = {'publications', 'references', 'publicationauthoraffiliation', 'concepts', 'fields', 'topics', 'abstracts', 'grants', 'text'}
 openalex_dataframe_set = {'publications', 'works', 'sources', 'authors', 'institutions', 'affiliations', 'concepts', 'fields', 'topics', 'funders'}
 
 class OpenAlex(BibDataBase):
@@ -186,7 +186,7 @@ class OpenAlex(BibDataBase):
             if 'affiliations' in dataframe_list: dataframe_list.add('institutions')
 
         # see if we have to do any editing
-        if edit_works and any(not pubsub in dataframe_list for pubsub in ['works', 'references', 'publicationauthoraffiliation', 'topics', 'abstracts']):
+        if edit_works and any(not pubsub in dataframe_list for pubsub in ['works', 'references', 'publicationauthoraffiliation', 'topics', 'abstracts', 'text']):
             edit_works = True
         else:
             edit_works = False
@@ -255,7 +255,7 @@ class OpenAlex(BibDataBase):
                                 if ( not ('publicationauthoraffiliation' in dataframe_list) ) and 'authorships' in jline:
                                     del jline['authorships']
 
-                                if ( not ('abstracts' in dataframe_list) ) and 'abstract_inverted_index' in jline:
+                                if ( not ('abstracts' in dataframe_list or 'text' in dataframe_list) ) and 'abstract_inverted_index' in jline:
                                     del jline['abstract_inverted_index']
 
                                 newline = json.dumps(jline) + "\n"
@@ -571,13 +571,13 @@ class OpenAlex(BibDataBase):
 
             pub2field = []
 
-        pub2abstract_column_names = ['PublicationId', 'Title', 'Abstract']
+        pub2text_column_names = ['PublicationId', 'Language', 'Title', 'Abstract']
 
-        if preprocess and ('abstracts' in dataframe_list):
-            if not os.path.exists(os.path.join(self.path2database, self.path2pub2abstract)):
-                os.mkdir(os.path.join(self.path2database, self.path2pub2abstract))
+        if preprocess and ('abstracts' in dataframe_list or 'text' in dataframe_list):
+            if not os.path.exists(os.path.join(self.path2database, self.path2pub2text)):
+                os.mkdir(os.path.join(self.path2database, self.path2pub2text))
 
-            pub2abstract = []
+            pub2text = []
 
         pub2grants_column_names = ['PublicationId', 'FunderId', 'AwardId']
 
@@ -684,8 +684,8 @@ class OpenAlex(BibDataBase):
                                 for grant_dict in pub_grants:
                                     pub2grant.append([ownid, self.clean_openalex_ids(grant_dict.get('funder', None)), grant_dict.get('award_id', None)])
 
-                            if ('abstracts' in dataframe_list) and 'abstract_inverted_index' in wline:
-                                pub2abstract.append([ownid, wline.get('title', None), abstractindex2text(wline.get('abstract_inverted_index', {}))])
+                            if ('abstracts' in dataframe_list or 'text' in dataframe_list) and 'abstract_inverted_index' in wline:
+                                pub2text.append([ownid, bibinfo.get('language', None), wline.get('title', None), abstractindex2text(wline.get('abstract_inverted_index', {}))])
 
                     
                     if ('publications' in dataframe_list) or ('works' in dataframe_list):
@@ -728,13 +728,13 @@ class OpenAlex(BibDataBase):
 
                             pub2grant = []
 
-                    if ('abstracts' in dataframe_list):
-                        pub2abstractdf = pd.DataFrame(pub2abstract, columns = pub2abstract_column_names)
+                    if ('abstracts' in dataframe_list or 'text' in dataframe_list):
+                        pub2textdf = pd.DataFrame(pub2text, columns = pub2text_column_names)
                         if preprocess:
-                            fname = os.path.join(self.path2database, self.path2pub2abstract, '{}{}.{}'.format(self.path2pub2abstract, ifile, self.database_extension))
-                            self.save_data_file(pub2abstractdf, fname, key =self.path2pub2abstract)
+                            fname = os.path.join(self.path2database, self.path2pub2text, '{}{}.{}'.format(self.path2pub2text, ifile, self.database_extension))
+                            self.save_data_file(pub2textdf, fname, key =self.path2pub2text)
 
-                        pub2abstract = []
+                        pub2text = []
 
                     ifile += 1
 
