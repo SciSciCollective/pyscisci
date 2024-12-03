@@ -4,7 +4,7 @@ import pathlib
 import pandas as pd
 import numpy as np
 
-import dask.dataframe as dd
+#import dask.dataframe as dd
 
 from unidecode import unidecode
 import html

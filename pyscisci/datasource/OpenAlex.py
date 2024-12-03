@@ -17,6 +17,7 @@ else:
 
 from pyscisci.datasource.readwrite import load_preprocessed_data, load_int, load_float, load_bool
 from pyscisci.database import BibDataBase
+from pyscisci.nlp import abstractindex2text
 
 openalex_works_dfset = {'publications', 'references', 'publicationauthoraffiliation', 'concepts', 'fields', 'topics', 'abstracts', 'grants'}
 openalex_dataframe_set = {'publications', 'works', 'sources', 'authors', 'institutions', 'affiliations', 'concepts', 'fields', 'topics', 'funders'}
@@ -47,7 +48,7 @@ class OpenAlex(BibDataBase):
         self.path2funders = 'funder'
 
     @property
-    def fieldhierarchy(self):
+    def fieldhierarchy(self, expand_domains=False):
         """
         The DataFrame keeping all field2field hierarhcial relationships
 
@@ -57,7 +58,19 @@ class OpenAlex(BibDataBase):
         
 
         """
-        return pd.read_csv(os.path.join(self.path2database, self.path2fieldinfo, 'fieldhierarchy0.csv.gz'))
+        fieldhier = pd.read_csv(os.path.join(self.path2database, self.path2fieldinfo, 'fieldhierarchy0.csv.gz'))
+
+        if expand_domains:
+            fieldhier2 = fieldhier.rename(columns = {'ParentFieldId': 'SubFieldId', 'ChildFieldId': 'TopicId'})
+            fieldhier2= fieldhier2.merge(fieldhier, how='inner', left_on = 'SubFieldId', right_on = 'ChildFieldId')
+            del fieldhier2['ChildFieldId']
+            fieldhier2 = fieldhier2.rename(columns = {'ParentFieldId': 'FieldId'})
+            fieldhier2= fieldhier2.merge(fieldhier, how='inner', left_on = 'FieldId', right_on = 'ChildFieldId')
+            del fieldhier2['ChildFieldId']
+            fieldhier2 = fieldhier2.rename(columns = {'ParentFieldId': 'DomainId'})
+            fieldhier = fieldhier2[['TopicId', 'SubFieldId', 'FieldId', 'DomainId']]
+        else:
+            return fieldhier
 
     def preprocess(self, dataframe_list = None, show_progress=True):
         """
@@ -558,6 +571,8 @@ class OpenAlex(BibDataBase):
 
             pub2field = []
 
+        pub2abstract_column_names = ['PublicationId', 'Title', 'Abstract']
+
         if preprocess and ('abstracts' in dataframe_list):
             if not os.path.exists(os.path.join(self.path2database, self.path2pub2abstract)):
                 os.mkdir(os.path.join(self.path2database, self.path2pub2abstract))
@@ -670,7 +685,7 @@ class OpenAlex(BibDataBase):
                                     pub2grant.append([ownid, self.clean_openalex_ids(grant_dict.get('funder', None)), grant_dict.get('award_id', None)])
 
                             if ('abstracts' in dataframe_list) and 'abstract_inverted_index' in wline:
-                                pub2abstract.append([ownid, wline['abstract_inverted_index']])
+                                pub2abstract.append([ownid, wline.get('title', None), abstractindex2text(wline.get('abstract_inverted_index', {}))])
 
                     
                     if ('publications' in dataframe_list) or ('works' in dataframe_list):
@@ -714,9 +729,10 @@ class OpenAlex(BibDataBase):
                             pub2grant = []
 
                     if ('abstracts' in dataframe_list):
-                        with gzip.open(os.path.join(self.path2database, self.path2pub2abstract, '{}{}.jsonl.gz'.format(self.path2pub2abstract, ifile)), 'w') as outfile:
-                            for abentry in pub2abstract:
-                                outfile.write((json.dumps({abentry[0]:abentry[1]}) + "\n").encode('utf-8'))
+                        pub2abstractdf = pd.DataFrame(pub2abstract, columns = pub2abstract_column_names)
+                        if preprocess:
+                            fname = os.path.join(self.path2database, self.path2pub2abstract, '{}{}.{}'.format(self.path2pub2abstract, ifile, self.database_extension))
+                            self.save_data_file(pub2abstractdf, fname, key =self.path2pub2abstract)
 
                         pub2abstract = []
 

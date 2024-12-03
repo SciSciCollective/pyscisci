@@ -294,8 +294,10 @@ def pandas_cosine_similarity(df1, df2, col_keys, col_values):
     isin = df1[col_keys].values == df2[col_keys].values[search_index]
     cosine_num = np.inner(df1[col_values].values[isin], df2[col_values].values[search_index[isin]])
     cosine_denom = np.linalg.norm(df1[col_values].values) * np.linalg.norm(df2[col_values].values)
-    return 1.0 - cosine_num/cosine_denom
+    return cosine_num/cosine_denom
     
+def pandas_cosine_distance(df1, df2, col_keys, col_values):
+    return 1 - pandas_cosine_similarity(df1, df2, col_keys, col_values)
 
 def rolling_window(a, window, step_size = 1):
     shape = a.shape[:-1] + (a.shape[-1] - window + 1 - step_size, window)
@@ -574,6 +576,25 @@ def welford_mean_m2(previous_count, previous_mean, previous_m2, new_value):
 @jit
 def zscore_var(obs, m, var):
     return (obs-m) / np.sqrt(var)
+
+@jit
+def fast_auc(X,Y):
+    """
+    A fast algorithm from :cite:`Sun2014fastauc` to compute the DeLong AUC :cite:`DeLong1988auc`.
+    """
+    m = X.shape[0]
+    n = Y.shape[0]
+
+    if m == 0 or n == 0:
+        return np.nan
+
+    theta = 0
+    Z = np.concatenate((X,Y), axis = 0)
+    Z_MR = compute_midrank(Z)
+
+    auc = Z_MR[:m].sum() / m / n - float(m + 1.0) / 2.0 / n
+
+    return auc
 
 @jit
 def fast_delong(X,Y):
