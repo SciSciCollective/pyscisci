@@ -43,12 +43,16 @@ def abstractindex2text(abstract_index):
     The abstracts in OpenAlex and MAG are saved in the inverted index format.  This function coverts back to the original text.
     """
 
-    # unpack the index list
-    word_index = [ (word, idx) for word, idxlist in abstract_index.items() for idx in idxlist] 
-    # sort the words
-    word_index = sorted(word_index, key = lambda x : x[1])
-    # insert the spaces back in and return
-    return " ".join(list(zip(*word_index))[0])
+    text = ""
+    if isinstance(abstract_index, dict):
+        # unpack the index list
+        word_index = [ (word, idx) for word, idxlist in abstract_index.items() for idx in idxlist] 
+        # sort the words
+        word_index = sorted(word_index, key = lambda x : x[1])
+        # insert the spaces back in and return
+        text = " ".join(list(zip(*word_index))[0])
+    
+    return text
 
 
 def standardize_doi(doistr):
