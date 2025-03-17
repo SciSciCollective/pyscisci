@@ -535,7 +535,7 @@ class OpenAlex(BibDataBase):
             files_to_parse = [os.path.join(dirpath, file) for (dirpath, dirnames, filenames) in os.walk(work_dir) for file in filenames if '.gz' in file]
 
 
-        if 'all' in dataframe_list:
+        if 'all' in dataframe_list or 'works' in dataframe_list:
             dataframe_list = openalex_works_dfset
 
 
@@ -780,7 +780,8 @@ class OpenAlex(BibDataBase):
 
         field_column_names = ['FieldId', 'FieldName', 'FieldLevel', 'FieldlevelName', 'WikiData', 'NumberPublications', 'NumberCitations', 'FieldDescription']
 
-        field_topic_hier = ['domains', 'fields', 'subfields', 'topics']
+        #field_topic_hier = ['domains', 'fields', 'subfields', 'topics']
+        field_topic_hier = ['fields', 'topics']
 
         if not os.path.exists(os.path.join(self.path2database, self.path2fieldinfo)):
             os.mkdir(os.path.join(self.path2database, self.path2fieldinfo))
@@ -961,3 +962,29 @@ class OpenAlex(BibDataBase):
                     funder_info = []
         
         return funder
+
+
+    def load_field_hierarchy(self):
+        """
+        Parse the OpenAlex Field Hierarchy data and return the Topic - SubField - Field - Domain memberships.
+
+        Parameters
+        ----------
+    
+
+        Returns
+        ----------
+        DataFrame
+            FieldHierarchy DataFrame.
+        """
+        fieldhier = pd.read_csv(os.path.join(path2oa, 'fieldinfo', 'fieldhierarchy0.csv.gz'))
+        
+        fieldhier2 = fieldhier.rename(columns = {'ParentFieldId': 'SubFieldId', 'ChildFieldId': 'TopicId'})
+        fieldhier2= fieldhier2.merge(fieldhier, how='inner', left_on = 'SubFieldId', right_on = 'ChildFieldId')
+        del fieldhier2['ChildFieldId']
+        fieldhier2 = fieldhier2.rename(columns = {'ParentFieldId': 'FieldId'})
+        fieldhier2= fieldhier2.merge(fieldhier, how='inner', left_on = 'FieldId', right_on = 'ChildFieldId')
+        del fieldhier2['ChildFieldId']
+        fieldhier2 = fieldhier2.rename(columns = {'ParentFieldId': 'DomainId'})
+
+        return fieldhier2

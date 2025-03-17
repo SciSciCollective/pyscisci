@@ -33,7 +33,7 @@ def disruption_index(pub2ref, focus_pub_ids = None, cite_window = None, ref_wind
     :param cite_window : list of two ints, default None
         If None, no citation window is applied.
         If [l, u] where, l,u are ints, then only citations whose year difference is greater than or equal to the lower bound l and 
-            less than or equal to the upper bound u are used.  e.g. [0,5] uses citations within 5 years of publication (and not before).
+            less than or equal to the upper bound u are used.  e.g. [0,5] uses citations within 5 years of publication (and not before publication).
 
     :param ref_window : list of two ints, default None
         If None, no reference window is applied.

@@ -12,20 +12,15 @@ import numpy as np
 from joblib import Parallel, delayed
 from scipy import sparse, spatial
 
+import numba
+
 # For now, I dont think we need to make the full pySciSci package dependent on these packages
-try:
-    import numba
-except ImportError:
-    raise ImportError(
-        "Please install numba to take full advantage of fast embedding tools. \n pip install numba"
-    )
 
 try:
     from gensim.models import Word2Vec
 except ImportError:
-    raise ImportError(
-        "Please install gensim to take full advantage of fast embedding tools. \n pip install gensim"
-    )
+    #raise ImportError("Please install gensim to take full advantage of fast embedding tools. \n pip install gensim")
+    print("Please install gensim to take full advantage of fast embedding tools. \n pip install gensim")
 
 try:
     import networkx as nx

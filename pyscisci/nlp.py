@@ -25,12 +25,14 @@ from nameparser import HumanName
 try:
     from Levenshtein import ratio
 except ImportError:
-    raise ImportError('Please install python-Levenshtein to take full advantage of the NLP tools. \n pip install python-Levenshtein')
+    #raise ImportError('Please install python-Levenshtein to take full advantage of the NLP tools. \n pip install python-Levenshtein')
+    print('Please install python-Levenshtein to take full advantage of the NLP tools. \n pip install python-Levenshtein')
 
 try:
     from sparse_dot_topn import awesome_cossim_topn
 except ImportError:
-    raise ImportError("Please install sparse_dot_topn to take full advantage of the NLP tools. \n pip install sparse_dot_topn")
+    #raise ImportError("Please install sparse_dot_topn to take full advantage of the NLP tools. \n pip install sparse_dot_topn")
+    print("Please install sparse_dot_topn to take full advantage of the NLP tools. \n pip install sparse_dot_topn")
 
 # determine if we are loading from a jupyter notebook (to make pretty progress bars)
 if 'ipykernel' in sys.modules:
@@ -49,8 +51,10 @@ def abstractindex2text(abstract_index):
         word_index = [ (word, idx) for word, idxlist in abstract_index.items() for idx in idxlist] 
         # sort the words
         word_index = sorted(word_index, key = lambda x : x[1])
-        # insert the spaces back in and return
-        text = " ".join(list(zip(*word_index))[0])
+
+        if len(word_index) > 0:
+            # insert the spaces back in and return
+            text = " ".join(list(zip(*word_index))[0])
     
     return text
 
