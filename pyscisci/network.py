@@ -412,6 +412,23 @@ def temporal_cocited_edgedict(pub2ref, pub2year):
 
     pub2ref.groupby('CitingPublicationId', sort=False).apply(count_cocite)
 
+def trajectory_network(paa, time_col_name = 'Year', aff_col_name = 'AffiliationId', person_col_name='AuthorId'):
+
+    paa.sort_values(by=[person_col_name, time_col_name], inplace=True)
+
+    # Drop only consecutive duplicates, 
+    # but if a value appears with something in-between, we keep the reoccurance
+    paa = paa[paa[person_col_name, aff_col_name] != paa[[person_col_name, aff_col_name]].shift()].reset_index(drop=True)
+    # or do we have to do this for each col separately
+    # paa = paa[paa[aff_col_name] != paa[aff_col_name].shift() | (paa[person_col_name] != paa[person_col_name].shift())]
+
+    next_aff_col = 'next_' + aff_col_name
+
+    paa[next_aff_col] = paa.groupby(person_col_name)[aff_col_name].shift(-1)
+    edges = paa.dropna(subset=[next_aff_col])
+
+    return edges
+
 
 def create_citation_edgelist(database, publication_subset = [], temporal = True):
 
