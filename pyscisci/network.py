@@ -461,3 +461,19 @@ def estimate_resolution(G, com):
     
     return gamma
 
+def Schubert_Glanzel_normalization(net):
+    """
+    Schubert, A. and Glänzel, W., 2006. Cross-national preference in co-authorship, 
+    references and citations. Scientometrics, 69, pp.409-428.
+    """
+    N = net.shape[0]
+
+    total = net.sum()
+
+    row_sum_mat = net.sum(axis=1).repeat(N).reshape((N,N))
+    col_sum_mat = net.sum(axis=0).repeat(N).reshape((N,N)).T
+
+    ishare = normalize(net, norm='l1', axis=1)
+    jshare = col_sum_mat / (total - row_sum_mat)
+
+    return ishare / jshare
