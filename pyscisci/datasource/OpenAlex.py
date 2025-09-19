@@ -539,7 +539,7 @@ class OpenAlex(BibDataBase):
             dataframe_list = openalex_works_dfset
 
 
-        pub_column_names = ['PublicationId', 'JournalId', 'Year', 'NumberCitations', 'Title', 'Date', 'DocType', 'Doi', 'PMID', 'Volume', 'Issue', 'FirstPage', 'LastPage', 'Language', 'IsRetracted', 'IsParaText', 'IsOpenAccess', 'OpenAccessStatus']
+        pub_column_names = ['PublicationId', 'JournalId', 'Year', 'NumberCitations', 'Title', 'Date', 'DocType', 'Language', 'Doi', 'PMID', 'Volume', 'Issue', 'FirstPage', 'LastPage', 'IsRetracted', 'IsParaText', 'IsOpenAccess', 'OpenAccessStatus', 'OpenURL']
 
         if preprocess and (('publications' in dataframe_list) or ('works' in dataframe_list)):
             if not os.path.exists(os.path.join(self.path2database, self.path2pub)):
@@ -618,7 +618,7 @@ class OpenAlex(BibDataBase):
                                     sourceid = None
                                 wdata += [sourceid]
                                 wdata += [load_int(wline.get(idname, None)) for idname in ['publication_year', 'cited_by_count']]
-                                wdata += [wline.get(idname, None) for idname in ['title', 'publication_date', 'type']]
+                                wdata += [wline.get(idname, None) for idname in ['title', 'publication_date', 'type', 'language']]
                                 doi = wline.get('doi', None)
                                 if isinstance(doi, str):
                                     doi = doi.replace("https://doi.org/", "")
@@ -628,10 +628,10 @@ class OpenAlex(BibDataBase):
                                     pmid = pmid.replace("https://pubmed.ncbi.nlm.nih.gov/", "")
                                 wdata += [pmid]
                                 bibinfo = wline.get('biblio', {})
-                                wdata += [bibinfo.get(idname, None) for idname in ['volume', 'issue', 'first_page', 'last_page', 'language']]
-                                wdata += [load_bool(wline.get(extraid, None)) for extraid in ['is_retracted', 'is_paratext', 'is_oa']]
+                                wdata += [bibinfo.get(idname, None) for idname in ['volume', 'issue', 'first_page', 'last_page']]
+                                wdata += [load_bool(wline.get(extraid, None)) for extraid in ['is_retracted', 'is_paratext']]
                                 oainfo = wline.get('open_access', {})
-                                wdata += [oainfo.get(oai, None) for oai in ['oa_status']]
+                                wdata += [oainfo.get(oai, None) for oai in ['is_oa', 'oa_status', 'oa_url']]
 
                                 if preprocess_dicts:
                                     pub2year.append([ownid, wdata[2]])

@@ -197,7 +197,7 @@ def load_preprocessed_data(dataname, path2database, database_extension = 'hdf', 
     if use_dask:
         data = dd.multi.concat(data)
     else:
-        data = pd.concat(data)
+        data = pd.concat(data, ignore_index=True)
 
     if isinstance(duplicate_subset, list):
         data = data.drop_duplicates(subset = duplicate_subset, keep = duplicate_keep)
