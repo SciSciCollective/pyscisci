@@ -1,8 +1,9 @@
 import numpy as np 
 import pandas as pd
 
+import matplotlib.pylab as plt
 import matplotlib.gridspec as gridspec
-
+import seaborn as sns
 
 def pvalue2stars(pvalue):
     if pvalue < 0.001:
@@ -28,7 +29,6 @@ def table_row(varname='const', offset=0, roun=2, modellist=[], namedict={},i=0,j
 def make_multinomial_latex_table(fit_models, exog_var_sets = [], dep_var = "", namedict = {}, caption_text=""):
     
     Nmodels = len(exog_var_sets)
-    
     table_text= """{\\tiny
     \\begin{longtable}{p{0.2\\linewidth}"""+"p{0.12\\linewidth}"*Nmodels+"}"+"""\\caption{\\textbf{Fixed-effect multinomial logit regression.} Model coefficients labelled by $p$-value. Standard errors in parentheses.} 
       \\label{table:multinomialfull} \\\\
@@ -77,7 +77,8 @@ def make_multinomial_latex_table(fit_models, exog_var_sets = [], dep_var = "", n
 
     for offset, varlist in enumerate(exog_var_sets):
         for var in varlist:
-            table_text += table_row(varname=var, offset=offset, roun=2, modellist=fit_models, namedict=namedict,i=1,j=2)
+            if not 'year' in var:  #skip the year fixed effects
+                table_text += table_row(varname=var, offset=offset, roun=2, modellist=fit_models, namedict=namedict,i=1,j=2)
 
 
     
@@ -102,3 +103,78 @@ def make_multinomial_latex_table(fit_models, exog_var_sets = [], dep_var = "", n
     table_text += "\\hline \n\\end{longtable} } }"
     
     print(table_text)
+
+
+def logistic_coefficient_plot(df1, df2, colours, Model_features, ax=None):
+    
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(5,12))
+    
+    
+    df1s=df1[df1['pvalues']<=0.05]
+    df1ns=df1[df1['pvalues']>0.05]
+
+    df2s=df2[df2['pvalues']<=0.05]
+    df2ns=df2[df2['pvalues']>0.05]
+
+    x1s = df1s['risk']
+    y1s = np.array(df1s.index.to_list())-0.2
+    xerror1s = df1s['xerror']
+
+    x1ns = df1ns['risk']
+    y1ns = np.array(df1ns.index.to_list())-0.2
+    xerror1ns = df1ns['xerror']
+
+    x2s = df2s['risk']
+    y2s = np.array(df2s.index.to_list())+0.2
+    xerror2s = df2s['xerror']
+
+    x2ns = df2ns['risk']
+    y2ns = np.array(df2ns.index.to_list())+0.2
+    xerror2ns = df2ns['xerror']
+    
+    y=df1.index.to_list()
+    
+    ax.errorbar(x1s, y1s, xerr=xerror1s, fmt='o',color=colours[1],label="Positive recognition",ms=4)
+    ax.errorbar(x2s, y2s, xerr=xerror2s, fmt='o',color=colours[2],label="Negative recognition",ms=4)
+    
+    ax.errorbar(x1ns, y1ns, xerr=xerror1ns, fmt='o',color=colours[1],mfc='w',mew=1,label="Positive recognition(not sig)",ms=4)
+    ax.errorbar(x2ns, y2ns, xerr=xerror2ns, fmt='o',color=colours[2],mfc='w',mew=1,label="Negative recognition(not sig)",ms=4)
+
+    #ax.errorbar(x1ns, y1ns, xerr=xerror1ns, fmt='o',color=colours[1],label="Positive recognition(not sig)",ms=4, alpha=0.5)
+    #ax.errorbar(x2ns, y2ns, xerr=xerror2ns, fmt='o',color=colours[2],label="Negative recognition(not sig)",ms=4, alpha=0.5)
+
+    ax.invert_yaxis()
+    
+    ax.axvline(x=0, color=colours[0],  linestyle='--',ymin=0,ymax=0.98)
+
+    sns.despine(top=True, right=True, left=True, bottom=False)
+
+    ylabels=df1['item']
+    ax.set_yticks(y)
+    ax.set_yticklabels(ylabels)
+    ax.set_xticks([-3,-2,-1,0,1,2,3,4])
+    ax.tick_params(axis="both", which="both", bottom=True, top=False,    
+                    labelbottom=True, left=False, right=False, labelleft=True,labelsize=9) 
+
+    ax.set_ylim([len(Model_features)+2.5,0])
+    ax.set_xlabel("Regression coefficient",fontsize=10)
+
+    hlines=y
+    counter=0
+    for ix in hlines: 
+        if counter % 2 == 0:
+            ax.axhspan(ix - 0.5, ix + 0.5, color=colours[0],alpha=0.3, zorder=0,lw=0)
+        counter += 1
+
+
+    plt.legend(bbox_to_anchor=(-0.3, 0.55, 0.5, 0.5),
+        fontsize=10,
+               loc="upper left",
+               ncol=2,
+               markerscale=1,
+               frameon=False,
+               handletextpad=.1,
+               columnspacing=.2)
+    
+    return ax

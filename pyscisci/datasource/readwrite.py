@@ -3,8 +3,7 @@ import sys
 import pathlib
 import pandas as pd
 import numpy as np
-
-#import dask.dataframe as dd
+import requests
 
 from unidecode import unidecode
 import html
@@ -65,6 +64,28 @@ def load_xml_text(root_element, default=''):
             return default
     else:
         return root_element[0].text
+
+def download_file(url, filepath, verbose=False):
+    """
+    Downloads a file from a given URL and saves it to the specified filepath.
+    
+    Parameters:
+        url (str): The URL of the file to download.
+        filepath (str): The local file path to save the downloaded file.
+    """
+    try:
+        response = requests.get(url, stream=True)
+        response.raise_for_status()  # Raise an error for bad responses (4xx or 5xx)
+
+        with open(filepath, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:  # Filter out keep-alive chunks
+                    f.write(chunk)
+        if verbose:
+            print(f"File downloaded successfully and saved to: {filepath}")
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error downloading file: {e}")
 
 
 def load_preprocessed_data(dataname, path2database, database_extension = 'hdf', columns = None, filter_dict=None, duplicate_subset=None,
