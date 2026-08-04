@@ -59,7 +59,7 @@ class DBLP(BibDataBase):
         record['DocType'] = ''
         return record
 
-    def _save_dataframes(self, ifile, publication, author, author_columns, author2pub):
+    def _save_dataframes(self, ifile, publication, author, author_columns, author2pub,):
 
         publication = pd.DataFrame(publication)
         publication['PublicationId'] = publication['PublicationId'].astype(int)
@@ -132,9 +132,10 @@ class DBLP(BibDataBase):
         PublicationId = 1
         AuthorId = 1
         aname2aid = {}
-        author_columns = ['AuthorId', 'FullName']
+        author_columns = ['AuthorId', 'OrigName']
+        author2orcid = {}
         if process_name:
-            author_columns += ['LastName', 'FirstName', 'MiddleName']
+            author_columns += ['FullName', 'LastName', 'FirstName', 'MiddleName']
         JournalId = 1
         jname2jid = {}
 
@@ -197,19 +198,24 @@ class DBLP(BibDataBase):
 
                 elif elem.tag == 'ee':
                     pub_record['EE'] = load_html_str(elem.text)
+                    pub_record['eeType'] = elem.get("type")
 
                 elif elem.tag == 'author':
                     AuthorCount += 1
                     fullname = load_html_str(elem.text)
                     if aname2aid.get(fullname, None) is None:
                         if process_name:
-                            fullname = ''.join([i for i in fullname if not i.isdigit()]).strip()
-                            hname = HumanName(fullname)
-                            author.append([AuthorId, fullname, hname.last, hname.first, hname.middle])
+                            cleanname = ''.join([i for i in fullname if not i.isdigit()]).strip()
+                            hname = HumanName(cleanname)
+                            author.append([AuthorId, fullname, cleanname, hname.last, hname.first, hname.middle])
                         else:
                             author.append([AuthorId, fullname])
                         aname2aid[fullname] = AuthorId
                         AuthorId += 1
+
+                    orcid = elem.get("orcid")
+                    if not orcid is None:
+                        author2orcid[fullname] = orcid
 
                     pub_authors.append([PublicationId, aname2aid[fullname], AuthorCount])
 
@@ -251,6 +257,14 @@ class DBLP(BibDataBase):
 
         self._save_dataframes(ifile, publication, author, author_columns, author2pub)
 
+
+        # now add back the ORCIDs - they can occur after the first usage so need to return to all dataframes
+        author2orcid = pd.DataFrame(author2orcid.items(), columns=["OrigName", "ORCID"])
+        for jfile in range(ifile+1):
+            fname = os.path.join(self.path2database, self.path2author, '{}{}.{}'.format(self.path2author, jfile, self.database_extension))
+            author = pd.read_csv(fname)
+            author = author.merge(author2orcid, on='OrigName', how='left')
+            self.save_data_file(author, fname, key =self.path2author)
 
 
 
